@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Volleyball Collective — Exclusive Drops</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://js.stripe.com/v3/"></script>
+<style>
+:root {
+  --fr-blue:  #002395;
+  --fr-red:   #ED2939;
+  --fr-white: #F5F0E8;
+  --deep:     #00154F;
+  --navy:     #001875;
+  --card:     #001260;
+  --card2:    #011a7a;
+  --muted:    #7b9fd4;
+  --success:  #3ecf8e;
+  --danger:   #ff6b6b;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--deep);color:var(--fr-white);font-family:'DM Sans',sans-serif;overflow-x:hidden;cursor:none}
+
+/* cursor */
+#cursor{position:fixed;width:11px;height:11px;background:var(--fr-red);border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);transition:transform .1s ease;mix-blend-mode:difference}
+#cursor-ring{position:fixed;width:34px;height:34px;border:1.5px solid rgba(237,41,57,.5);border-radius:50%;pointer-events:none;z-index:9998;transform:translate(-50%,-50%);transition:all .12s ease}
+
+/* noise */
+body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");opacity:.03;pointer-events:none;z-index:1}
+
+#bg-canvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:500;display:flex;justify-content:space-between;align-items:center;padding:20px 48px;background:linear-gradient(180deg,rgba(0,21,79,.97) 0%,transparent 100%);backdrop-filter:blur(8px);border-bottom:1px solid rgba(237,41,57,.1)}
+.nav-logo{font-family:'Bebas Neue',sans-serif;font-size:1.45rem;letter-spacing:4px;color:var(--fr-white);text-decoration:none;display:flex;align-items:center;gap:10px}
+.logo-dot{width:8px;height:8px;background:var(--fr-red);border-radius:50%;animation:blink 2s ease-in-out infinite;flex-shrink:0}
+@keyframes blink{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.6)}}
+.nav-links{display:flex;gap:28px;align-items:center}
+.nav-links a{color:var(--muted);text-decoration:none;font-size:.75rem;letter-spacing:3px;text-transform:uppercase;transition:color .2s}
+.nav-links a:hover{color:var(--fr-white)}
+.btn-nav-admin{background:transparent;border:1px solid var(--fr-red);color:var(--fr-red);padding:8px 20px;border-radius:2px;cursor:pointer;font-size:.72rem;letter-spacing:3px;text-transform:uppercase;transition:all .2s;font-family:'DM Sans',sans-serif}
+.btn-nav-admin:hover{background:var(--fr-red);color:#fff}
+
+/* TRICOLOR */
+.tricolor{height:4px;background:linear-gradient(90deg,var(--fr-blue) 33.3%,var(--fr-white) 33.3%,var(--fr-white) 66.6%,var(--fr-red) 66.6%)}
+
+/* HERO */
+#hero{position:relative;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:140px 40px 100px;z-index:2;overflow:hidden}
+.tricolor-top{position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--fr-blue) 33.3%,var(--fr-white) 33.3%,var(--fr-white) 66.6%,var(--fr-red) 66.6%);z-index:10}
+
+.hero-eyebrow{font-size:.68rem;letter-spacing:6px;text-transform:uppercase;color:var(--fr-red);margin-bottom:26px;animation:fadeUp .9s ease both;display:flex;align-items:center;gap:14px}
+.hero-eyebrow::before,.hero-eyebrow::after{content:'';display:block;width:44px;height:1px;background:rgba(237,41,57,.4)}
+
+.hero-title{font-family:'Bebas Neue',sans-serif;line-height:.88;letter-spacing:1px;animation:fadeUp .9s ease .1s both}
+.ht-small{display:block;font-size:clamp(2.2rem,5.5vw,4.5rem);letter-spacing:8px;background:linear-gradient(135deg,var(--fr-red),#ff8c96 50%,var(--fr-red));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:6px;animation:fadeUp .9s ease .1s both,redGlowPulse 3.5s ease-in-out 1s infinite}
+.ht-big{display:block;font-size:clamp(5.5rem,16vw,13rem);-webkit-text-stroke:2px var(--fr-white);-webkit-text-fill-color:transparent;color:transparent;line-height:.9;filter:drop-shadow(0 0 18px rgba(245,240,232,.18));animation:fadeUp .9s ease .1s both,bigGlowPulse 4s ease-in-out 1.2s infinite}
+.ht-last{display:block;font-size:clamp(2.5rem,7vw,5.5rem);color:var(--fr-white);letter-spacing:4px;text-shadow:0 0 60px rgba(0,35,149,.6);animation:fadeUp .9s ease .1s both,blueGlowPulse 4s ease-in-out 1.4s infinite}
+@keyframes redGlowPulse{0%,100%{filter:drop-shadow(0 0 6px rgba(237,41,57,.3)) drop-shadow(0 0 18px rgba(237,41,57,.12))}50%{filter:drop-shadow(0 0 14px rgba(237,41,57,.55)) drop-shadow(0 0 32px rgba(237,41,57,.22))}}
+@keyframes bigGlowPulse{0%,100%{filter:drop-shadow(0 0 8px rgba(245,240,232,.08)) drop-shadow(0 0 22px rgba(0,35,149,.12))}50%{filter:drop-shadow(0 0 18px rgba(245,240,232,.2)) drop-shadow(0 0 44px rgba(0,35,149,.22))}}
+@keyframes blueGlowPulse{0%,100%{text-shadow:0 0 20px rgba(0,35,149,.25),0 0 40px rgba(0,35,149,.1)}50%{text-shadow:0 0 32px rgba(0,35,149,.5),0 0 65px rgba(0,35,149,.22)}}
+
+.hero-sub{font-family:'Playfair Display',serif;font-style:italic;font-size:clamp(1rem,2.4vw,1.3rem);color:var(--muted);margin-top:22px;letter-spacing:1px;line-height:1.6;animation:fadeUp .9s ease .2s both;max-width:520px}
+
+.divider-row{display:flex;align-items:center;gap:18px;margin:30px 0;animation:fadeUp .9s ease .28s both}
+.divider-row::before,.divider-row::after{content:'';flex:1;max-width:70px;height:1px;background:rgba(237,41,57,.3)}
+.divider-row span{font-size:.65rem;letter-spacing:5px;color:var(--muted);text-transform:uppercase}
+
+.hero-cta{display:flex;gap:16px;flex-wrap:wrap;justify-content:center;animation:fadeUp .9s ease .35s both}
+.btn-primary{background:var(--fr-red);color:#fff;border:none;padding:17px 40px;font-family:'Bebas Neue',sans-serif;font-size:1.1rem;letter-spacing:4px;cursor:pointer;border-radius:2px;transition:all .25s;text-decoration:none;display:inline-block;position:relative;overflow:hidden}
+.btn-primary::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.15),transparent);opacity:0;transition:opacity .2s}
+.btn-primary:hover{background:#c7202d;transform:translateY(-2px);box-shadow:0 12px 40px rgba(237,41,57,.4)}
+.btn-primary:hover::after{opacity:1}
+.btn-ghost{background:transparent;color:var(--fr-white);border:1px solid rgba(245,240,232,.22);padding:17px 40px;font-family:'Bebas Neue',sans-serif;font-size:1.1rem;letter-spacing:4px;cursor:pointer;border-radius:2px;transition:all .25s;text-decoration:none;display:inline-block}
+.btn-ghost:hover{border-color:var(--fr-white);background:rgba(255,255,255,.05)}
+
+.hero-stats{display:flex;gap:56px;margin-top:60px;padding-top:40px;border-top:1px solid rgba(245,240,232,.07);animation:fadeUp .9s ease .45s both;flex-wrap:wrap;justify-content:center}
+.stat{text-align:center}
+.stat-num{font-family:'Bebas Neue',sans-serif;font-size:2.9rem;color:var(--fr-red);display:block;line-height:1;text-shadow:0 0 30px rgba(237,41,57,.35)}
+.stat-label{font-size:.65rem;letter-spacing:3px;text-transform:uppercase;color:var(--muted);margin-top:5px;display:block}
+
+.scroll-hint{position:absolute;bottom:34px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:8px;color:var(--muted);font-size:.63rem;letter-spacing:4px;text-transform:uppercase;animation:fadeIn 1.5s ease 1s both}
+.scroll-arrow{width:20px;height:20px;border-right:1.5px solid var(--muted);border-bottom:1.5px solid var(--muted);transform:rotate(45deg);animation:sarrow 2s ease-in-out infinite}
+@keyframes sarrow{0%,100%{transform:rotate(45deg) translate(0,0);opacity:1}50%{transform:rotate(45deg) translate(4px,4px);opacity:.3}}
+
+/* MARQUEE */
+.marquee-wrap{position:relative;z-index:2;overflow:hidden;border-top:1px solid rgba(237,41,57,.18);border-bottom:1px solid rgba(237,41,57,.18);padding:13px 0;background:linear-gradient(90deg,rgba(237,41,57,.05),rgba(0,35,149,.06),rgba(237,41,57,.05))}
+.marquee-track{display:flex;animation:marquee 26s linear infinite;white-space:nowrap;width:max-content}
+.marquee-track .mt{font-family:'Bebas Neue',sans-serif;font-size:.88rem;letter-spacing:5px;padding:0 26px;color:var(--fr-white)}
+.marquee-track .ms{color:rgba(237,41,57,.4);font-family:'Bebas Neue',sans-serif;font-size:.88rem}
+@keyframes marquee{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+
+/* SECTION */
+.section-eyebrow{font-size:.66rem;letter-spacing:5px;text-transform:uppercase;color:var(--fr-red);margin-bottom:10px;display:block}
+.section-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(2.5rem,6vw,4.5rem);letter-spacing:2px;color:var(--fr-white)}
+.section-header{display:flex;align-items:baseline;gap:20px;margin-bottom:52px;flex-wrap:wrap}
+.live-badge{background:var(--fr-red);color:#fff;font-size:.62rem;font-weight:600;letter-spacing:3px;text-transform:uppercase;padding:5px 12px;border-radius:2px;animation:pulseBadge 2.5s ease-in-out infinite}
+@keyframes pulseBadge{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(237,41,57,.5)}50%{opacity:.8;box-shadow:0 0 0 8px rgba(237,41,57,0)}}
+
+/* DROPS */
+#drops{position:relative;z-index:2;padding:100px 48px;max-width:1280px;margin:0 auto}
+.drops-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:28px}
+
+.drop-card{background:var(--card);border:1px solid rgba(0,35,149,.4);border-radius:4px;overflow:hidden;cursor:pointer;transition:transform .35s cubic-bezier(.22,1,.36,1),box-shadow .35s,border-color .35s;animation:fadeUp .6s ease both;position:relative}
+.drop-card:hover{transform:translateY(-8px);box-shadow:0 24px 64px rgba(0,0,0,.5),0 0 0 1px rgba(237,41,57,.25);border-color:rgba(237,41,57,.3)}
+.drop-img-wrap{position:relative;height:290px;overflow:hidden;background:linear-gradient(135deg,var(--deep),var(--fr-blue))}
+.drop-img-wrap img{width:100%;height:100%;object-fit:cover;transition:transform .5s cubic-bezier(.22,1,.36,1)}
+.drop-card:hover .drop-img-wrap img{transform:scale(1.07)}
+.drop-no-img{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:4rem;background:linear-gradient(135deg,var(--deep),var(--fr-blue))}
+.drop-badge-chip{position:absolute;top:14px;left:14px;z-index:2;background:rgba(0,21,79,.88);border:1px solid rgba(237,41,57,.5);color:var(--fr-red);font-size:.62rem;letter-spacing:3px;text-transform:uppercase;padding:5px 12px;border-radius:2px;backdrop-filter:blur(6px)}
+.card-stripe{height:3px;background:linear-gradient(90deg,var(--fr-blue) 33.3%,var(--fr-white) 33.3%,var(--fr-white) 66.6%,var(--fr-red) 66.6%)}
+.drop-body{padding:22px}
+.drop-name{font-family:'Bebas Neue',sans-serif;font-size:1.45rem;letter-spacing:2px;color:var(--fr-white);margin-bottom:6px}
+.drop-meta{display:flex;gap:12px;font-size:.72rem;color:var(--muted);margin-bottom:14px;flex-wrap:wrap}
+.drop-meta span{background:rgba(0,35,149,.2);border:1px solid rgba(0,35,149,.3);padding:3px 9px;border-radius:2px}
+.drop-desc{font-size:.83rem;color:var(--muted);line-height:1.65;margin-bottom:20px}
+.drop-footer{display:flex;align-items:center;justify-content:space-between;padding-top:16px;border-top:1px solid rgba(255,255,255,.07)}
+.drop-bid-count{font-size:.72rem;color:var(--muted);letter-spacing:1px}
+.btn-bid-card{background:var(--fr-red);color:#fff;border:none;padding:11px 26px;font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:3px;cursor:pointer;border-radius:2px;transition:all .2s}
+.btn-bid-card:hover{background:#c7202d;transform:translateY(-1px);box-shadow:0 6px 20px rgba(237,41,57,.35)}
+.empty-drops{grid-column:1/-1;text-align:center;padding:80px 0;color:var(--muted)}
+.empty-drops .ei{font-size:4rem;margin-bottom:16px;display:block}
+.empty-drops p{font-size:.87rem;letter-spacing:1px}
+
+/* HOW IT WORKS */
+#how{position:relative;z-index:2;padding:100px 48px;background:linear-gradient(180deg,rgba(237,41,57,.04),transparent);border-top:1px solid rgba(237,41,57,.1);border-bottom:1px solid rgba(0,35,149,.2)}
+.how-inner{max-width:1100px;margin:0 auto}
+.how-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:48px;margin-top:56px}
+.how-step{position:relative}
+.how-num{font-family:'Bebas Neue',sans-serif;font-size:5rem;line-height:.9;color:transparent;-webkit-text-stroke:1px rgba(237,41,57,.15);margin-bottom:12px;display:block}
+.how-icon{font-size:1.8rem;margin-bottom:10px;display:block}
+.how-title{font-family:'Playfair Display',serif;font-size:1.05rem;color:var(--fr-white);margin-bottom:10px;font-weight:700}
+.how-text{font-size:.82rem;color:var(--muted);line-height:1.75}
+.how-step:not(:last-child)::after{content:'→';position:absolute;right:-24px;top:40%;transform:translateY(-50%);color:rgba(237,41,57,.2);font-size:1.5rem}
+
+/* OVERLAY / MODAL */
+.overlay{position:fixed;inset:0;background:rgba(0,21,79,.93);z-index:600;display:none;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(10px)}
+.overlay.active{display:flex;animation:fadeIn .2s ease}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(26px)}to{opacity:1;transform:translateY(0)}}
+
+.modal{background:var(--card);border:1px solid rgba(0,35,149,.5);border-top:3px solid var(--fr-red);border-radius:4px;width:100%;max-width:560px;max-height:90vh;overflow-y:auto;animation:slideUp .3s cubic-bezier(.22,1,.36,1)}
+@keyframes slideUp{from{opacity:0;transform:translateY(32px)}to{opacity:1;transform:translateY(0)}}
+.modal-header{display:flex;justify-content:space-between;align-items:flex-start;padding:28px 28px 0;margin-bottom:22px}
+.modal-title{font-family:'Bebas Neue',sans-serif;font-size:1.7rem;letter-spacing:2px;color:var(--fr-white)}
+.modal-sub{font-size:.74rem;color:var(--muted);margin-top:4px;letter-spacing:1px}
+.btn-close{background:none;border:none;color:var(--muted);font-size:1.2rem;cursor:pointer;line-height:1;padding:4px;transition:color .2s}
+.btn-close:hover{color:var(--fr-red)}
+.modal-body{padding:0 28px 28px}
+
+label{display:block;font-size:.68rem;letter-spacing:2.5px;text-transform:uppercase;color:var(--muted);margin-bottom:7px}
+.section-label{font-size:.7rem;letter-spacing:3px;text-transform:uppercase;color:var(--fr-red);margin:18px 0 12px;display:block;border-bottom:1px solid rgba(237,41,57,.15);padding-bottom:8px}
+input[type=text],input[type=email],input[type=tel],input[type=number],input[type=password],textarea,select{width:100%;background:rgba(0,35,149,.12);border:1px solid rgba(0,35,149,.4);border-radius:3px;color:var(--fr-white);padding:13px 16px;font-size:.9rem;font-family:'DM Sans',sans-serif;outline:none;transition:border-color .2s,background .2s}
+input:focus,textarea:focus,select:focus{border-color:var(--fr-red);background:rgba(237,41,57,.06)}
+.amount-wrap{position:relative}
+.amount-wrap span{position:absolute;left:16px;top:50%;transform:translateY(-50%);color:var(--fr-red);font-size:1.15rem;font-weight:600}
+.amount-wrap input{padding-left:28px;font-size:1.25rem}
+.form-row{margin-bottom:16px}
+.form-row-2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px}
+
+#stripe-card-element{background:rgba(0,35,149,.12);border:1px solid rgba(0,35,149,.4);border-radius:3px;padding:14px 16px;transition:border-color .2s}
+#stripe-card-element.focused{border-color:var(--fr-red)}
+.stripe-note{font-size:.72rem;color:var(--muted);margin-top:8px;display:flex;align-items:center;gap:6px}
+.error-msg{background:rgba(255,107,107,.1);border:1px solid rgba(255,107,107,.3);color:#ffaaaa;padding:12px 16px;border-radius:3px;font-size:.82rem;margin-top:12px;display:none}
+.btn-submit{width:100%;background:var(--fr-red);color:#fff;border:none;padding:17px;font-family:'Bebas Neue',sans-serif;font-size:1.25rem;letter-spacing:4px;cursor:pointer;border-radius:3px;margin-top:20px;transition:all .2s;position:relative;overflow:hidden}
+.btn-submit::after{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.1),transparent);transition:left .4s}
+.btn-submit:hover{background:#c7202d;box-shadow:0 8px 32px rgba(237,41,57,.4)}
+.btn-submit:hover::after{left:100%}
+.btn-submit:disabled{opacity:.55;cursor:not-allowed}
+.btn-submit .spinner{display:none;width:18px;height:18px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;margin:0 auto}
+@keyframes spin{to{transform:rotate(360deg)}}
+.btn-submit.loading .btn-text{display:none}
+.btn-submit.loading .spinner{display:block}
+
+.bid-success{text-align:center;padding:48px 24px;display:none}
+.bid-success .check{font-size:4rem;display:block;margin-bottom:16px;animation:popIn .4s cubic-bezier(.22,1.36,.36,1)}
+@keyframes popIn{from{transform:scale(0)}to{transform:scale(1)}}
+.bid-success h3{font-family:'Bebas Neue',sans-serif;font-size:2rem;letter-spacing:3px;color:var(--fr-red);margin-bottom:14px}
+.bid-success p{font-size:.86rem;color:var(--muted);line-height:1.75;max-width:380px;margin:0 auto 24px}
+.btn-secondary{background:transparent;color:var(--fr-white);border:1px solid rgba(245,240,232,.22);padding:13px 30px;font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:3px;cursor:pointer;border-radius:2px;transition:all .2s;display:inline-block}
+.btn-secondary:hover{border-color:var(--fr-white);background:rgba(255,255,255,.05)}
+
+/* ADMIN */
+.admin-modal{max-width:940px}
+.admin-pw-wrap{padding:64px 28px;text-align:center}
+.admin-pw-wrap h2{font-family:'Bebas Neue',sans-serif;font-size:2rem;letter-spacing:3px;margin-bottom:8px}
+.admin-pw-wrap p{font-size:.8rem;color:var(--muted);margin-bottom:28px;letter-spacing:1px}
+.pw-row{display:flex;max-width:360px;margin:0 auto}
+.pw-row input{border-radius:3px 0 0 3px;flex:1}
+.pw-row button{background:var(--fr-red);border:none;color:#fff;padding:0 22px;font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:2px;cursor:pointer;border-radius:0 3px 3px 0;transition:background .2s;white-space:nowrap}
+.pw-row button:hover{background:#c7202d}
+#admin-dashboard{display:none}
+.admin-tabs{display:flex;border-bottom:1px solid rgba(0,35,149,.4);padding:0 28px;gap:2px;margin-bottom:24px;overflow-x:auto}
+.tab{background:none;border:none;color:var(--muted);padding:13px 22px;font-size:.7rem;letter-spacing:2.5px;text-transform:uppercase;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .2s;white-space:nowrap;font-family:'DM Sans',sans-serif}
+.tab.active{color:var(--fr-red);border-bottom-color:var(--fr-red)}
+.tab-content{display:none;padding:0 28px 28px}
+.tab-content.active{display:block}
+.photo-toggle{display:flex;gap:10px;margin-bottom:12px}
+.photo-toggle button{background:rgba(0,35,149,.15);border:1px solid rgba(0,35,149,.35);color:var(--muted);padding:7px 16px;font-size:.73rem;letter-spacing:1px;cursor:pointer;border-radius:2px;transition:all .2s;font-family:'DM Sans',sans-serif}
+.photo-toggle button.active{background:rgba(237,41,57,.1);border-color:var(--fr-red);color:var(--fr-red)}
+.photo-upload-area{border:2px dashed rgba(0,35,149,.4);border-radius:4px;padding:32px;text-align:center;cursor:pointer;transition:all .2s;position:relative}
+.photo-upload-area:hover{border-color:var(--fr-red);background:rgba(237,41,57,.03)}
+.photo-upload-area input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.upload-preview{display:none;width:100%;max-height:180px;object-fit:contain;border-radius:3px;margin-bottom:12px}
+.bids-table{width:100%;border-collapse:collapse;font-size:.79rem}
+.bids-table th{text-align:left;padding:10px 12px;font-size:.63rem;letter-spacing:2.5px;text-transform:uppercase;color:var(--muted);border-bottom:1px solid rgba(0,35,149,.3)}
+.bids-table td{padding:13px 12px;border-bottom:1px solid rgba(0,35,149,.15);color:var(--fr-white);vertical-align:top}
+.bids-table tr:hover td{background:rgba(0,35,149,.1)}
+.bid-amt{font-family:'Bebas Neue',sans-serif;font-size:1.15rem;color:var(--fr-red)}
+.btn-charge{background:var(--success);color:#021a0e;border:none;padding:7px 14px;font-size:.7rem;letter-spacing:1px;text-transform:uppercase;cursor:pointer;border-radius:2px;font-weight:600;transition:all .2s}
+.btn-charge:hover{background:#5de3a8}
+.badge-charged{background:rgba(62,207,142,.12);border:1px solid rgba(62,207,142,.3);color:var(--success);padding:4px 10px;font-size:.67rem;letter-spacing:1px;border-radius:2px}
+.badge-nocard{background:rgba(123,159,212,.08);border:1px solid rgba(123,159,212,.2);color:var(--muted);padding:4px 10px;font-size:.67rem;letter-spacing:1px;border-radius:2px}
+.drop-group{margin-bottom:28px;border:1px solid rgba(0,35,149,.3);border-radius:4px;overflow:hidden}
+.drop-group-hd{background:rgba(0,35,149,.2);padding:14px 18px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+.drop-group-name{font-family:'Bebas Neue',sans-serif;font-size:1.1rem;letter-spacing:2px;color:var(--fr-red)}
+.btn-del{background:rgba(237,41,57,.1);border:1px solid rgba(237,41,57,.2);color:var(--fr-red);padding:6px 12px;font-size:.68rem;letter-spacing:1px;cursor:pointer;border-radius:2px;transition:all .2s}
+.btn-del:hover{background:rgba(237,41,57,.2)}
+.btn-tog{background:rgba(0,35,149,.2);border:1px solid rgba(0,35,149,.4);color:var(--muted);padding:6px 12px;font-size:.68rem;letter-spacing:1px;cursor:pointer;border-radius:2px;transition:all .2s}
+.btn-tog:hover{border-color:var(--fr-white);color:var(--fr-white)}
+.no-bids{padding:20px;text-align:center;color:var(--muted);font-size:.82rem}
+
+footer{position:relative;z-index:2;text-align:center;padding:48px 40px;border-top:1px solid rgba(237,41,57,.1);color:var(--muted);font-size:.76rem;letter-spacing:1px}
+footer .f-logo{font-family:'Bebas Neue',sans-serif;font-size:1.4rem;color:var(--fr-white);letter-spacing:4px;margin-bottom:10px;display:block}
+footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
+
+.toast{position:fixed;bottom:28px;right:28px;background:var(--card2);border:1px solid rgba(0,35,149,.5);border-left:3px solid var(--fr-red);padding:14px 20px;border-radius:4px;font-size:.83rem;color:var(--fr-white);z-index:999;transform:translateY(100px);opacity:0;transition:all .3s cubic-bezier(.22,1,.36,1);max-width:340px}
+.toast.show{transform:translateY(0);opacity:1}
+.toast.err{border-left-color:var(--danger)}
+
+@media(max-width:640px){
+  nav{padding:14px 20px}
+  #drops,#how{padding:60px 20px}
+  .ht-big{font-size:clamp(4rem,18vw,7rem)}
+  .modal-header{padding:20px 20px 0}
+  .modal-body{padding:0 20px 20px}
+  .form-row-2{grid-template-columns:1fr}
+  .admin-tabs{padding:0 16px}
+  .tab-content{padding:0 16px 20px}
+  .bids-table{font-size:.72rem}
+}
+</style>
+</head>
+<body>
+
+<div id="cursor"></div>
+<div id="cursor-ring"></div>
+<canvas id="bg-canvas"></canvas>
+
+<!-- NAV -->
+<nav>
+  <a href="#" class="nav-logo"><div class="logo-dot"></div>🏐 Volleyball Collective</a>
+  <div class="nav-links">
+    <a href="#drops">Drops</a>
+    <a href="#how">How It Works</a>
+    <button class="btn-nav-admin" onclick="openAdmin()">Admin ↗</button>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="tricolor-top"></div>
+  <div class="hero-eyebrow">Exclusive · Limited Edition · Rare Drops</div>
+  <h1 class="hero-title">
+    <span class="ht-small">Volleyball</span>
+    <span class="ht-big">Collective</span>
+  </h1>
+  <p class="hero-sub">Rare jersey auctions. One winner chosen. Only the winner pays — everyone else owes nothing.</p>
+  <div class="divider-row"><span>Bid · Win · Wear</span></div>
+  <div class="hero-cta">
+    <a href="#drops" class="btn-primary">View Active Drops</a>
+    <a href="#how" class="btn-ghost">How It Works</a>
+  </div>
+  <div class="hero-stats">
+    <div class="stat"><span class="stat-num" id="stat-drops">0</span><span class="stat-label">Active Drops</span></div>
+    <div class="stat"><span class="stat-num" id="stat-bids">0</span><span class="stat-label">Bids Placed</span></div>
+    <div class="stat"><span class="stat-num">100%</span><span class="stat-label">Stripe Secured</span></div>
+  </div>
+  <div class="scroll-hint"><span>Scroll</span><div class="scroll-arrow"></div></div>
+</section>
+
+<!-- MARQUEE -->
+<div class="marquee-wrap">
+  <div class="marquee-track">
+    <span class="mt">VOLLEYBALL COLLECTIVE</span><span class="ms"> ✦ </span>
+    <span class="mt">EXCLUSIVE DROPS</span><span class="ms"> ✦ </span>
+    <span class="mt">LIMITED JERSEYS</span><span class="ms"> ✦ </span>
+    <span class="mt">ONE WINNER PAYS</span><span class="ms"> ✦ </span>
+    <span class="mt">STRIPE SECURED</span><span class="ms"> ✦ </span>
+    <span class="mt">BID NOW</span><span class="ms"> ✦ </span>
+    <span class="mt">VOLLEYBALL COLLECTIVE</span><span class="ms"> ✦ </span>
+    <span class="mt">EXCLUSIVE DROPS</span><span class="ms"> ✦ </span>
+    <span class="mt">LIMITED JERSEYS</span><span class="ms"> ✦ </span>
+    <span class="mt">ONE WINNER PAYS</span><span class="ms"> ✦ </span>
+    <span class="mt">STRIPE SECURED</span><span class="ms"> ✦ </span>
+    <span class="mt">BID NOW</span><span class="ms"> ✦ </span>
+  </div>
+</div>
+
+<!-- DROPS -->
+<section id="drops">
+  <div class="section-header">
+    <div>
+      <span class="section-eyebrow">Current Auction</span>
+      <h2 class="section-title">Active Drops</h2>
+    </div>
+    <span class="live-badge" id="drops-badge">Live</span>
+  </div>
+  <div class="drops-grid" id="drops-grid">
+    <div class="empty-drops"><span class="ei">🏐</span><p>No active drops right now — check back soon!</p></div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section id="how">
+  <div class="how-inner">
+    <div style="text-align:center">
+      <span class="section-eyebrow">The Process</span>
+      <h2 class="section-title">How It Works</h2>
+    </div>
+    <div class="how-grid">
+      <div class="how-step"><span class="how-num">01</span><span class="how-icon">👀</span><div class="how-title">Browse Drops</div><p class="how-text">View our exclusive listings. No prices shown — value is what you decide.</p></div>
+      <div class="how-step"><span class="how-num">02</span><span class="how-icon">💳</span><div class="how-title">Place Your Bid</div><p class="how-text">Enter any amount. Your card is saved securely by Stripe. Nothing charged yet.</p></div>
+      <div class="how-step"><span class="how-num">03</span><span class="how-icon">🏆</span><div class="how-title">Winner Chosen</div><p class="how-text">We review bids and pick one winner. Only they get charged — everyone else owes nothing.</p></div>
+      <div class="how-step"><span class="how-num">04</span><span class="how-icon">🚚</span><div class="how-title">Delivered</div><p class="how-text">Winner gets emailed and we coordinate delivery directly.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- BID MODAL -->
+<div class="overlay" id="bid-overlay" onclick="overlayClick(event,'bid-overlay')">
+  <div class="modal">
+    <div id="bid-form-view">
+      <div class="modal-header">
+        <div>
+          <div class="modal-title" id="bid-modal-title">Place Your Bid</div>
+          <div class="modal-sub">Card saved · NOT charged until you win</div>
+        </div>
+        <button class="btn-close" onclick="closeModal('bid-overlay')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-row">
+          <label>Your Bid Amount (USD)</label>
+          <div class="amount-wrap"><span>$</span><input type="number" id="bid-amount" placeholder="0.00" min="1" step="0.01"></div>
+        </div>
+        <span class="section-label">Your Information</span>
+        <div class="form-row-2">
+          <div class="form-row" style="margin:0"><label>Full Name</label><input type="text" id="bid-name" placeholder="Jane Smith"></div>
+          <div class="form-row" style="margin:0"><label>Email</label><input type="email" id="bid-email" placeholder="jane@email.com"></div>
+        </div>
+        <div class="form-row-2">
+          <div class="form-row" style="margin:0"><label>Phone (optional)</label><input type="tel" id="bid-phone" placeholder="+1 555 000 0000"></div>
+          <div class="form-row" style="margin:0"><label>Message (optional)</label><input type="text" id="bid-msg" placeholder="Any notes..."></div>
+        </div>
+        <span class="section-label">Shipping Address</span>
+        <div class="form-row"><label>Street Address</label><input type="text" id="bid-street" placeholder="123 Main St"></div>
+        <div class="form-row-2">
+          <div class="form-row" style="margin:0"><label>City</label><input type="text" id="bid-city" placeholder="Los Angeles"></div>
+          <div class="form-row" style="margin:0"><label>State</label><input type="text" id="bid-state" placeholder="CA"></div>
+        </div>
+        <div class="form-row-2">
+          <div class="form-row" style="margin:0"><label>ZIP Code</label><input type="text" id="bid-zip" placeholder="90001"></div>
+          <div class="form-row" style="margin:0"><label>Country</label><input type="text" id="bid-country" placeholder="USA" value="USA"></div>
+        </div>
+        <span class="section-label">Payment — Secured by Stripe</span>
+        <div class="form-row">
+          <div id="stripe-card-element"></div>
+          <p class="stripe-note">🔒 Card saved but <strong>NOT charged</strong> until you win</p>
+        </div>
+        <div class="error-msg" id="bid-error"></div>
+        <button class="btn-submit" id="bid-btn" onclick="submitBid()">
+          <span class="btn-text">🔒 Secure My Bid</span>
+          <div class="spinner"></div>
+        </button>
+      </div>
+    </div>
+    <div class="bid-success" id="bid-success">
+      <span class="check">✅</span>
+      <h3>Bid Secured!</h3>
+      <p>Your bid is recorded and card saved securely via Stripe. You'll get a confirmation email.<br><br><strong>Your card is only charged if you win.</strong> Everyone else is never charged. Good luck!</p>
+      <button class="btn-secondary" onclick="closeModal('bid-overlay')">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN MODAL -->
+<div class="overlay" id="admin-overlay" onclick="overlayClick(event,'admin-overlay')">
+  <div class="modal admin-modal">
+    <div class="modal-header">
+      <div><div class="modal-title">🏐 Admin Dashboard</div><div class="modal-sub">Volleyball Collective</div></div>
+      <button class="btn-close" onclick="closeModal('admin-overlay')">✕</button>
+    </div>
+
+    <div id="admin-pw-gate" class="admin-pw-wrap">
+      <h2>Admin Access</h2>
+      <p>Enter your password to continue</p>
+      <div class="pw-row">
+        <input type="password" id="admin-pw-input" placeholder="Password" onkeydown="if(event.key==='Enter')adminLogin()">
+        <button onclick="adminLogin()">Enter →</button>
+      </div>
+      <div class="error-msg" id="admin-pw-err" style="max-width:320px;margin:14px auto 0"></div>
+    </div>
+
+    <div id="admin-dashboard">
+      <div class="admin-tabs">
+        <button class="tab active" onclick="switchTab('tab-drops')">Drops &amp; Bids</button>
+        <button class="tab" onclick="switchTab('tab-all-bids')">All Bids</button>
+        <button class="tab" onclick="switchTab('tab-add')">+ Add Drop</button>
+      </div>
+      <div class="tab-content active" id="tab-drops">
+        <button class="btn-secondary" style="margin-bottom:18px;font-size:.7rem;letter-spacing:2px;padding:9px 18px" onclick="refreshAll().then(renderAdminDrops)">↻ Refresh</button>
+        <div id="admin-drops-list">Loading…</div>
+      </div>
+      <div class="tab-content" id="tab-all-bids">
+        <div id="admin-all-bids">Loading…</div>
+      </div>
+      <div class="tab-content" id="tab-add">
+        <div class="form-row"><label>Jersey / Item Name *</label><input type="text" id="add-name" placeholder="e.g. 2024 France National Jersey"></div>
+        <div class="form-row"><label>Description</label><textarea id="add-desc" rows="3" placeholder="Team, player, season, details…"></textarea></div>
+        <div class="form-row-2">
+          <div class="form-row" style="margin:0"><label>Size</label><input type="text" id="add-size" placeholder="M / L / XL"></div>
+          <div class="form-row" style="margin:0"><label>Condition</label><select id="add-condition"><option>New</option><option>Like New</option><option>Excellent</option><option>Good</option></select></div>
+        </div>
+        <div class="form-row">
+          <label>Photo</label>
+          <div class="photo-toggle">
+            <button class="active" id="tog-upload" onclick="setPhotoMode('upload')">📁 Upload File</button>
+            <button id="tog-url" onclick="setPhotoMode('url')">🔗 Paste URL</button>
+          </div>
+          <div id="pw-upload-wrap">
+            <div class="photo-upload-area">
+              <input type="file" id="add-photo-file" accept="image/*" onchange="handleUpload(this)">
+              <img class="upload-preview" id="upload-preview">
+              <div id="upload-placeholder"><div style="font-size:2rem;margin-bottom:8px">📷</div><div style="font-size:.83rem;color:var(--muted)">Drag &amp; drop or click to upload</div><div style="font-size:.7rem;color:var(--muted);margin-top:4px">JPG · PNG · HEIC · WebP</div></div>
+            </div>
+          </div>
+          <div id="pw-url-wrap" style="display:none"><input type="text" id="add-photo-url" placeholder="https://example.com/jersey.jpg"></div>
+        </div>
+        <div style="display:flex;gap:12px">
+          <button class="btn-submit" style="flex:1" onclick="addDrop('published')"><span class="btn-text">+ Publish Drop</span><div class="spinner"></div></button>
+          <button class="btn-secondary" style="flex:1" onclick="addDrop('draft')">Save Draft</button>
+        </div>
+        <div class="error-msg" id="add-err"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div class="tricolor"></div>
+<footer>
+  <span class="f-logo">🏐 Volleyball Collective</span>
+  <p>Exclusive drops. Limited jerseys. One winner takes all.</p>
+  <p class="f-stripe">🔒 All payments secured by Stripe · No charges until you win</p>
+</footer>
+
+<script>
+// ── LIVE PRODUCTION BUILD — connected to Vercel API + Upstash Redis + Stripe ──
+
+// ── CURSOR ──
+const cur=document.getElementById('cursor'),ring=document.getElementById('cursor-ring');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cur.style.left=mx+'px';cur.style.top=my+'px'});
+(function ar(){rx+=(mx-rx)*.12;ry+=(my-ry)*.12;ring.style.left=rx+'px';ring.style.top=ry+'px';requestAnimationFrame(ar)})();
+document.querySelectorAll('button,a,.drop-card').forEach(el=>{
+  el.addEventListener('mouseenter',()=>{cur.style.transform='translate(-50%,-50%) scale(2.5)';ring.style.transform='translate(-50%,-50%) scale(.5)';ring.style.borderColor='rgba(237,41,57,.8)'});
+  el.addEventListener('mouseleave',()=>{cur.style.transform='translate(-50%,-50%) scale(1)';ring.style.transform='translate(-50%,-50%) scale(1)';ring.style.borderColor='rgba(237,41,57,.5)'});
+});
+
+// ── CANVAS ──
+(function(){
+  const c=document.getElementById('bg-canvas'),ctx=c.getContext('2d');
+  let W,H;
+  function resize(){W=c.width=window.innerWidth;H=c.height=window.innerHeight}
+  window.addEventListener('resize',resize);resize();
+
+  // Star colors — navy blue palette only, subtle
+  const COLS=['rgba(100,130,220,','rgba(70,100,200,','rgba(140,160,240,','rgba(80,115,210,','rgba(160,180,255,'];
+
+  class Star{
+    constructor(init){this.reset(init)}
+    reset(init){
+      this.x=Math.random()*W;
+      this.y=init?Math.random()*H:-8;
+      this.r=Math.random()*1.6+.3;           // tiny — star sized
+      this.vy=Math.random()*.28+.06;          // slow drift downward
+      this.vx=(Math.random()-.5)*.06;         // barely any horizontal
+      this.col=COLS[Math.floor(Math.random()*COLS.length)];
+      this.maxA=Math.random()*.55+.15;
+      this.a=init?Math.random()*this.maxA:0;
+      this.twinkleSpeed=Math.random()*.012+.004;
+      this.twinkleOffset=Math.random()*Math.PI*2;
+      this.age=init?Math.random()*1000:0;
+      // rare larger soft star
+      this.big=Math.random()>.88;
+      if(this.big){this.r=Math.random()*2.8+1.4;this.maxA=Math.random()*.3+.08;}
+    }
+    update(){
+      this.age++;
+      this.x+=this.vx;
+      this.y+=this.vy;
+      // fade in gently from top
+      if(this.a<this.maxA)this.a=Math.min(this.maxA,this.a+.006);
+      // fade out near bottom
+      if(this.y>H*.82)this.a=Math.max(0,this.a-(this.y-H*.82)/(H*.18)*this.maxA*.04);
+      if(this.y>H+10)this.reset(false);
+    }
+    draw(){
+      const twinkle=Math.sin(this.age*this.twinkleSpeed+this.twinkleOffset)*.38+.62;
+      const alpha=Math.max(0,this.a*twinkle);
+      ctx.save();
+      ctx.globalAlpha=alpha;
+      if(this.big){
+        // soft glow halo for larger stars
+        const grd=ctx.createRadialGradient(this.x,this.y,0,this.x,this.y,this.r*3.5);
+        grd.addColorStop(0,this.col+'1)');
+        grd.addColorStop(.45,this.col+'.25)');
+        grd.addColorStop(1,this.col+'0)');
+        ctx.fillStyle=grd;
+        ctx.beginPath();ctx.arc(this.x,this.y,this.r*3.5,0,Math.PI*2);ctx.fill();
+      }
+      // core dot
+      ctx.shadowBlur=this.big?14:6;
+      ctx.shadowColor=this.col+'1)';
+      ctx.fillStyle=this.col+'1)';
+      ctx.beginPath();ctx.arc(this.x,this.y,this.r,0,Math.PI*2);ctx.fill();
+      ctx.restore();
+    }
+  }
+
+  // Shooting star
+  class Shoot{
+    constructor(){this.reset()}
+    reset(){
+      this.x=Math.random()*W*.7+W*.1;
+      this.y=Math.random()*H*.3;
+      this.len=Math.random()*90+50;
+      this.speed=Math.random()*2.5+1.5;
+      this.angle=Math.PI/5+Math.random()*.18;
+      this.a=0;this.phase='in';
+      this.delay=Math.random()*600+200;
+      this.timer=0;
+    }
+    update(){
+      this.timer++;
+      if(this.timer<this.delay)return;
+      if(this.phase==='in'){this.a+=.06;if(this.a>=1)this.phase='move';}
+      if(this.phase==='move'){
+        this.x+=Math.cos(this.angle)*this.speed;
+        this.y+=Math.sin(this.angle)*this.speed;
+        this.a-=.022;
+        if(this.a<=0){this.phase='done';}
+      }
+      if(this.phase==='done')this.reset();
+    }
+    draw(){
+      if(this.timer<this.delay||this.a<=0)return;
+      ctx.save();
+      ctx.globalAlpha=Math.max(0,this.a)*.55;
+      const tx=this.x-Math.cos(this.angle)*this.len;
+      const ty=this.y-Math.sin(this.angle)*this.len;
+      const grd=ctx.createLinearGradient(tx,ty,this.x,this.y);
+      grd.addColorStop(0,'rgba(160,180,255,0)');
+      grd.addColorStop(1,'rgba(160,180,255,1)');
+      ctx.strokeStyle=grd;
+      ctx.lineWidth=1.2;
+      ctx.beginPath();ctx.moveTo(tx,ty);ctx.lineTo(this.x,this.y);ctx.stroke();
+      ctx.restore();
+    }
+  }
+
+  const stars=[];
+  for(let i=0;i<160;i++)stars.push(new Star(true));
+  const shoots=[new Shoot(),new Shoot(),new Shoot()];
+
+  function loop(){
+    ctx.clearRect(0,0,W,H);
+    stars.forEach(s=>{s.update();s.draw()});
+    shoots.forEach(s=>{s.update();s.draw()});
+    requestAnimationFrame(loop);
+  }
+  loop();
+})();
+
+// ── SHARED STORAGE (Upstash Redis, via /api/{drops,bids}) ──
+
+
+
+let _drops=[], _bids=[];
+const getDrops=()=>_drops;
+const getBids =()=>_bids;
+let _adminPw=null; // set after successful admin login
+
+async function fetchDrops(){
+  try{
+    const r=await fetch('/api/drops?_t='+Date.now(),{cache:'no-store'});
+    if(!r.ok)return;
+    const data=await r.json();
+    if(Array.isArray(data.drops))_drops=data.drops;
+    renderDrops();
+    const dash=document.getElementById('admin-dashboard');
+    if(dash&&dash.style.display==='block')renderAdminDrops();
+  }catch(e){console.warn('fetchDrops failed',e);}
+}
+async function fetchBids(){
+  try{
+    const url=_adminPw
+      ?'/api/bids?adminPw='+encodeURIComponent(_adminPw)+'&_t='+Date.now()
+      :'/api/bids?_t='+Date.now();
+    const r=await fetch(url,{cache:'no-store'});
+    if(!r.ok)return;
+    const data=await r.json();
+    if(Array.isArray(data.bids))_bids=data.bids;
+    renderDrops();
+    const dash=document.getElementById('admin-dashboard');
+    if(dash&&dash.style.display==='block'){renderAdminDrops();renderAllBids();}
+  }catch(e){console.warn('fetchBids failed',e);}
+}
+async function refreshAll(){await Promise.all([fetchDrops(),fetchBids()]);}
+// Poll every 5s so everyone sees new drops/bids live.
+setInterval(refreshAll,5000);
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')refreshAll();});
+
+// ── STRIPE ──
+let stripe=null,cardEl=null;
+try{
+  stripe=Stripe('pk_live_51TNLmTJLxjt4Zu09CD9HYKgwQRf6k7KWCdG6tfF5kt011UmrBxjzcBGdmyex9C7vmyq0QsjtccjncguMMvZ3klOF00PekVjmfC');
+  const els=stripe.elements({appearance:{theme:'night',variables:{colorPrimary:'#ED2939',colorBackground:'rgba(0,35,149,.12)',colorText:'#F5F0E8',colorDanger:'#ff6b6b',fontFamily:'DM Sans,sans-serif',borderRadius:'3px'}}});
+  cardEl=els.create('card',{style:{base:{color:'#F5F0E8',fontSize:'16px','::placeholder':{color:'#7b9fd4'}}}});
+  cardEl.mount('#stripe-card-element');
+  cardEl.on('focus',()=>document.getElementById('stripe-card-element').classList.add('focused'));
+  cardEl.on('blur',()=>document.getElementById('stripe-card-element').classList.remove('focused'));
+}catch(e){console.warn('Stripe could not be initialized:',e);}
+
+// ── RENDER DROPS ──
+let activeDrop=null;
+function renderDrops(){
+  const drops=getDrops().filter(d=>d.status==='published');
+  const bids=getBids();
+  document.getElementById('stat-drops').textContent=drops.length;
+  document.getElementById('stat-bids').textContent=bids.length;
+  document.getElementById('drops-badge').textContent=drops.length?drops.length+' Live':'Coming Soon';
+  const g=document.getElementById('drops-grid');
+  if(!drops.length){g.innerHTML=`<div class="empty-drops"><span class="ei">🏐</span><p>No active drops — check back soon!</p></div>`;return}
+  g.innerHTML=drops.map((d,i)=>{
+    const db=bids.filter(b=>b.dropId===d.id);
+    const img=d.photo?`<img src="${d.photo}" alt="${d.name}" onerror="this.parentElement.innerHTML='<div class=\\'drop-no-img\\'><span>🏐</span></div>'">`:`<div class="drop-no-img"><span>🏐</span></div>`;
+    return`<div class="drop-card" style="animation-delay:${i*.09}s" onclick="openBidModal('${d.id}')">
+      <div class="drop-img-wrap">${img}<span class="drop-badge-chip">Active Drop</span></div>
+      <div class="card-stripe"></div>
+      <div class="drop-body">
+        <div class="drop-name">${d.name}</div>
+        <div class="drop-meta">${d.size?`<span>Size: ${d.size}</span>`:''}${d.condition?`<span>${d.condition}</span>`:''}</div>
+        ${d.desc?`<p class="drop-desc">${d.desc}</p>`:''}
+        <div class="drop-footer">
+          <span class="drop-bid-count">${db.length} bid${db.length!==1?'s':''}</span>
+          <button class="btn-bid-card" onclick="event.stopPropagation();openBidModal('${d.id}')">Place Bid →</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── BID MODAL ──
+function openBidModal(dropId){
+  const drop=getDrops().find(d=>d.id===dropId);
+  activeDrop=dropId;
+  document.getElementById('bid-modal-title').textContent=drop?`Bid on: ${drop.name}`:'Place Your Bid';
+  document.getElementById('bid-form-view').style.display='';
+  document.getElementById('bid-success').style.display='none';
+  document.getElementById('bid-error').style.display='none';
+  const btn=document.getElementById('bid-btn');btn.disabled=false;btn.classList.remove('loading');
+  document.getElementById('bid-overlay').classList.add('active');
+}
+function closeModal(id){document.getElementById(id).classList.remove('active')}
+function overlayClick(e,id){if(e.target.id===id)closeModal(id)}
+
+async function submitBid(){
+  const name=document.getElementById('bid-name').value.trim();
+  const email=document.getElementById('bid-email').value.trim();
+  const amount=document.getElementById('bid-amount').value.trim();
+  const phone=document.getElementById('bid-phone').value.trim();
+  const msg=document.getElementById('bid-msg').value.trim();
+  const street=document.getElementById('bid-street').value.trim();
+  const city=document.getElementById('bid-city').value.trim();
+  const state=document.getElementById('bid-state').value.trim();
+  const zip=document.getElementById('bid-zip').value.trim();
+  const country=document.getElementById('bid-country').value.trim();
+  const errEl=document.getElementById('bid-error');
+  errEl.style.display='none';
+  if(!name||!email||!amount){showErr(errEl,'Please fill in name, email, and bid amount.');return}
+  if(parseFloat(amount)<1){showErr(errEl,'Bid must be at least $1.');return}
+  if(!street||!city||!zip){showErr(errEl,'Please enter your shipping address.');return}
+  const btn=document.getElementById('bid-btn');btn.disabled=true;btn.classList.add('loading');
+  if(!stripe||!cardEl){showErr(errEl,'Payment system unavailable. Please refresh and try again.');btn.disabled=false;btn.classList.remove('loading');return}
+  const{paymentMethod,error}=await stripe.createPaymentMethod({type:'card',card:cardEl,billing_details:{name,email,phone:phone||undefined}});
+  if(error){showErr(errEl,error.message);btn.disabled=false;btn.classList.remove('loading');return}
+  const bid={id:'bid_'+Date.now(),name,email,phone,msg,amount,dropId:activeDrop,paymentMethodId:paymentMethod.id,address:{street,city,state,zip,country},createdAt:new Date().toISOString()};
+  try{
+    const res=await fetch('/api/bids',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({bid})});
+    const data=await res.json().catch(()=>({}));
+    if(!res.ok){showErr(errEl,data.error||'Could not submit bid. Please try again.');btn.disabled=false;btn.classList.remove('loading');return}
+  }catch(e){showErr(errEl,'Network error — please try again.');btn.disabled=false;btn.classList.remove('loading');return}
+  // Immediately add bid to local cache so the count increments on the card right away
+  _bids=[..._bids,{id:bid.id,dropId:bid.dropId,createdAt:bid.createdAt}];
+  renderDrops();
+  await refreshAll();
+  btn.disabled=false;btn.classList.remove('loading');
+  document.getElementById('bid-form-view').style.display='none';
+  document.getElementById('bid-success').style.display='block';
+  ['bid-name','bid-email','bid-amount','bid-phone','bid-msg','bid-street','bid-city','bid-state','bid-zip'].forEach(id=>{document.getElementById(id).value=''});
+  try{if(cardEl)cardEl.clear();}catch(e){}
+}
+function showErr(el,msg){el.textContent=msg;el.style.display='block'}
+
+// ── ADMIN ── password is vb2024
+const ADMIN_PW='vb2024';
+function openAdmin(){
+  document.getElementById('admin-pw-gate').style.display='';
+  document.getElementById('admin-dashboard').style.display='none';
+  document.getElementById('admin-pw-err').style.display='none';
+  document.getElementById('admin-pw-input').value='';
+  document.getElementById('admin-overlay').classList.add('active');
+  setTimeout(()=>document.getElementById('admin-pw-input').focus(),200);
+}
+async function adminLogin(){
+  const pw=document.getElementById('admin-pw-input').value;
+  const err=document.getElementById('admin-pw-err');
+  if(pw!==ADMIN_PW){
+    err.textContent='Incorrect password. Try again.';err.style.display='block';
+    document.getElementById('admin-pw-input').value='';
+    document.getElementById('admin-pw-input').focus();
+    return;
+  }
+  _adminPw=pw;
+  document.getElementById('admin-pw-gate').style.display='none';
+  document.getElementById('admin-dashboard').style.display='block';
+  // Pull the full (non-sanitized) bid list now that we have the admin key.
+  await fetchBids();
+  renderAdminDrops();renderAllBids();
+}
+
+function switchTab(id){
+  const ids=['tab-drops','tab-all-bids','tab-add'];
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',ids[i]===id));
+  document.querySelectorAll('.tab-content').forEach(tc=>tc.classList.toggle('active',tc.id===id));
+  if(id==='tab-drops')renderAdminDrops();
+  if(id==='tab-all-bids')renderAllBids();
+}
+
+function renderAdminDrops(){
+  const drops=getDrops(),bids=getBids();
+  const el=document.getElementById('admin-drops-list');
+  if(!drops.length){el.innerHTML='<p style="color:var(--muted);font-size:.85rem">No drops yet. Add one in "+ Add Drop".</p>';return}
+  el.innerHTML=drops.map(drop=>{
+    const db=bids.filter(b=>b.dropId===drop.id).sort((a,b)=>b.amount-a.amount);
+    const rows=db.length?db.map(bid=>`<tr>
+      <td><strong>${bid.name}</strong><br><span style="color:var(--muted);font-size:.7rem">${bid.email}</span></td>
+      <td style="font-size:.73rem;color:var(--muted)">${bid.phone||'—'}</td>
+      <td class="bid-amt">$${parseFloat(bid.amount).toFixed(2)}</td>
+      <td style="font-size:.7rem;color:var(--muted)">${bid.address?`${bid.address.street}, ${bid.address.city} ${bid.address.state} ${bid.address.zip}`:'—'}</td>
+      <td>${bid.charged?`<span class="badge-charged">✅ Charged</span>`:bid.paymentMethodId&&bid.paymentMethodId!=='[no-stripe]'?`<button class="btn-charge" onclick="chargeCard('${bid.id}')">Charge Card</button>`:`<span class="badge-nocard">No card</span>`}</td>
+      <td style="font-size:.68rem;color:var(--muted)">${new Date(bid.createdAt).toLocaleDateString()}</td>
+    </tr>`).join(''):`<tr><td colspan="6" class="no-bids">No bids yet.</td></tr>`;
+    return`<div class="drop-group">
+      <div class="drop-group-hd">
+        <div><div class="drop-group-name">${drop.name}</div><div style="font-size:.7rem;color:var(--muted);margin-top:2px">${drop.status} · ${db.length} bid(s)</div></div>
+        <div style="display:flex;gap:8px">
+          <button class="btn-tog" onclick="toggleStatus('${drop.id}')">${drop.status==='published'?'Archive':'Publish'}</button>
+          <button class="btn-del" onclick="deleteDrop('${drop.id}')">Delete</button>
+        </div>
+      </div>
+      <div style="overflow-x:auto"><table class="bids-table">
+        <thead><tr><th>Name/Email</th><th>Phone</th><th>Bid</th><th>Address</th><th>Action</th><th>Date</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table></div>
+    </div>`;
+  }).join('');
+}
+
+function renderAllBids(){
+  const bids=getBids().sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
+  const drops=getDrops();
+  const el=document.getElementById('admin-all-bids');
+  if(!bids.length){el.innerHTML='<p style="color:var(--muted);font-size:.85rem">No bids yet.</p>';return}
+  el.innerHTML=`<div style="overflow-x:auto"><table class="bids-table">
+    <thead><tr><th>Drop</th><th>Name</th><th>Email</th><th>Bid</th><th>Address</th><th>Card</th><th>Date</th></tr></thead>
+    <tbody>${bids.map(b=>{const d=drops.find(x=>x.id===b.dropId);return`<tr>
+      <td style="font-size:.73rem">${d?d.name:b.dropId}</td>
+      <td>${b.name}</td>
+      <td style="font-size:.73rem">${b.email}</td>
+      <td class="bid-amt">$${parseFloat(b.amount).toFixed(2)}</td>
+      <td style="font-size:.7rem;color:var(--muted)">${b.address?`${b.address.street}, ${b.address.city} ${b.address.state} ${b.address.zip}`:'—'}</td>
+      <td style="font-size:.7rem">${b.paymentMethodId&&b.paymentMethodId!=='[no-stripe]'?'✅ Saved':'—'}</td>
+      <td style="font-size:.7rem;color:var(--muted)">${new Date(b.createdAt).toLocaleDateString()}</td>
+    </tr>`}).join('')}</tbody>
+  </table></div>`;
+}
+
+async function chargeCard(bidId){
+  const pw=prompt('Enter admin password to confirm charge:');
+  if(!pw)return;
+  if(pw!==ADMIN_PW){showToast('Wrong admin password',true);return}
+  const bid=getBids().find(b=>b.id===bidId);
+  if(!bid)return;
+  if(!confirm(`Charge ${bid.name}'s card $${parseFloat(bid.amount).toFixed(2)}?\n\nThis cannot be undone.`))return;
+  showToast('Charging card…');
+  try{
+    const res=await fetch('/api/charge',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({paymentMethodId:bid.paymentMethodId,amount:bid.amount,email:bid.email,name:bid.name,adminPw:pw})});
+    const data=await res.json();
+    if(data.success){
+      // Persist the "charged" flag to shared storage so all admins see it.
+      try{await fetch('/api/bids',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:bidId,adminPw:pw})});}catch(e){}
+      await fetchBids();
+      renderAdminDrops();renderAllBids();
+      showToast('✅ Card charged!');
+    }else showToast('❌ '+(data.error||'Charge failed'),true);
+  }catch(e){showToast('❌ Network error — check Netlify functions',true)}
+}
+
+async function toggleStatus(id){
+  if(!_adminPw){showToast('Admin session expired — re-open admin',true);return}
+  try{
+    const res=await fetch('/api/drops',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,adminPw:_adminPw})});
+    const data=await res.json().catch(()=>({}));
+    if(!res.ok){showToast('❌ '+(data.error||'Could not update drop'),true);return}
+    await fetchDrops();renderAdminDrops();
+  }catch(e){showToast('❌ Network error',true)}
+}
+async function deleteDrop(id){
+  if(!confirm('Delete this drop and all bids?'))return;
+  if(!_adminPw){showToast('Admin session expired — re-open admin',true);return}
+  try{
+    const res=await fetch('/api/drops',{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,adminPw:_adminPw})});
+    const data=await res.json().catch(()=>({}));
+    if(!res.ok){showToast('❌ '+(data.error||'Could not delete drop'),true);return}
+    // Also remove the bids tied to this drop.
+    try{await fetch('/api/bids',{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({dropId:id,adminPw:_adminPw})});}catch(e){}
+    await refreshAll();
+    renderAdminDrops();
+  }catch(e){showToast('❌ Network error',true)}
+}
+
+let photoMode='upload',uploadedDataUrl=null;
+function setPhotoMode(m){
+  photoMode=m;
+  document.getElementById('pw-upload-wrap').style.display=m==='upload'?'':'none';
+  document.getElementById('pw-url-wrap').style.display=m==='url'?'':'none';
+  document.getElementById('tog-upload').classList.toggle('active',m==='upload');
+  document.getElementById('tog-url').classList.toggle('active',m==='url');
+}
+// Resize + re-encode photos in the browser so the drop JSON stays small.
+// Netlify Blobs caps each value at 5 MB and Netlify Functions cap each
+// response at 6 MB — a raw phone photo (3–8 MB base64) blows past both.
+// We downscale to max 1200px on the long edge and encode as JPEG ~0.82.
+function compressImage(file, maxDim=1200, quality=0.82){
+  return new Promise((resolve,reject)=>{
+    const reader=new FileReader();
+    reader.onerror=()=>reject(new Error('Could not read file'));
+    reader.onload=()=>{
+      const img=new Image();
+      img.onerror=()=>reject(new Error('Could not decode image'));
+      img.onload=()=>{
+        let {width:w,height:h}=img;
+        if(w>maxDim||h>maxDim){
+          if(w>=h){h=Math.round(h*(maxDim/w));w=maxDim}
+          else{w=Math.round(w*(maxDim/h));h=maxDim}
+        }
+        const c=document.createElement('canvas');
+        c.width=w;c.height=h;
+        const ctx=c.getContext('2d');
+        ctx.fillStyle='#fff';ctx.fillRect(0,0,w,h); // flatten transparent PNGs
+        ctx.drawImage(img,0,0,w,h);
+        try{resolve(c.toDataURL('image/jpeg',quality));}
+        catch(e){reject(e)}
+      };
+      img.src=reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+async function handleUpload(input){
+  const f=input.files[0];if(!f)return;
+  const placeholder=document.getElementById('upload-placeholder');
+  const img=document.getElementById('upload-preview');
+  const origPh=placeholder?placeholder.innerHTML:'';
+  if(placeholder){placeholder.innerHTML='<div style="font-size:.83rem;color:var(--muted)">Processing photo…</div>';placeholder.style.display=''}
+  if(img)img.style.display='none';
+  try{
+    uploadedDataUrl=await compressImage(f,1200,0.82);
+    // Safety net: if still too big, push harder.
+    if(uploadedDataUrl.length>1_500_000){
+      uploadedDataUrl=await compressImage(f,1000,0.72);
+    }
+    if(uploadedDataUrl.length>1_500_000){
+      uploadedDataUrl=await compressImage(f,800,0.65);
+    }
+    if(img){img.src=uploadedDataUrl;img.style.display='block'}
+    if(placeholder)placeholder.style.display='none';
+  }catch(e){
+    uploadedDataUrl=null;
+    if(placeholder){placeholder.innerHTML=origPh;placeholder.style.display=''}
+    showToast('❌ Could not process that photo — try a different one',true);
+  }
+}
+async function addDrop(status){
+  const name=document.getElementById('add-name').value.trim();
+  const errEl=document.getElementById('add-err');
+  if(!name){errEl.textContent='Name is required.';errEl.style.display='block';return}
+  if(!_adminPw){errEl.textContent='Admin session expired — re-open admin.';errEl.style.display='block';return}
+  const desc=document.getElementById('add-desc').value.trim();
+  const size=document.getElementById('add-size').value.trim();
+  const condition=document.getElementById('add-condition').value;
+  let photo='';
+  if(photoMode==='upload'&&uploadedDataUrl)photo=uploadedDataUrl;
+  else if(photoMode==='url')photo=document.getElementById('add-photo-url').value.trim();
+  const drop={id:'drop_'+Date.now(),name,desc,size,condition,photo,status,createdAt:new Date().toISOString()};
+  try{
+    const res=await fetch('/api/drops',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({drop,adminPw:_adminPw})});
+    const text=await res.text();
+    let data={};try{data=JSON.parse(text)}catch{}
+    if(!res.ok){
+      const why=data.error||text||'Unknown error';
+      errEl.textContent=`Could not save drop (${res.status}): ${why}`;
+      errEl.style.display='block';
+      console.error('Publish failed',res.status,text);
+      return;
+    }
+  }catch(e){errEl.textContent='Network error: '+(e&&e.message?e.message:'request failed');errEl.style.display='block';console.error(e);return}
+  // Optimistically add to local cache so it appears instantly on the page
+  if(status==='published'){_drops=[..._drops,drop];renderDrops();}
+  // Then sync fresh data from server to confirm
+  await refreshAll();renderAdminDrops();errEl.style.display='none';
+  ['add-name','add-desc','add-size','add-photo-url'].forEach(id=>{document.getElementById(id).value=''});
+  uploadedDataUrl=null;
+  document.getElementById('upload-preview').style.display='none';
+  document.getElementById('upload-placeholder').style.display='';
+  showToast(status==='published'?'✅ Drop published!':'📝 Draft saved!');
+  if(status==='published')switchTab('tab-drops');
+}
+
+function showToast(msg,err=false){
+  const t=document.getElementById('toast');t.textContent=msg;
+  t.classList.toggle('err',err);t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),3200);
+}
+
+// Initial load: pull shared data, then keep rendering (empty state stays until data arrives).
+renderDrops();
+refreshAll();
+</script>
+</body>
+</html>

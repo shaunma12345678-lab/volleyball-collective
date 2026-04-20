@@ -1,0 +1,11 @@
+{
+  "name": "volleyball-collective",
+  "version": "1.0.0",
+  "dependencies": {
+    "nodemailer": "^6.9.7",
+    "stripe": "^14.11.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
