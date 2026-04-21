@@ -1,8 +1,11 @@
 async function redis(...args) {
-  const res = await fetch(process.env.UPSTASH_REDIS_REST_URL, {
+  const url = process.env.UPSTASH_REDIS_REST_URL;
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+  if (!url || !token) throw new Error('Database not configured — add UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN in Vercel environment variables');
+  const res = await fetch(url, {
     method: 'POST',
     headers: {
-      Authorization: `Bearer ${process.env.UPSTASH_REDIS_REST_TOKEN}`,
+      Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify(args),
@@ -26,7 +29,6 @@ module.exports = async (req, res) => {
   const ADMIN_PW = process.env.ADMIN_PASSWORD || 'vb2024';
 
   try {
-    // GET — return all drops sorted newest first
     if (req.method === 'GET') {
       const ids = (await redis('SMEMBERS', 'drops:keys')) || [];
       const drops = (
@@ -44,7 +46,6 @@ module.exports = async (req, res) => {
 
     const body = req.body || {};
 
-    // POST — create new drop
     if (req.method === 'POST') {
       if (body.adminPw !== ADMIN_PW)
         return res.status(403).json({ error: 'Unauthorized' });
@@ -58,7 +59,6 @@ module.exports = async (req, res) => {
       return res.status(200).json({ success: true });
     }
 
-    // PUT — toggle published / archived
     if (req.method === 'PUT') {
       if (body.adminPw !== ADMIN_PW)
         return res.status(403).json({ error: 'Unauthorized' });
@@ -71,7 +71,6 @@ module.exports = async (req, res) => {
       return res.status(200).json({ success: true });
     }
 
-    // DELETE — remove drop
     if (req.method === 'DELETE') {
       if (body.adminPw !== ADMIN_PW)
         return res.status(403).json({ error: 'Unauthorized' });
