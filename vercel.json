@@ -1,16 +1,22 @@
 {
   "version": 2,
   "functions": {
-    "api/drops.js": { "memory": 256, "maxDuration": 10 },
-    "api/bids.js": { "memory": 256, "maxDuration": 10 },
-    "api/charge.js": { "memory": 256, "maxDuration": 10 },
-    "api/purchase.js": { "memory": 256, "maxDuration": 10 }
+    "api/drops.js":                { "memory": 256, "maxDuration": 10 },
+    "api/bids.js":                 { "memory": 256, "maxDuration": 10 },
+    "api/charge.js":               { "memory": 256, "maxDuration": 10 },
+    "api/purchase.js":             { "memory": 256, "maxDuration": 10 },
+    "api/subscribe.js":            { "memory": 256, "maxDuration": 10 },
+    "api/subscription-webhook.js": { "memory": 256, "maxDuration": 10 },
+    "api/subscription-count.js":  { "memory": 256, "maxDuration": 10 }
   },
   "routes": [
-    { "src": "/api/drops", "dest": "/api/drops.js" },
-    { "src": "/api/bids", "dest": "/api/bids.js" },
-    { "src": "/api/charge", "dest": "/api/charge.js" },
-    { "src": "/api/purchase", "dest": "/api/purchase.js" },
-    { "src": "/(.*)", "dest": "/index.html" }
+    { "src": "/api/drops",                "dest": "/api/drops.js" },
+    { "src": "/api/bids",                 "dest": "/api/bids.js" },
+    { "src": "/api/charge",               "dest": "/api/charge.js" },
+    { "src": "/api/purchase",             "dest": "/api/purchase.js" },
+    { "src": "/api/subscribe",            "dest": "/api/subscribe.js" },
+    { "src": "/api/subscription-webhook", "dest": "/api/subscription-webhook.js" },
+    { "src": "/api/subscription-count",   "dest": "/api/subscription-count.js" },
+    { "src": "/(.*)",                     "dest": "/index.html" }
   ]
 }
