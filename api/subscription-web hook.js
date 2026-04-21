@@ -48,7 +48,7 @@ async function sendWelcomeEmail(subscriber) {
   });
 }
 
-module.exports = async (req, res) => {
+const handler = async (req, res) => {
   if (req.method !== 'POST') return res.status(405).end();
 
   const sig = req.headers['stripe-signature'];
@@ -151,3 +151,6 @@ module.exports = async (req, res) => {
     return res.status(200).json({ received: true, warning: err.message });
   }
 };
+
+module.exports = handler;
+handler.config = { api: { bodyParser: false } };
