@@ -1,10 +1,13 @@
 const nodemailer = require('nodemailer');
 
 async function redis(...args) {
-  const res = await fetch(process.env.UPSTASH_REDIS_REST_URL, {
+  const url = process.env.UPSTASH_REDIS_REST_URL;
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+  if (!url || !token) throw new Error('Database not configured — add UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN in Vercel environment variables');
+  const res = await fetch(url, {
     method: 'POST',
     headers: {
-      Authorization: `Bearer ${process.env.UPSTASH_REDIS_REST_TOKEN}`,
+      Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify(args),
@@ -30,11 +33,11 @@ async function sendConfirmationEmail(bid, dropName) {
   await transporter.sendMail({
     from: `"Volleyball Collective" <${process.env.GMAIL_USER}>`,
     to: bid.email,
-    subject: `🏐 Your bid on "${dropName}" is secured!`,
+    subject: `Your bid on "${dropName}" is secured!`,
     html: `
       <div style="font-family:'DM Sans',Helvetica,Arial,sans-serif;max-width:500px;margin:0 auto;background:#00154F;color:#F5F0E8;padding:36px 32px;border-radius:6px">
         <div style="font-size:11px;letter-spacing:4px;text-transform:uppercase;color:#ED2939;margin-bottom:8px">Volleyball Collective</div>
-        <h2 style="font-size:24px;margin:0 0 20px;font-weight:700">Your bid is locked in ✅</h2>
+        <h2 style="font-size:24px;margin:0 0 20px;font-weight:700">Your bid is locked in</h2>
         <p style="margin:0 0 12px">Hey <strong>${bid.name}</strong>,</p>
         <p style="margin:0 0 20px;line-height:1.6">Your bid of <strong style="color:#ED2939;font-size:18px">$${parseFloat(bid.amount).toFixed(2)}</strong> on <strong>${dropName}</strong> has been recorded and your card is saved securely via Stripe.</p>
         <div style="background:rgba(255,255,255,0.06);border-left:3px solid #ED2939;padding:14px 18px;border-radius:3px;margin-bottom:20px">
@@ -58,7 +61,6 @@ module.exports = async (req, res) => {
   const ADMIN_PW = process.env.ADMIN_PASSWORD || 'vb2024';
 
   try {
-    // GET — all bids (full for admin, sanitized for public)
     if (req.method === 'GET') {
       const isAdmin = (req.query || {}).adminPw === ADMIN_PW;
       const ids = (await redis('SMEMBERS', 'bids:keys')) || [];
@@ -81,7 +83,6 @@ module.exports = async (req, res) => {
 
     const body = req.body || {};
 
-    // POST — place a new bid
     if (req.method === 'POST') {
       const bid = body.bid;
       if (!bid || !bid.id || !bid.dropId || !bid.name || !bid.email || !bid.amount)
@@ -92,7 +93,6 @@ module.exports = async (req, res) => {
       await redis('SET', `bid:${bid.id}`, JSON.stringify(bid));
       await redis('SADD', 'bids:keys', bid.id);
 
-      // Send confirmation email — non-blocking
       try {
         const dropRaw = await redis('GET', `drop:${bid.dropId}`);
         const dropName = dropRaw ? JSON.parse(dropRaw).name : 'this drop';
@@ -104,7 +104,6 @@ module.exports = async (req, res) => {
       return res.status(200).json({ success: true });
     }
 
-    // PUT — mark a bid as charged
     if (req.method === 'PUT') {
       if (body.adminPw !== ADMIN_PW)
         return res.status(403).json({ error: 'Unauthorized' });
@@ -116,7 +115,6 @@ module.exports = async (req, res) => {
       return res.status(200).json({ success: true });
     }
 
-    // DELETE — remove all bids for a drop
     if (req.method === 'DELETE') {
       if (body.adminPw !== ADMIN_PW)
         return res.status(403).json({ error: 'Unauthorized' });
