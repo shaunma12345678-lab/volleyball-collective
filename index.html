@@ -240,6 +240,13 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
 .toast.ok{border-left-color:var(--success)}
 @media(max-width:900px){.membership-inner{grid-template-columns:1fr;gap:40px}}
 @media(max-width:640px){nav{padding:14px 20px}#drops,#shop,#how,#membership{padding:60px 20px}.ht-big{font-size:clamp(4rem,18vw,7rem)}.modal-header{padding:20px 20px 0}.modal-body{padding:0 20px 20px}.form-row-2{grid-template-columns:1fr}.admin-tabs{padding:0 16px}.tab-content{padding:0 16px 20px}.bids-table{font-size:.72rem}}
+.promo-row{display:flex;gap:8px;align-items:center}
+.promo-row input{flex:1}
+.btn-apply-promo{background:rgba(62,207,142,.15);border:1px solid rgba(62,207,142,.35);color:var(--success);padding:10px 16px;font-size:.7rem;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;border-radius:2px;white-space:nowrap;font-family:'DM Sans',sans-serif;transition:all .2s}
+.btn-apply-promo:hover{background:rgba(62,207,142,.25)}
+.promo-feedback{font-size:.73rem;margin-top:5px;display:none}
+.promo-feedback.ok{color:var(--success)}
+.promo-feedback.err{color:var(--danger)}
 </style>
 </head>
 <body>
@@ -419,6 +426,15 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
       </div>
       <div class="modal-body">
         <div class="price-display"><span class="pd-label">Price</span><span class="pd-amount" id="buynow-price-display">$0.00</span></div>
+        <div class="form-row" style="margin-bottom:16px">
+          <label>Ambassador Code <span style="color:var(--muted);font-weight:400;font-size:.75rem">(optional)</span></label>
+          <div class="promo-row">
+            <input type="text" id="bn-promo" placeholder="Enter your code" autocomplete="off" style="text-transform:uppercase">
+            <button class="btn-apply-promo" onclick="applyPromoCode()">Apply</button>
+          </div>
+          <div class="promo-feedback ok" id="bn-promo-ok"></div>
+          <div class="promo-feedback err" id="bn-promo-err"></div>
+        </div>
         <span class="section-label section-label-green">Your Information</span>
         <div class="form-row-2">
           <div class="form-row" style="margin:0"><label>Full Name</label><input type="text" id="bn-name" placeholder="Jane Smith"></div>
@@ -503,6 +519,7 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
         <button class="tab" onclick="switchTab('tab-all-bids')">All Bids</button>
         <button class="tab" onclick="switchTab('tab-members')">Members</button>
         <button class="tab" onclick="switchTab('tab-add')">+ Add Item</button>
+        <button class="tab" onclick="switchTab('tab-promos')">Ambassador Codes</button>
       </div>
       <div class="tab-content active" id="tab-drops">
         <button class="btn-secondary" style="margin-bottom:18px;font-size:.7rem;letter-spacing:2px;padding:9px 18px" onclick="refreshAll().then(()=>{renderAdminDrops();renderAllBids();})">↻ Refresh</button>
@@ -510,6 +527,7 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
       </div>
       <div class="tab-content" id="tab-all-bids"><div id="admin-all-bids">Loading…</div></div>
       <div class="tab-content" id="tab-members"><div id="admin-members-list">Loading…</div></div>
+      <div class="tab-content" id="tab-promos"><div id="admin-promos-list">Loading…</div></div>
       <div class="tab-content" id="tab-add">
         <div class="form-row">
           <label>Listing Type</label>
@@ -714,10 +732,14 @@ function openBuyNowModal(dropId){
   const drop=_drops.find(d=>d.id===dropId);
   if(!drop||drop.sold)return;
   activeBuyNow=dropId;
+  _activePromo=null;
   document.getElementById('buynow-modal-title').textContent=drop.name;
   const price='$'+parseFloat(drop.price||0).toFixed(2);
   document.getElementById('buynow-price-display').textContent=price;
   document.getElementById('bn-btn-text').textContent='Buy Now — '+price;
+  document.getElementById('bn-promo').value='';
+  document.getElementById('bn-promo-ok').style.display='none';
+  document.getElementById('bn-promo-err').style.display='none';
   document.getElementById('buynow-form-view').style.display='';
   document.getElementById('buynow-success').style.display='none';
   document.getElementById('bn-error').style.display='none';
@@ -789,7 +811,7 @@ async function submitBuyNow(){
   const{paymentMethod,error}=await stripe.createPaymentMethod({type:'card',card:bnCardEl,billing_details:{name,email,phone:phone||undefined}});
   if(error){showErr(errEl,error.message);btn.disabled=false;btn.classList.remove('loading');return}
   try{
-    const res=await fetch('/api/purchase',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({paymentMethodId:paymentMethod.id,dropId:activeBuyNow,name,email,address:{street,city,state,zip,country}})});
+    const res=await fetch('/api/purchase',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({paymentMethodId:paymentMethod.id,dropId:activeBuyNow,name,email,address:{street,city,state,zip,country},promoCode:_activePromo?_activePromo.code:null})});
     const data=await res.json().catch(()=>({}));
     if(!res.ok){showErr(errEl,data.error||'Purchase failed. Please try again.');btn.disabled=false;btn.classList.remove('loading');return}
   }catch(e){showErr(errEl,'Network error — please try again.');btn.disabled=false;btn.classList.remove('loading');return}
@@ -820,6 +842,97 @@ async function submitSubscription(){
 
 function showErr(el,msg){el.textContent=msg;el.style.display='block'}
 
+// ── PROMO CODES ──
+let _activePromo=null;
+async function applyPromoCode(){
+  const code=document.getElementById('bn-promo').value.trim().toUpperCase();
+  const okEl=document.getElementById('bn-promo-ok');
+  const errEl=document.getElementById('bn-promo-err');
+  okEl.style.display='none';errEl.style.display='none';
+  if(!code){errEl.textContent='Enter a code first.';errEl.style.display='block';return}
+  const drop=_drops.find(d=>d.id===activeBuyNow);
+  if(!drop)return;
+  try{
+    const res=await fetch('/api/validate-promo?code='+encodeURIComponent(code));
+    const data=await res.json().catch(()=>({}));
+    if(!data.valid){
+      _activePromo=null;
+      const orig='$'+parseFloat(drop.price||0).toFixed(2);
+      document.getElementById('buynow-price-display').textContent=orig;
+      document.getElementById('bn-btn-text').textContent='Buy Now — '+orig;
+      errEl.textContent=data.error||'Invalid or expired code.';errEl.style.display='block';
+      return;
+    }
+    _activePromo={code,discount:data.discount};
+    const orig=parseFloat(drop.price||0);
+    const discounted=orig*(1-data.discount/100);
+    document.getElementById('buynow-price-display').textContent='$'+discounted.toFixed(2);
+    document.getElementById('bn-btn-text').textContent='Buy Now — $'+discounted.toFixed(2);
+    okEl.textContent=(data.label||'Ambassador')+' code applied — '+data.discount+'% off!';okEl.style.display='block';
+  }catch(e){
+    _activePromo=null;
+    errEl.textContent='Could not validate code — please try again.';errEl.style.display='block';
+  }
+}
+
+async function renderAdminCodes(){
+  const el=document.getElementById('admin-promos-list');
+  el.innerHTML='<p style="color:var(--muted);font-size:.85rem">Loading…</p>';
+  try{
+    const res=await fetch('/api/promo-codes?adminPw='+encodeURIComponent(_adminPw)+'&_t='+Date.now(),{cache:'no-store'});
+    const data=await res.json().catch(()=>({}));
+    const codes=data.codes||[];
+    el.innerHTML=`
+      <div style="margin-bottom:28px">
+        <div style="font-size:.65rem;letter-spacing:3px;text-transform:uppercase;color:var(--muted);margin-bottom:14px">Create New Ambassador Code</div>
+        <div class="form-row-2" style="margin-bottom:12px">
+          <div class="form-row" style="margin:0"><label>Code</label><input type="text" id="new-promo-code" placeholder="e.g. JANE10" style="text-transform:uppercase" oninput="this.value=this.value.toUpperCase()"></div>
+          <div class="form-row" style="margin:0"><label>Label (ambassador name)</label><input type="text" id="new-promo-label" placeholder="e.g. Jane Smith"></div>
+        </div>
+        <button class="btn-submit btn-submit-green" style="width:auto;padding:11px 28px;font-size:.73rem;letter-spacing:2px" onclick="createPromoCode()">+ Create Code — 10% Off</button>
+        <div class="error-msg" id="promo-create-err" style="margin-top:10px"></div>
+      </div>
+      <div style="font-size:.65rem;letter-spacing:3px;text-transform:uppercase;color:var(--muted);margin-bottom:14px">Active Codes</div>
+      ${codes.length===0
+        ?'<p style="color:var(--muted);font-size:.85rem">No ambassador codes yet.</p>'
+        :`<div style="overflow-x:auto"><table class="bids-table"><thead><tr><th>Code</th><th>Ambassador</th><th>Discount</th><th>Uses</th><th>Created</th><th></th></tr></thead><tbody>
+          ${codes.map(c=>`<tr>
+            <td style="font-family:'Bebas Neue',sans-serif;font-size:1.05rem;letter-spacing:2px;color:var(--success)">${c.code}</td>
+            <td style="font-size:.78rem">${c.label||'—'}</td>
+            <td class="bid-amt" style="color:var(--success)">−${c.discount}%</td>
+            <td style="font-size:.78rem">${c.uses||0}</td>
+            <td style="font-size:.7rem;color:var(--muted)">${new Date(c.createdAt).toLocaleDateString()}</td>
+            <td><button class="btn-del" onclick="deletePromoCode('${c.code}')">Delete</button></td>
+          </tr>`).join('')}
+        </tbody></table></div>`
+      }`;
+  }catch(e){el.innerHTML='<p style="color:var(--danger);font-size:.85rem">Could not load codes.</p>';}
+}
+
+async function createPromoCode(){
+  const code=document.getElementById('new-promo-code').value.trim().toUpperCase();
+  const label=document.getElementById('new-promo-label').value.trim();
+  const errEl=document.getElementById('promo-create-err');errEl.style.display='none';
+  if(!code){errEl.textContent='A code is required.';errEl.style.display='block';return}
+  if(!/^[A-Z0-9_-]{2,20}$/.test(code)){errEl.textContent='Code must be 2–20 letters or numbers only.';errEl.style.display='block';return}
+  try{
+    const res=await fetch('/api/promo-codes',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({adminPw:_adminPw,code,label})});
+    const data=await res.json().catch(()=>({}));
+    if(!res.ok){errEl.textContent=data.error||'Could not create code.';errEl.style.display='block';return}
+    document.getElementById('new-promo-code').value='';document.getElementById('new-promo-label').value='';
+    showToast('✅ Code '+code+' created!');renderAdminCodes();
+  }catch(e){errEl.textContent='Network error — try again.';errEl.style.display='block';}
+}
+
+async function deletePromoCode(code){
+  if(!confirm('Delete code "'+code+'"? Ambassadors using this code will no longer get a discount.'))return;
+  try{
+    const res=await fetch('/api/promo-codes',{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({adminPw:_adminPw,code})});
+    if(!res.ok){showToast('❌ Could not delete code',true);return}
+    showToast('Code '+code+' deleted.');renderAdminCodes();
+  }catch(e){showToast('❌ Network error',true);}
+}
+
 // ── ADMIN ──
 const ADMIN_PW='vb2024';
 function openAdmin(){
@@ -841,12 +954,13 @@ async function adminLogin(){
   renderAdminDrops();renderAllBids();
 }
 function switchTab(id){
-  const ids=['tab-drops','tab-all-bids','tab-members','tab-add'];
+  const ids=['tab-drops','tab-all-bids','tab-members','tab-add','tab-promos'];
   document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',ids[i]===id));
   document.querySelectorAll('.tab-content').forEach(tc=>tc.classList.toggle('active',tc.id===id));
   if(id==='tab-drops')renderAdminDrops();
   if(id==='tab-all-bids')renderAllBids();
   if(id==='tab-members')fetchSubscriptionCount();
+  if(id==='tab-promos')renderAdminCodes();
 }
 
 function renderAdminDrops(){
