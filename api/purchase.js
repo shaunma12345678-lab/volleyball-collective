@@ -108,7 +108,8 @@ module.exports = async (req, res) => {
       const promoRaw = await redis('GET', `promo:${appliedCode}`);
       if (promoRaw) {
         const promo = JSON.parse(promoRaw);
-        promo.uses = (promo.uses || 0) + 1;
+        promo.buyNowUses = (promo.buyNowUses || 0) + 1;
+        promo.buyNowRevenue = Math.round(((promo.buyNowRevenue || 0) + chargedPrice) * 100) / 100;
         await redis('SET', `promo:${appliedCode}`, JSON.stringify(promo));
       }
     }

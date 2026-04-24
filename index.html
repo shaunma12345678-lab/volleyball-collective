@@ -383,6 +383,15 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
       </div>
       <div class="modal-body">
         <div class="form-row"><label>Your Bid Amount (USD)</label><div class="amount-wrap"><span>$</span><input type="number" id="bid-amount" placeholder="0.00" min="1" step="0.01"></div></div>
+        <div class="form-row" style="margin-bottom:16px">
+          <label>Ambassador Code <span style="color:var(--muted);font-weight:400;font-size:.75rem">(optional)</span></label>
+          <div class="promo-row">
+            <input type="text" id="bid-promo" placeholder="Enter your code" autocomplete="off" style="text-transform:uppercase">
+            <button class="btn-apply-promo" onclick="applyBidPromoCode()">Apply</button>
+          </div>
+          <div class="promo-feedback ok" id="bid-promo-ok"></div>
+          <div class="promo-feedback err" id="bid-promo-err"></div>
+        </div>
         <span class="section-label">Your Information</span>
         <div class="form-row-2">
           <div class="form-row" style="margin:0"><label>Full Name</label><input type="text" id="bid-name" placeholder="Jane Smith"></div>
@@ -721,7 +730,11 @@ function renderShop(){
 function openBidModal(dropId){
   const drop=_drops.find(d=>d.id===dropId);
   activeDrop=dropId;
+  _activeBidPromo=null;
   document.getElementById('bid-modal-title').textContent=drop?`Bid on: ${drop.name}`:'Place Your Bid';
+  document.getElementById('bid-promo').value='';
+  document.getElementById('bid-promo-ok').style.display='none';
+  document.getElementById('bid-promo-err').style.display='none';
   document.getElementById('bid-form-view').style.display='';
   document.getElementById('bid-success').style.display='none';
   document.getElementById('bid-error').style.display='none';
@@ -778,7 +791,7 @@ async function submitBid(){
   if(!stripe||!cardEl){showErr(errEl,'Payment system unavailable. Please refresh.');btn.disabled=false;btn.classList.remove('loading');return}
   const{paymentMethod,error}=await stripe.createPaymentMethod({type:'card',card:cardEl,billing_details:{name,email,phone:phone||undefined}});
   if(error){showErr(errEl,error.message);btn.disabled=false;btn.classList.remove('loading');return}
-  const bid={id:'bid_'+Date.now(),name,email,phone,msg,amount,dropId:activeDrop,paymentMethodId:paymentMethod.id,address:{street,city,state,zip,country},createdAt:new Date().toISOString()};
+  const bid={id:'bid_'+Date.now(),name,email,phone,msg,amount,dropId:activeDrop,paymentMethodId:paymentMethod.id,address:{street,city,state,zip,country},createdAt:new Date().toISOString(),promoCode:_activeBidPromo?_activeBidPromo.code:null,promoDiscount:_activeBidPromo?_activeBidPromo.discount:0};
   try{
     const res=await fetch('/api/bids',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({bid})});
     const data=await res.json().catch(()=>({}));
@@ -843,7 +856,7 @@ async function submitSubscription(){
 function showErr(el,msg){el.textContent=msg;el.style.display='block'}
 
 // ── PROMO CODES ──
-let _activePromo=null;
+let _activePromo=null,_activeBidPromo=null;
 async function applyPromoCode(){
   const code=document.getElementById('bn-promo').value.trim().toUpperCase();
   const okEl=document.getElementById('bn-promo-ok');
@@ -875,6 +888,21 @@ async function applyPromoCode(){
   }
 }
 
+async function applyBidPromoCode(){
+  const code=document.getElementById('bid-promo').value.trim().toUpperCase();
+  const okEl=document.getElementById('bid-promo-ok');
+  const errEl=document.getElementById('bid-promo-err');
+  okEl.style.display='none';errEl.style.display='none';
+  if(!code){errEl.textContent='Enter a code first.';errEl.style.display='block';return}
+  try{
+    const res=await fetch('/api/validate-promo?code='+encodeURIComponent(code));
+    const data=await res.json().catch(()=>({}));
+    if(!data.valid){_activeBidPromo=null;errEl.textContent=data.error||'Invalid or expired code.';errEl.style.display='block';return}
+    _activeBidPromo={code,discount:data.discount};
+    okEl.textContent=(data.label||'Ambassador')+' code applied — '+data.discount+'% off your bid if you win!';okEl.style.display='block';
+  }catch(e){_activeBidPromo=null;errEl.textContent='Could not validate code — please try again.';errEl.style.display='block';}
+}
+
 async function renderAdminCodes(){
   const el=document.getElementById('admin-promos-list');
   el.innerHTML='<p style="color:var(--muted);font-size:.85rem">Loading…</p>';
@@ -895,16 +923,37 @@ async function renderAdminCodes(){
       <div style="font-size:.65rem;letter-spacing:3px;text-transform:uppercase;color:var(--muted);margin-bottom:14px">Active Codes</div>
       ${codes.length===0
         ?'<p style="color:var(--muted);font-size:.85rem">No ambassador codes yet.</p>'
-        :`<div style="overflow-x:auto"><table class="bids-table"><thead><tr><th>Code</th><th>Ambassador</th><th>Discount</th><th>Uses</th><th>Created</th><th></th></tr></thead><tbody>
-          ${codes.map(c=>`<tr>
-            <td style="font-family:'Bebas Neue',sans-serif;font-size:1.05rem;letter-spacing:2px;color:var(--success)">${c.code}</td>
-            <td style="font-size:.78rem">${c.label||'—'}</td>
-            <td class="bid-amt" style="color:var(--success)">−${c.discount}%</td>
-            <td style="font-size:.78rem">${c.uses||0}</td>
-            <td style="font-size:.7rem;color:var(--muted)">${new Date(c.createdAt).toLocaleDateString()}</td>
-            <td><button class="btn-del" onclick="deletePromoCode('${c.code}')">Delete</button></td>
-          </tr>`).join('')}
-        </tbody></table></div>`
+        :(()=>{
+          const sorted=[...codes].sort((a,b)=>((b.buyNowUses||0)+(b.bidUses||0))-((a.buyNowUses||0)+(a.bidUses||0)));
+          const totBN=sorted.reduce((s,c)=>s+(c.buyNowUses||0),0);
+          const totBid=sorted.reduce((s,c)=>s+(c.bidUses||0),0);
+          const totBNRev=sorted.reduce((s,c)=>s+(c.buyNowRevenue||0),0);
+          const totBidRev=sorted.reduce((s,c)=>s+(c.bidRevenue||0),0);
+          return`<div style="display:flex;gap:28px;flex-wrap:wrap;margin-bottom:20px;padding:14px 18px;background:rgba(0,35,149,.12);border-radius:4px;border:1px solid rgba(0,35,149,.25)">
+            <div><div style="font-size:.6rem;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px">Buy Now Sales</div><div style="font-family:'Bebas Neue',sans-serif;font-size:1.5rem;color:var(--success)">${totBN} <span style="font-size:.85rem;color:var(--muted)">($${totBNRev.toFixed(2)})</span></div></div>
+            <div style="width:1px;background:rgba(0,35,149,.3)"></div>
+            <div><div style="font-size:.6rem;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px">Bid Sales</div><div style="font-family:'Bebas Neue',sans-serif;font-size:1.5rem;color:var(--fr-red)">${totBid} <span style="font-size:.85rem;color:var(--muted)">($${totBidRev.toFixed(2)})</span></div></div>
+            <div style="width:1px;background:rgba(0,35,149,.3)"></div>
+            <div><div style="font-size:.6rem;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px">Total</div><div style="font-family:'Bebas Neue',sans-serif;font-size:1.5rem;color:var(--fr-white)">${totBN+totBid} <span style="font-size:.85rem;color:var(--muted)">($${(totBNRev+totBidRev).toFixed(2)})</span></div></div>
+          </div>
+          <div style="overflow-x:auto"><table class="bids-table"><thead><tr><th>#</th><th>Code</th><th>Ambassador</th><th style="color:var(--success)">Buy Now</th><th style="color:var(--success)">BN Revenue</th><th style="color:var(--fr-red)">Bids Won</th><th style="color:var(--fr-red)">Bid Revenue</th><th>Created</th><th></th></tr></thead><tbody>
+            ${sorted.map((c,i)=>{
+              const total=(c.buyNowUses||0)+(c.bidUses||0);
+              const rank=i===0&&total>0?'🥇':i===1&&total>0?'🥈':i===2&&total>0?'🥉':(i+1)+'';
+              return`<tr>
+                <td style="color:var(--muted);font-size:.78rem">${rank}</td>
+                <td style="font-family:'Bebas Neue',sans-serif;font-size:1.05rem;letter-spacing:2px;color:var(--success)">${c.code}</td>
+                <td style="font-size:.78rem">${c.label||'—'}</td>
+                <td class="bid-amt" style="color:var(--success)">${c.buyNowUses||0}</td>
+                <td style="font-size:.78rem;color:var(--success)">$${(c.buyNowRevenue||0).toFixed(2)}</td>
+                <td class="bid-amt" style="color:var(--fr-red)">${c.bidUses||0}</td>
+                <td style="font-size:.78rem;color:var(--fr-red)">$${(c.bidRevenue||0).toFixed(2)}</td>
+                <td style="font-size:.7rem;color:var(--muted)">${new Date(c.createdAt).toLocaleDateString()}</td>
+                <td><button class="btn-del" onclick="deletePromoCode('${c.code}')">Delete</button></td>
+              </tr>`;
+            }).join('')}
+          </tbody></table></div>`;
+        })()
       }`;
   }catch(e){el.innerHTML='<p style="color:var(--danger);font-size:.85rem">Could not load codes.</p>';}
 }
@@ -997,10 +1046,14 @@ async function chargeCard(bidId){
   if(pw!==ADMIN_PW){showToast('Wrong admin password',true);return}
   const bid=_bids.find(b=>b.id===bidId);
   if(!bid)return;
-  if(!confirm(`Charge ${bid.name}'s card $${parseFloat(bid.amount).toFixed(2)}?\n\nThis cannot be undone.`))return;
+  const originalAmt=parseFloat(bid.amount);
+  const promoDiscount=bid.promoDiscount||0;
+  const chargedAmt=promoDiscount>0?originalAmt*(1-promoDiscount/100):originalAmt;
+  const discountNote=promoDiscount>0?`\nAmbassador code ${bid.promoCode} applied — ${promoDiscount}% off (original $${originalAmt.toFixed(2)})`:'';
+  if(!confirm(`Charge ${bid.name}'s card $${chargedAmt.toFixed(2)}?${discountNote}\n\nThis cannot be undone.`))return;
   showToast('Charging card…');
   try{
-    const res=await fetch('/api/charge',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({paymentMethodId:bid.paymentMethodId,amount:bid.amount,email:bid.email,name:bid.name,adminPw:pw})});
+    const res=await fetch('/api/charge',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({paymentMethodId:bid.paymentMethodId,amount:bid.amount,email:bid.email,name:bid.name,adminPw:pw,promoCode:bid.promoCode||null,promoDiscount:bid.promoDiscount||0})});
     const data=await res.json();
     if(data.success){try{await fetch('/api/bids',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:bidId,adminPw:pw})});}catch(e){}await fetchBids();renderAdminDrops();renderAllBids();showToast('✅ Card charged!');}
     else showToast('❌ '+(data.error||'Charge failed'),true);

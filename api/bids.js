@@ -30,6 +30,11 @@ async function sendConfirmationEmail(bid, dropName) {
     service: 'gmail',
     auth: { user: process.env.GMAIL_USER, pass: process.env.GMAIL_PASS },
   });
+  const originalAmt = parseFloat(bid.amount).toFixed(2);
+  const discount = bid.promoDiscount || 0;
+  const chargedIfWin = discount > 0
+    ? (parseFloat(bid.amount) * (1 - discount / 100)).toFixed(2)
+    : null;
   await transporter.sendMail({
     from: `"Volleyball Collective" <${process.env.GMAIL_USER}>`,
     to: bid.email,
@@ -39,13 +44,14 @@ async function sendConfirmationEmail(bid, dropName) {
         <div style="font-size:11px;letter-spacing:4px;text-transform:uppercase;color:#ED2939;margin-bottom:8px">Volleyball Collective</div>
         <h2 style="font-size:24px;margin:0 0 20px;font-weight:700">Your bid is locked in</h2>
         <p style="margin:0 0 12px">Hey <strong>${bid.name}</strong>,</p>
-        <p style="margin:0 0 20px;line-height:1.6">Your bid of <strong style="color:#ED2939;font-size:18px">$${parseFloat(bid.amount).toFixed(2)}</strong> on <strong>${dropName}</strong> has been recorded and your card is saved securely via Stripe.</p>
+        <p style="margin:0 0 20px;line-height:1.6">Your bid of <strong style="color:#ED2939;font-size:18px">$${originalAmt}</strong> on <strong>${dropName}</strong> has been recorded and your card is saved securely via Stripe.</p>
         <div style="background:rgba(255,255,255,0.06);border-left:3px solid #ED2939;padding:14px 18px;border-radius:3px;margin-bottom:20px">
           <p style="margin:0;font-size:13px;line-height:1.6"><strong>Your card is NOT charged yet.</strong><br>Only the winning bidder is charged — everyone else owes nothing.</p>
         </div>
         <table style="font-size:13px;width:100%;border-collapse:collapse">
           <tr><td style="padding:6px 0;color:#7b9fd4">Item</td><td style="padding:6px 0;text-align:right">${dropName}</td></tr>
-          <tr><td style="padding:6px 0;color:#7b9fd4">Your Bid</td><td style="padding:6px 0;text-align:right;color:#ED2939;font-weight:700">$${parseFloat(bid.amount).toFixed(2)}</td></tr>
+          <tr><td style="padding:6px 0;color:#7b9fd4">Your Bid</td><td style="padding:6px 0;text-align:right;color:#ED2939;font-weight:700">$${originalAmt}</td></tr>
+          ${chargedIfWin ? `<tr><td style="padding:6px 0;color:#7b9fd4">Ambassador Discount</td><td style="padding:6px 0;text-align:right;color:#3ecf8e">−${discount}% (you'd pay $${chargedIfWin} if you win)</td></tr>` : ''}
           ${bid.address ? `<tr><td style="padding:6px 0;color:#7b9fd4">Ship To</td><td style="padding:6px 0;text-align:right">${bid.address.city}, ${bid.address.state}</td></tr>` : ''}
         </table>
         <p style="margin:24px 0 0;font-size:11px;color:#7b9fd4">Good luck! — Volleyball Collective</p>
@@ -90,6 +96,28 @@ module.exports = async (req, res) => {
       const existing = await redis('GET', `bid:${bid.id}`);
       if (existing)
         return res.status(409).json({ error: 'Bid with this id already exists' });
+
+      // Validate promo code server-side — increment bidUses if valid
+      if (bid.promoCode) {
+        const cleanCode = bid.promoCode.trim().toUpperCase();
+        const promoRaw = await redis('GET', `promo:${cleanCode}`);
+        if (promoRaw) {
+          const promo = JSON.parse(promoRaw);
+          if (promo.active) {
+            bid.promoCode = cleanCode;
+            bid.promoDiscount = promo.discount;
+            promo.bidUses = (promo.bidUses || 0) + 1;
+            await redis('SET', `promo:${cleanCode}`, JSON.stringify(promo));
+          } else {
+            bid.promoCode = null;
+            bid.promoDiscount = 0;
+          }
+        } else {
+          bid.promoCode = null;
+          bid.promoDiscount = 0;
+        }
+      }
+
       await redis('SET', `bid:${bid.id}`, JSON.stringify(bid));
       await redis('SADD', 'bids:keys', bid.id);
 
