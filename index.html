@@ -247,6 +247,11 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
 .promo-feedback{font-size:.73rem;margin-top:5px;display:none}
 .promo-feedback.ok{color:var(--success)}
 .promo-feedback.err{color:var(--danger)}
+.member-badge-chip{position:absolute;bottom:10px;left:10px;background:rgba(0,21,79,.88);border:1px solid rgba(123,159,212,.45);color:#7b9fd4;padding:4px 10px;font-size:.62rem;letter-spacing:2px;text-transform:uppercase;border-radius:2px;backdrop-filter:blur(4px)}
+.btn-member-lock{background:rgba(123,159,212,.1)!important;border:1px solid rgba(123,159,212,.3)!important;color:var(--muted)!important}
+.btn-member-lock:hover{background:rgba(123,159,212,.2)!important;color:var(--fr-white)!important}
+.member-drop-overlay{position:absolute;inset:0;background:rgba(0,21,79,.55);display:flex;align-items:center;justify-content:center;backdrop-filter:blur(2px);border-radius:4px 4px 0 0}
+.member-lock-icon{font-size:2rem;opacity:.7}
 </style>
 </head>
 <body>
@@ -372,6 +377,30 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
     </div>
   </div>
 </section>
+
+<!-- MEMBER VERIFY MODAL -->
+<div class="overlay" id="member-overlay" onclick="overlayClick(event,'member-overlay')">
+  <div class="modal">
+    <div id="member-form-view">
+      <div class="modal-header">
+        <div><div class="modal-title">🔒 Members Only</div><div class="modal-sub">Verify your membership to unlock this drop</div></div>
+        <button class="btn-close" onclick="closeModal('member-overlay')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="price-display" style="margin-bottom:20px"><span class="pd-label" style="font-size:.75rem;letter-spacing:2px">24-Hour Access</span><span class="pd-amount" style="font-size:1.1rem;color:var(--muted)">Enter your email below</span></div>
+        <div class="form-row"><label>Your Membership Email</label><input type="email" id="member-email" placeholder="jane@email.com" onkeydown="if(event.key==='Enter')submitMemberVerify()"></div>
+        <div class="error-msg" id="member-error"></div>
+        <button class="btn-submit" id="member-btn" onclick="submitMemberVerify()"><span class="btn-text">Verify Membership →</span><div class="spinner"></div></button>
+        <p style="font-size:.72rem;color:var(--muted);text-align:center;margin-top:14px">Not a member yet? <a href="#membership" onclick="closeModal('member-overlay')" style="color:var(--fr-red)">Join The Collective →</a></p>
+      </div>
+    </div>
+    <div class="bid-success" id="member-success">
+      <span class="check">✅</span><h3>Access Granted!</h3>
+      <p id="member-success-msg">You have 24-hour access to all members-only drops.</p>
+      <button class="btn-submit" style="max-width:240px;margin:0 auto" onclick="closeModal('member-overlay');if(_memberPendingAction){_memberPendingAction();_memberPendingAction=null;}">Enter Drop →</button>
+    </div>
+  </div>
+</div>
 
 <!-- BID MODAL -->
 <div class="overlay" id="bid-overlay" onclick="overlayClick(event,'bid-overlay')">
@@ -545,6 +574,13 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
             <button id="type-btn-buy" onclick="setListingType('buynow')">🛒 Shop — Buy Now</button>
           </div>
         </div>
+        <div class="form-row">
+          <label>Access</label>
+          <div class="type-toggle">
+            <button class="active-bid" id="access-btn-public" onclick="setAccessType('public')">🌍 Public Drop</button>
+            <button id="access-btn-members" onclick="setAccessType('members')">🔒 Members Only</button>
+          </div>
+        </div>
         <div class="form-row" id="price-field" style="display:none"><label>Fixed Price (USD) *</label><div class="amount-wrap"><span>$</span><input type="number" id="add-price" placeholder="0.00" min="1" step="0.01"></div></div>
         <div class="form-row"><label>Jersey / Item Name *</label><input type="text" id="add-name" placeholder="e.g. 2024 France National Jersey"></div>
         <div class="form-row"><label>Description</label><textarea id="add-desc" rows="3" placeholder="Team, player, season, details…"></textarea></div>
@@ -690,14 +726,21 @@ function renderDrops(){
   g.innerHTML=drops.map((d,i)=>{
     const db=bids.filter(b=>b.dropId===d.id);
     const img=d.photo?`<img src="${d.photo}" alt="${d.name}" onerror="this.parentElement.innerHTML='<div class=\\'drop-no-img\\'><span>🏐</span></div>'">`:`<div class="drop-no-img"><span>🏐</span></div>`;
-    return`<div class="drop-card" style="animation-delay:${i*.09}s" onclick="openBidModal('${d.id}')">
-      <div class="drop-img-wrap">${img}<span class="drop-badge-chip">Active Drop</span></div>
+    const isLocked=d.memberOnly&&!isMemberVerified();
+    const memberBadge=d.memberOnly?`<span class="member-badge-chip">🔒 Members</span>`:'';
+    const lockOverlay=isLocked?`<div class="member-drop-overlay"><span class="member-lock-icon">🔒</span></div>`:'';
+    const cardClick=isLocked?`openMemberVerify(()=>openBidModal('${d.id}'))`:`openBidModal('${d.id}')`;
+    const bidBtn=isLocked
+      ?`<button class="btn-bid-card btn-member-lock" onclick="event.stopPropagation();openMemberVerify(()=>openBidModal('${d.id}'))">🔒 Members Only</button>`
+      :`<button class="btn-bid-card" onclick="event.stopPropagation();openBidModal('${d.id}')">Place Bid →</button>`;
+    return`<div class="drop-card" style="animation-delay:${i*.09}s" onclick="${cardClick}">
+      <div class="drop-img-wrap">${img}${lockOverlay}<span class="drop-badge-chip">Active Drop</span>${memberBadge}</div>
       <div class="card-stripe"></div>
       <div class="drop-body">
         <div class="drop-name">${d.name}</div>
         <div class="drop-meta">${d.size?`<span>Size: ${d.size}</span>`:''}${d.condition?`<span>${d.condition}</span>`:''}</div>
         ${d.desc?`<p class="drop-desc">${d.desc}</p>`:''}
-        <div class="drop-footer"><span class="drop-bid-count">${db.length} bid${db.length!==1?'s':''}</span><button class="btn-bid-card" onclick="event.stopPropagation();openBidModal('${d.id}')">Place Bid →</button></div>
+        <div class="drop-footer"><span class="drop-bid-count">${db.length} bid${db.length!==1?'s':''}</span>${bidBtn}</div>
       </div>
     </div>`;
   }).join('');
@@ -713,14 +756,22 @@ function renderShop(){
   g.innerHTML=items.map((d,i)=>{
     const img=d.photo?`<img src="${d.photo}" alt="${d.name}" onerror="this.parentElement.innerHTML='<div class=\\'drop-no-img\\'><span>🏐</span></div>'">`:`<div class="drop-no-img"><span>🏐</span></div>`;
     const soldOverlay=d.sold?`<div class="sold-overlay"><span>SOLD</span></div>`:'';
-    return`<div class="drop-card buynow-card" style="animation-delay:${i*.09}s">
-      <div class="drop-img-wrap">${img}${soldOverlay}<span class="buynow-badge-chip">Buy Now</span></div>
+    const isLocked=d.memberOnly&&!isMemberVerified();
+    const memberBadge=d.memberOnly?`<span class="member-badge-chip">🔒 Members</span>`:'';
+    const lockOverlay=isLocked?`<div class="member-drop-overlay"><span class="member-lock-icon">🔒</span></div>`:'';
+    const buyBtn=d.sold
+      ?`<button class="btn-buynow-card" disabled>Sold Out</button>`
+      :isLocked
+        ?`<button class="btn-buynow-card btn-member-lock" onclick="openMemberVerify(()=>openBuyNowModal('${d.id}'))">🔒 Members Only</button>`
+        :`<button class="btn-buynow-card" onclick="openBuyNowModal('${d.id}')">Buy Now →</button>`;
+    return`<div class="drop-card buynow-card" style="animation-delay:${i*.09}s" onclick="${isLocked?`openMemberVerify(()=>openBuyNowModal('${d.id}'))`:''}">
+      <div class="drop-img-wrap">${img}${soldOverlay}${lockOverlay}<span class="buynow-badge-chip">Buy Now</span>${memberBadge}</div>
       <div class="card-stripe-green"></div>
       <div class="drop-body">
         <div class="drop-name">${d.name}</div>
         <div class="drop-meta">${d.size?`<span>Size: ${d.size}</span>`:''}${d.condition?`<span>${d.condition}</span>`:''}</div>
         ${d.desc?`<p class="drop-desc">${d.desc}</p>`:''}
-        <div class="drop-footer"><span class="price-tag">$${parseFloat(d.price||0).toFixed(2)}</span><button class="btn-buynow-card" ${d.sold?'disabled':''} onclick="openBuyNowModal('${d.id}')">${d.sold?'Sold Out':'Buy Now →'}</button></div>
+        <div class="drop-footer"><span class="price-tag">$${parseFloat(d.price||0).toFixed(2)}</span>${buyBtn}</div>
       </div>
     </div>`;
   }).join('');
@@ -729,6 +780,7 @@ function renderShop(){
 // ── MODALS ──
 function openBidModal(dropId){
   const drop=_drops.find(d=>d.id===dropId);
+  if(drop&&drop.memberOnly&&!isMemberVerified()){openMemberVerify(()=>openBidModal(dropId));return}
   activeDrop=dropId;
   _activeBidPromo=null;
   document.getElementById('bid-modal-title').textContent=drop?`Bid on: ${drop.name}`:'Place Your Bid';
@@ -744,6 +796,7 @@ function openBidModal(dropId){
 function openBuyNowModal(dropId){
   const drop=_drops.find(d=>d.id===dropId);
   if(!drop||drop.sold)return;
+  if(drop.memberOnly&&!isMemberVerified()){openMemberVerify(()=>openBuyNowModal(dropId));return}
   activeBuyNow=dropId;
   _activePromo=null;
   document.getElementById('buynow-modal-title').textContent=drop.name;
@@ -1069,9 +1122,42 @@ async function deleteDrop(id){
   try{const res=await fetch('/api/drops',{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,adminPw:_adminPw})});if(!res.ok){showToast('❌ Could not delete',true);return}try{await fetch('/api/bids',{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({dropId:id,adminPw:_adminPw})});}catch(e){}await refreshAll();renderAdminDrops();}catch(e){showToast('❌ Network error',true)}
 }
 
-// ── LISTING TYPE ──
-let _listingType='bid';
+// ── LISTING TYPE & ACCESS ──
+let _listingType='bid',_accessType='public';
 function setListingType(type){_listingType=type;document.getElementById('type-btn-bid').className=type==='bid'?'active-bid':'';document.getElementById('type-btn-buy').className=type==='buynow'?'active-buy':'';document.getElementById('price-field').style.display=type==='buynow'?'':'none';document.getElementById('publish-btn-text').textContent=type==='buynow'?'+ Publish to Shop':'+ Publish Drop';}
+function setAccessType(type){_accessType=type;document.getElementById('access-btn-public').className=type==='public'?'active-bid':'';document.getElementById('access-btn-members').className=type==='members'?'active-buy':'';}
+
+// ── MEMBER VERIFICATION ──
+let _memberSession=null,_memberPendingAction=null;
+try{const s=localStorage.getItem('vc_member');if(s){const p=JSON.parse(s);if(p.expiresAt>Date.now())_memberSession=p;else localStorage.removeItem('vc_member');}}catch{}
+function isMemberVerified(){return!!_memberSession&&_memberSession.expiresAt>Date.now();}
+function openMemberVerify(pendingAction){
+  _memberPendingAction=pendingAction||null;
+  document.getElementById('member-email').value='';
+  document.getElementById('member-error').style.display='none';
+  document.getElementById('member-form-view').style.display='';
+  document.getElementById('member-success').style.display='none';
+  const btn=document.getElementById('member-btn');btn.disabled=false;btn.classList.remove('loading');
+  document.getElementById('member-overlay').classList.add('active');
+}
+async function submitMemberVerify(){
+  const email=document.getElementById('member-email').value.trim();
+  const errEl=document.getElementById('member-error');errEl.style.display='none';
+  if(!email){showErr(errEl,'Please enter your membership email.');return}
+  const btn=document.getElementById('member-btn');btn.disabled=true;btn.classList.add('loading');
+  try{
+    const res=await fetch('/api/verify-member',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email})});
+    const data=await res.json().catch(()=>({}));
+    if(!res.ok){showErr(errEl,data.error||'Could not verify membership.');btn.disabled=false;btn.classList.remove('loading');return}
+    _memberSession={token:data.token,expiresAt:data.expiresAt,name:data.name};
+    try{localStorage.setItem('vc_member',JSON.stringify(_memberSession));}catch{}
+    renderDrops();renderShop();
+    btn.disabled=false;btn.classList.remove('loading');
+    document.getElementById('member-success-msg').textContent=`Welcome back${data.name?', '+data.name:''}! You have 24-hour access to all members-only drops.`;
+    document.getElementById('member-form-view').style.display='none';
+    document.getElementById('member-success').style.display='block';
+  }catch(e){showErr(errEl,'Network error — please try again.');btn.disabled=false;btn.classList.remove('loading');}
+}
 
 // ── PHOTO ──
 let photoMode='upload',uploadedDataUrl=null,uploadedPhotoUrl=null;
@@ -1119,7 +1205,7 @@ async function addDrop(status){
     if(!uploadedPhotoUrl&&uploadedDataUrl){errEl.textContent='Photo is still uploading — please wait a moment.';errEl.style.display='block';return}
     photo=uploadedPhotoUrl||'';
   }else if(photoMode==='url')photo=document.getElementById('add-photo-url').value.trim();
-  const drop={id:'drop_'+Date.now(),name,desc,size,condition,photo,status,type:_listingType,createdAt:new Date().toISOString()};
+  const drop={id:'drop_'+Date.now(),name,desc,size,condition,photo,status,type:_listingType,memberOnly:_accessType==='members',createdAt:new Date().toISOString()};
   if(_listingType==='buynow')drop.price=price;
   try{
     const res=await fetch('/api/drops',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({drop,adminPw:_adminPw})});
@@ -1130,6 +1216,7 @@ async function addDrop(status){
   await refreshAll();renderAdminDrops();errEl.style.display='none';
   ['add-name','add-desc','add-size','add-photo-url','add-price'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   uploadedDataUrl=null;uploadedPhotoUrl=null;document.getElementById('upload-preview').style.display='none';document.getElementById('upload-placeholder').style.display='';
+  _accessType='public';setAccessType('public');
   showToast(status==='published'?(_listingType==='buynow'?'✅ Added to shop!':'✅ Drop published!'):'📝 Draft saved!');
   if(status==='published')switchTab('tab-drops');
 }
