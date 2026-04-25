@@ -66,7 +66,11 @@ module.exports = async (req, res) => {
         label: (label || '').trim() || 'Ambassador',
         discount: 10,
         active: true,
-        uses: 0,
+        maxUses: 2,
+        buyNowUses: 0,
+        bidUses: 0,
+        buyNowRevenue: 0,
+        bidRevenue: 0,
         createdAt: new Date().toISOString(),
       };
 

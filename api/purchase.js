@@ -110,6 +110,8 @@ module.exports = async (req, res) => {
         const promo = JSON.parse(promoRaw);
         promo.buyNowUses = (promo.buyNowUses || 0) + 1;
         promo.buyNowRevenue = Math.round(((promo.buyNowRevenue || 0) + chargedPrice) * 100) / 100;
+        const totalUsesNow = promo.buyNowUses + (promo.bidUses || 0);
+        if (promo.maxUses && totalUsesNow >= promo.maxUses) promo.active = false;
         await redis('SET', `promo:${appliedCode}`, JSON.stringify(promo));
       }
     }

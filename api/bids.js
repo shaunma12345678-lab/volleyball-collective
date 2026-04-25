@@ -107,6 +107,8 @@ module.exports = async (req, res) => {
             bid.promoCode = cleanCode;
             bid.promoDiscount = promo.discount;
             promo.bidUses = (promo.bidUses || 0) + 1;
+            const totalUsesNow = promo.bidUses + (promo.buyNowUses || 0);
+            if (promo.maxUses && totalUsesNow >= promo.maxUses) promo.active = false;
             await redis('SET', `promo:${cleanCode}`, JSON.stringify(promo));
           } else {
             bid.promoCode = null;

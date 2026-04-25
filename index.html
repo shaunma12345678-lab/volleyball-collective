@@ -558,6 +558,7 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
         <button class="tab" onclick="switchTab('tab-members')">Members</button>
         <button class="tab" onclick="switchTab('tab-add')">+ Add Item</button>
         <button class="tab" onclick="switchTab('tab-promos')">Ambassador Codes</button>
+        <button class="tab" onclick="switchTab('tab-emaillist')">Email List</button>
       </div>
       <div class="tab-content active" id="tab-drops">
         <button class="btn-secondary" style="margin-bottom:18px;font-size:.7rem;letter-spacing:2px;padding:9px 18px" onclick="refreshAll().then(()=>{renderAdminDrops();renderAllBids();})">↻ Refresh</button>
@@ -566,6 +567,7 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
       <div class="tab-content" id="tab-all-bids"><div id="admin-all-bids">Loading…</div></div>
       <div class="tab-content" id="tab-members"><div id="admin-members-list">Loading…</div></div>
       <div class="tab-content" id="tab-promos"><div id="admin-promos-list">Loading…</div></div>
+      <div class="tab-content" id="tab-emaillist"><div id="admin-emaillist">Loading…</div></div>
       <div class="tab-content" id="tab-add">
         <div class="form-row">
           <label>Listing Type</label>
@@ -612,6 +614,28 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
     </div>
   </div>
 </div>
+
+<!-- NEWSLETTER SECTION -->
+<section id="newsletter" style="position:relative;z-index:2;padding:90px 48px;border-top:1px solid rgba(0,35,149,.25);background:linear-gradient(180deg,rgba(0,35,149,.06) 0%,transparent 100%)">
+  <div style="max-width:600px;margin:0 auto;text-align:center">
+    <span style="font-size:.66rem;letter-spacing:5px;text-transform:uppercase;color:var(--fr-red);display:block;margin-bottom:12px">Drop Alerts</span>
+    <h2 style="font-family:'Bebas Neue',sans-serif;font-size:clamp(2.2rem,5vw,3.8rem);letter-spacing:2px;color:var(--fr-white);margin-bottom:14px;line-height:.95">Never Miss A Drop</h2>
+    <p style="font-family:'Playfair Display',serif;font-style:italic;color:var(--muted);font-size:1rem;line-height:1.65;margin-bottom:0">Get instant email alerts when new jerseys drop — plus a <strong style="color:var(--success)">10% off code</strong> for your first purchase, on us.</p>
+    <div id="newsletter-form">
+      <div style="display:flex;gap:10px;max-width:440px;margin:28px auto 0;flex-wrap:wrap;justify-content:center">
+        <input type="email" id="nl-email" placeholder="your@gmail.com" style="flex:1;min-width:220px" onkeydown="if(event.key==='Enter')submitNewsletterSignup()">
+        <button class="btn-primary" style="font-size:.75rem;padding:14px 26px;letter-spacing:2px;white-space:nowrap" onclick="submitNewsletterSignup()">Get Alerts + 10% Off</button>
+      </div>
+      <div class="error-msg" id="nl-error" style="max-width:440px;margin:10px auto 0"></div>
+      <p style="font-size:.68rem;color:var(--muted);margin-top:14px;letter-spacing:.5px">No spam · Unsubscribe anytime · Code valid for one purchase only</p>
+    </div>
+    <div id="newsletter-success" style="display:none;margin-top:28px">
+      <div style="font-size:2.5rem;margin-bottom:14px">🎉</div>
+      <h3 style="font-family:'Bebas Neue',sans-serif;font-size:2rem;letter-spacing:2px;color:var(--success);margin-bottom:10px">You're On The List!</h3>
+      <p style="font-size:.88rem;color:var(--muted);line-height:1.6">Check your email — your 10% off code is on its way. We'll hit you every time a new drop goes live.</p>
+    </div>
+  </div>
+</section>
 
 <div class="toast" id="toast"></div>
 <div class="tricolor"></div>
@@ -1056,13 +1080,14 @@ async function adminLogin(){
   renderAdminDrops();renderAllBids();
 }
 function switchTab(id){
-  const ids=['tab-drops','tab-all-bids','tab-members','tab-add','tab-promos'];
+  const ids=['tab-drops','tab-all-bids','tab-members','tab-add','tab-promos','tab-emaillist'];
   document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',ids[i]===id));
   document.querySelectorAll('.tab-content').forEach(tc=>tc.classList.toggle('active',tc.id===id));
   if(id==='tab-drops')renderAdminDrops();
   if(id==='tab-all-bids')renderAllBids();
   if(id==='tab-members')fetchSubscriptionCount();
   if(id==='tab-promos')renderAdminCodes();
+  if(id==='tab-emaillist')renderAdminEmailList();
 }
 
 function renderAdminDrops(){
@@ -1120,6 +1145,43 @@ async function deleteDrop(id){
   if(!confirm('Delete this item and all bids?'))return;
   if(!_adminPw){showToast('Admin session expired',true);return}
   try{const res=await fetch('/api/drops',{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,adminPw:_adminPw})});if(!res.ok){showToast('❌ Could not delete',true);return}try{await fetch('/api/bids',{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({dropId:id,adminPw:_adminPw})});}catch(e){}await refreshAll();renderAdminDrops();}catch(e){showToast('❌ Network error',true)}
+}
+
+// ── NEWSLETTER ──
+async function submitNewsletterSignup(){
+  const email=document.getElementById('nl-email').value.trim();
+  const errEl=document.getElementById('nl-error');errEl.style.display='none';
+  if(!email||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){errEl.textContent='Please enter a valid email address.';errEl.style.display='block';return}
+  try{
+    const res=await fetch('/api/email-subscribe',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email})});
+    const data=await res.json().catch(()=>({}));
+    if(!res.ok){errEl.textContent=data.error||'Could not subscribe — try again.';errEl.style.display='block';return}
+    document.getElementById('newsletter-form').style.display='none';
+    document.getElementById('newsletter-success').style.display='block';
+  }catch(e){errEl.textContent='Network error — try again.';errEl.style.display='block';}
+}
+
+async function renderAdminEmailList(){
+  const el=document.getElementById('admin-emaillist');
+  el.innerHTML='<p style="color:var(--muted);font-size:.85rem">Loading…</p>';
+  try{
+    const res=await fetch('/api/email-subscribe?adminPw='+encodeURIComponent(_adminPw)+'&_t='+Date.now(),{cache:'no-store'});
+    const data=await res.json().catch(()=>({}));
+    const subs=data.subscribers||[];
+    el.innerHTML=`<div style="margin-bottom:20px;display:flex;gap:24px;flex-wrap:wrap">
+      <div style="font-size:.8rem;color:var(--muted)">Total Subscribers: <strong style="color:var(--fr-white)">${subs.length}</strong></div>
+    </div>
+    ${subs.length===0
+      ?'<p style="color:var(--muted);font-size:.85rem">No subscribers yet.</p>'
+      :`<div style="overflow-x:auto"><table class="bids-table"><thead><tr><th>Email</th><th>Welcome Code</th><th>Subscribed</th></tr></thead><tbody>
+        ${subs.map(s=>`<tr>
+          <td style="font-size:.8rem">${s.email}</td>
+          <td style="font-family:'Bebas Neue',sans-serif;letter-spacing:2px;color:var(--success);font-size:.95rem">${s.welcomeCode||'—'}</td>
+          <td style="font-size:.7rem;color:var(--muted)">${new Date(s.subscribedAt).toLocaleDateString()}</td>
+        </tr>`).join('')}
+      </tbody></table></div>`
+    }`;
+  }catch(e){el.innerHTML='<p style="color:var(--danger);font-size:.85rem">Could not load email list.</p>';}
 }
 
 // ── LISTING TYPE & ACCESS ──
