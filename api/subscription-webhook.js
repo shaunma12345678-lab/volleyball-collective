@@ -1,6 +1,7 @@
 
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const nodemailer = require('nodemailer');
+const crypto = require('crypto');
 
 async function redis(...args) {
   const url = process.env.UPSTASH_REDIS_REST_URL;
@@ -100,6 +101,20 @@ async function handler(req, res) {
       await redis('SET', `subscriber:${email}`, JSON.stringify(subscriber));
       await redis('SADD', 'subscribers:list', email);
       if (!wasAlreadyActive) await redis('INCR', 'subscribers:total');
+
+      // Auto-subscribe to drop alert list if not already there
+      const existingSub = await redis('GET', `emailsub:${email}`);
+      if (!existingSub) {
+        const unsubToken = crypto.randomBytes(16).toString('hex');
+        await redis('SET', `emailsub:${email}`, JSON.stringify({
+          email,
+          subscribedAt: new Date().toISOString(),
+          autoSubscribed: true,
+          unsubToken,
+        }));
+        await redis('SADD', 'emailsubs:all', email);
+        await redis('SET', `unsub:${unsubToken}`, email);
+      }
 
       try { await sendWelcomeEmail(subscriber); } catch (e) { console.warn('Welcome email failed:', e.message); }
     }

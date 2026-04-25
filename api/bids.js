@@ -1,4 +1,5 @@
 const nodemailer = require('nodemailer');
+const crypto = require('crypto');
 
 async function redis(...args) {
   const url = process.env.UPSTASH_REDIS_REST_URL;
@@ -24,6 +25,20 @@ function setCORS(res) {
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
 }
 
+async function autoSubscribeEmail(email) {
+  const existing = await redis('GET', `emailsub:${email}`);
+  if (existing) return;
+  const unsubToken = crypto.randomBytes(16).toString('hex');
+  await redis('SET', `emailsub:${email}`, JSON.stringify({
+    email,
+    subscribedAt: new Date().toISOString(),
+    autoSubscribed: true,
+    unsubToken,
+  }));
+  await redis('SADD', 'emailsubs:all', email);
+  await redis('SET', `unsub:${unsubToken}`, email);
+}
+
 async function sendConfirmationEmail(bid, dropName) {
   if (!process.env.GMAIL_USER || !process.env.GMAIL_PASS) return;
   const transporter = nodemailer.createTransport({
@@ -35,6 +50,16 @@ async function sendConfirmationEmail(bid, dropName) {
   const chargedIfWin = discount > 0
     ? (parseFloat(bid.amount) * (1 - discount / 100)).toFixed(2)
     : null;
+
+  let unsubUrl = 'https://volleyball-collective.vercel.app/api/unsubscribe';
+  try {
+    const subRaw = await redis('GET', `emailsub:${bid.email}`);
+    if (subRaw) {
+      const sub = JSON.parse(subRaw);
+      if (sub.unsubToken) unsubUrl += `?t=${sub.unsubToken}`;
+    }
+  } catch {}
+
   await transporter.sendMail({
     from: `"Volleyball Collective" <${process.env.GMAIL_USER}>`,
     to: bid.email,
@@ -55,6 +80,7 @@ async function sendConfirmationEmail(bid, dropName) {
           ${bid.address ? `<tr><td style="padding:6px 0;color:#7b9fd4">Ship To</td><td style="padding:6px 0;text-align:right">${bid.address.city}, ${bid.address.state}</td></tr>` : ''}
         </table>
         <p style="margin:24px 0 0;font-size:11px;color:#7b9fd4">Good luck! — Volleyball Collective</p>
+        <p style="margin:12px 0 0;font-size:10px;color:#4a6fa0">You're on our drop alert list. <a href="${unsubUrl}" style="color:#4a6fa0">Unsubscribe</a></p>
       </div>
     `,
   });
@@ -122,6 +148,8 @@ module.exports = async (req, res) => {
 
       await redis('SET', `bid:${bid.id}`, JSON.stringify(bid));
       await redis('SADD', 'bids:keys', bid.id);
+
+      autoSubscribeEmail(bid.email.toLowerCase().trim()).catch(() => {});
 
       try {
         const dropRaw = await redis('GET', `drop:${bid.dropId}`);

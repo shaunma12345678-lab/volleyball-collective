@@ -1,5 +1,6 @@
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const nodemailer = require('nodemailer');
+const crypto = require('crypto');
 
 async function redis(...args) {
   const url = process.env.UPSTASH_REDIS_REST_URL;
@@ -22,6 +23,20 @@ function setCORS(res) {
   res.setHeader('Cache-Control', 'no-store');
 }
 
+async function autoSubscribeEmail(email) {
+  const existing = await redis('GET', `emailsub:${email}`);
+  if (existing) return; // already on the list
+  const unsubToken = crypto.randomBytes(16).toString('hex');
+  await redis('SET', `emailsub:${email}`, JSON.stringify({
+    email,
+    subscribedAt: new Date().toISOString(),
+    autoSubscribed: true,
+    unsubToken,
+  }));
+  await redis('SADD', 'emailsubs:all', email);
+  await redis('SET', `unsub:${unsubToken}`, email);
+}
+
 async function sendPurchaseEmail(buyer, drop, charged) {
   if (!process.env.GMAIL_USER || !process.env.GMAIL_PASS) return;
   const transporter = nodemailer.createTransport({
@@ -31,6 +46,16 @@ async function sendPurchaseEmail(buyer, drop, charged) {
   const originalPrice = parseFloat(drop.price).toFixed(2);
   const chargedPrice = charged.toFixed(2);
   const hasDiscount = charged < parseFloat(drop.price);
+
+  let unsubUrl = 'https://volleyball-collective.vercel.app/api/unsubscribe';
+  try {
+    const subRaw = await redis('GET', `emailsub:${buyer.email}`);
+    if (subRaw) {
+      const sub = JSON.parse(subRaw);
+      if (sub.unsubToken) unsubUrl += `?t=${sub.unsubToken}`;
+    }
+  } catch {}
+
   await transporter.sendMail({
     from: `"Volleyball Collective" <${process.env.GMAIL_USER}>`,
     to: buyer.email,
@@ -48,6 +73,7 @@ async function sendPurchaseEmail(buyer, drop, charged) {
           ${buyer.address ? `<tr><td style="padding:6px 0;color:#7b9fd4">Ship To</td><td style="padding:6px 0;text-align:right">${buyer.address.city}, ${buyer.address.state}</td></tr>` : ''}
         </table>
         <p style="margin:24px 0 0;font-size:11px;color:#7b9fd4">We'll be in touch with shipping details. — Volleyball Collective</p>
+        <p style="margin:12px 0 0;font-size:10px;color:#4a6fa0">You're on our drop alert list. <a href="${unsubUrl}" style="color:#4a6fa0">Unsubscribe</a></p>
       </div>
     `,
   });
@@ -126,6 +152,7 @@ module.exports = async (req, res) => {
     };
     await redis('SET', `drop:${dropId}`, JSON.stringify(drop));
 
+    autoSubscribeEmail(email.toLowerCase().trim()).catch(() => {});
     try { await sendPurchaseEmail({ name, email, address }, drop, chargedPrice); } catch (e) { console.warn('Email failed:', e.message); }
 
     return res.status(200).json({ success: true, paymentIntentId: paymentIntent.id });

@@ -23,6 +23,21 @@ async function sendDropNotifications(drop) {
   const typeLabel = drop.type === 'buynow' ? `Buy Now — $${parseFloat(drop.price || 0).toFixed(2)}` : 'Auction Drop';
 
   for (const email of emails) {
+    // Fetch unsub token per subscriber so each email has a unique one-click unsubscribe link
+    let unsubUrl = 'https://volleyball-collective.vercel.app/api/unsubscribe';
+    try {
+      const subRaw = await fetch(url, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify(['GET', `emailsub:${email}`]),
+      });
+      const subData = await subRaw.json();
+      if (subData.result) {
+        const sub = JSON.parse(subData.result);
+        if (sub.unsubToken) unsubUrl += `?t=${sub.unsubToken}`;
+      }
+    } catch {}
+
     transporter.sendMail({
       from: `"Volleyball Collective" <${process.env.GMAIL_USER}>`,
       to: email,
@@ -40,6 +55,7 @@ async function sendDropNotifications(drop) {
           ${drop.desc ? `<p style="margin:0 0 24px;line-height:1.6;color:#7b9fd4">${drop.desc}</p>` : ''}
           <a href="https://volleyball-collective.vercel.app" style="display:inline-block;background:#ED2939;color:#fff;padding:14px 32px;font-family:'DM Sans',sans-serif;font-size:.8rem;letter-spacing:3px;text-transform:uppercase;text-decoration:none;border-radius:2px">${drop.type === 'buynow' ? 'Buy Now →' : 'Place Your Bid →'}</a>
           <p style="margin:24px 0 0;font-size:11px;color:#7b9fd4">You're receiving this because you signed up for drop alerts. — Volleyball Collective</p>
+          <p style="margin:12px 0 0;font-size:10px;color:#4a6fa0"><a href="${unsubUrl}" style="color:#4a6fa0">Unsubscribe</a> from drop alerts</p>
         </div>
       `,
     }).catch(e => console.warn(`Notification failed for ${email}:`, e.message));

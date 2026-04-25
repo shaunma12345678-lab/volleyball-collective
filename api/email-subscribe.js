@@ -24,12 +24,13 @@ function setCORS(res) {
   res.setHeader('Cache-Control', 'no-store');
 }
 
-async function sendWelcomeEmail(email, code) {
+async function sendWelcomeEmail(email, code, unsubToken) {
   if (!process.env.GMAIL_USER || !process.env.GMAIL_PASS) return;
   const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: { user: process.env.GMAIL_USER, pass: process.env.GMAIL_PASS },
   });
+  const unsubUrl = `https://volleyball-collective.vercel.app/api/unsubscribe?t=${unsubToken}`;
   await transporter.sendMail({
     from: `"Volleyball Collective" <${process.env.GMAIL_USER}>`,
     to: email,
@@ -47,6 +48,7 @@ async function sendWelcomeEmail(email, code) {
         <p style="margin:0 0 20px;font-size:13px;line-height:1.6;color:#7b9fd4">Enter this code at checkout on any bid or buy now item. Valid for one use only — don't share it!</p>
         <a href="https://volleyball-collective.vercel.app" style="display:inline-block;background:#ED2939;color:#fff;padding:14px 32px;font-family:'DM Sans',sans-serif;font-size:.8rem;letter-spacing:3px;text-transform:uppercase;text-decoration:none;border-radius:2px">Shop The Drops →</a>
         <p style="margin:24px 0 0;font-size:11px;color:#7b9fd4">— Volleyball Collective</p>
+        <p style="margin:16px 0 0;font-size:10px;color:#4a6fa0">You're receiving this because you signed up for drop alerts. <a href="${unsubUrl}" style="color:#4a6fa0">Unsubscribe</a></p>
       </div>
     `,
   });
@@ -85,16 +87,19 @@ module.exports = async (req, res) => {
       const existing = await redis('GET', `emailsub:${cleanEmail}`);
       if (existing) return res.status(409).json({ error: 'This email is already subscribed' });
 
-      // Generate unique welcome discount code
+      // Generate unique welcome discount code and unsubscribe token
       const code = 'WELCOME' + crypto.randomBytes(3).toString('hex').toUpperCase();
+      const unsubToken = crypto.randomBytes(16).toString('hex');
 
       // Store subscriber
       await redis('SET', `emailsub:${cleanEmail}`, JSON.stringify({
         email: cleanEmail,
         subscribedAt: new Date().toISOString(),
         welcomeCode: code,
+        unsubToken,
       }));
       await redis('SADD', 'emailsubs:all', cleanEmail);
+      await redis('SET', `unsub:${unsubToken}`, cleanEmail);
 
       // Store as a promo code (maxUses: 1, one-time welcome discount)
       await redis('SET', `promo:${code}`, JSON.stringify({
@@ -112,7 +117,7 @@ module.exports = async (req, res) => {
       }));
       await redis('SADD', 'promos:all', code);
 
-      try { await sendWelcomeEmail(cleanEmail, code); } catch (e) { console.warn('Welcome email failed:', e.message); }
+      try { await sendWelcomeEmail(cleanEmail, code, unsubToken); } catch (e) { console.warn('Welcome email failed:', e.message); }
 
       return res.status(200).json({ success: true });
     } catch (err) {
