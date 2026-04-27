@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://volleyball-collective.vercel.app/sitemap.xml

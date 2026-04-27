@@ -1,0 +1,10 @@
+{
+  "name": "Volleyball Collective",
+  "short_name": "VC Drops",
+  "description": "Exclusive volleyball jersey auctions and drops.",
+  "start_url": "/",
+  "display": "browser",
+  "background_color": "#00154F",
+  "theme_color": "#00154F",
+  "icons": []
+}

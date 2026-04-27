@@ -14,6 +14,32 @@
 <meta name="twitter:title" content="Volleyball Collective — Exclusive Drops">
 <meta name="twitter:description" content="Rare volleyball jerseys. Bid to win or buy instantly.">
 <meta name="twitter:image" content="https://volleyball-collective.vercel.app/og-image.jpg">
+<meta name="vapid-public-key" content="">
+<link rel="manifest" href="/manifest.json">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "Volleyball Collective",
+  "url": "https://volleyball-collective.vercel.app",
+  "logo": "https://volleyball-collective.vercel.app/og-image.jpg",
+  "description": "Exclusive volleyball jersey auctions and drops. Bid to win or buy instantly.",
+  "sameAs": ["https://www.instagram.com/volleyballcollective/"]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": "Volleyball Collective",
+  "url": "https://volleyball-collective.vercel.app",
+  "potentialAction": {
+    "@type": "SearchAction",
+    "target": "https://volleyball-collective.vercel.app/?q={search_term_string}",
+    "query-input": "required name=search_term_string"
+  }
+}
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <script src="https://js.stripe.com/v3/"></script>
@@ -833,6 +859,49 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
 </footer>
 
 <script>
+// ── BROWSER PUSH NOTIFICATIONS ──
+(async function initPush(){
+  if(!('serviceWorker' in navigator)||!('PushManager' in window))return;
+  try{
+    const reg=await navigator.serviceWorker.register('/sw.js');
+    const vapidKey=document.querySelector('meta[name="vapid-public-key"]')?.content;
+    if(!vapidKey)return;
+
+    async function subscribePush(){
+      const permission=await Notification.requestPermission();
+      if(permission!=='granted')return;
+      const existing=await reg.pushManager.getSubscription();
+      if(existing)return; // already subscribed
+      const sub=await reg.pushManager.subscribe({
+        userVisibleOnly:true,
+        applicationServerKey:urlB64ToUint8Array(vapidKey),
+      });
+      await fetch('/api/push-subscribe',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({subscription:sub})});
+      localStorage.setItem('vc_push_subscribed','1');
+    }
+
+    function urlB64ToUint8Array(base64String){
+      const padding='='.repeat((4-base64String.length%4)%4);
+      const base64=(base64String+padding).replace(/-/g,'+').replace(/_/g,'/');
+      const raw=atob(base64);
+      return Uint8Array.from([...raw].map(c=>c.charCodeAt(0)));
+    }
+
+    window._subscribePush=subscribePush;
+
+    // Auto-prompt after 45s if not yet subscribed and notifications not denied
+    if(!localStorage.getItem('vc_push_subscribed')&&Notification.permission==='default'){
+      setTimeout(async()=>{
+        if(Notification.permission==='default')await subscribePush();
+      },45000);
+    }
+    // Re-subscribe on load if previously granted (keeps subscription fresh)
+    if(Notification.permission==='granted'&&!localStorage.getItem('vc_push_subscribed')){
+      subscribePush().catch(()=>{});
+    }
+  }catch(e){console.warn('Push init failed:',e);}
+})();
+
 // ── EMAIL POPUP ──
 (function(){
   if(localStorage.getItem('vc_popup_done')||sessionStorage.getItem('vc_popup_session'))return;
@@ -1154,7 +1223,7 @@ function renderDrops(){
     const badgeChip=isTeaser?`<span class="teaser-badge-chip">Coming Soon</span>`:`<span class="drop-badge-chip">Active Drop</span>`;
     const cardClick=isTeaser?'':(isLocked?`openMemberVerify(()=>openBidModal('${d.id}'))`:`openBidModal('${d.id}')`);
     const actionBtn=isTeaser
-      ?`<button class="btn-coming-soon">Coming Soon</button>`
+      ?`<button class="btn-bid-card" style="background:rgba(123,159,212,.15);border:1px solid rgba(123,159,212,.4);color:var(--muted)" onclick="event.stopPropagation();openNotifyModal('${d.id}','${d.name.replace(/'/g,"\\'").replace(/"/g,'&quot;')}')">Notify Me →</button>`
       :isLocked
         ?`<button class="btn-bid-card btn-member-lock" onclick="event.stopPropagation();openMemberVerify(()=>openBidModal('${d.id}'))">🔒 Members Only</button>`
         :`<button class="btn-bid-card" onclick="event.stopPropagation();openBidModal('${d.id}')">Place Bid →</button>`;
@@ -1192,7 +1261,7 @@ function renderShop(){
     const lockOverlay=isLocked?`<div class="member-drop-overlay"><span class="member-lock-icon">🔒</span></div>`:'';
     const badgeChip=isTeaser?`<span class="teaser-badge-chip">Coming Soon</span>`:`<span class="buynow-badge-chip">Buy Now</span>`;
     const buyBtn=isTeaser
-      ?`<button class="btn-coming-soon">Coming Soon</button>`
+      ?`<button class="btn-buynow-card" style="background:rgba(123,159,212,.15);border:1px solid rgba(123,159,212,.4);color:var(--muted);font-weight:400" onclick="event.stopPropagation();openNotifyModal('${d.id}','${d.name.replace(/'/g,"\\'").replace(/"/g,'&quot;')}')">Notify Me →</button>`
       :d.sold
         ?`<button class="btn-notify-card" onclick="event.stopPropagation();openNotifyModal('${d.id}','${d.name.replace(/'/g,"\\'").replace(/"/g,'&quot;')}')">Notify Me →</button>`
         :isLocked

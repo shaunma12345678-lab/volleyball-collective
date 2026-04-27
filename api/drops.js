@@ -1,4 +1,62 @@
 const nodemailer = require('nodemailer');
+const webpush = require('web-push');
+
+async function sendPushNotifications(drop) {
+  const vapidPublic = process.env.VAPID_PUBLIC_KEY;
+  const vapidPrivate = process.env.VAPID_PRIVATE_KEY;
+  const vapidEmail = process.env.VAPID_EMAIL;
+  if (!vapidPublic || !vapidPrivate || !vapidEmail) return;
+
+  const url = process.env.UPSTASH_REDIS_REST_URL;
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+  if (!url || !token) return;
+
+  webpush.setVapidDetails(`mailto:${vapidEmail}`, vapidPublic, vapidPrivate);
+
+  const r = await fetch(url, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify(['SMEMBERS', 'push-subs:all']),
+  });
+  const { result: keys } = await r.json();
+  if (!keys || !keys.length) return;
+
+  const payload = JSON.stringify({
+    title: `New Drop — ${drop.name}`,
+    body: drop.type === 'buynow'
+      ? `Buy Now for $${parseFloat(drop.price || 0).toFixed(2)} — limited availability`
+      : 'New auction live — place your bid now',
+    url: 'https://volleyball-collective.vercel.app',
+  });
+
+  await Promise.allSettled(keys.map(async key => {
+    try {
+      const subR = await fetch(url, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify(['GET', `push-sub:${key}`]),
+      });
+      const { result: raw } = await subR.json();
+      if (!raw) return;
+      const sub = JSON.parse(raw);
+      await webpush.sendNotification(sub, payload);
+    } catch (err) {
+      if (err.statusCode === 410 || err.statusCode === 404) {
+        // Subscription expired — clean it up
+        await fetch(url, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify(['DEL', `push-sub:${key}`]),
+        });
+        await fetch(url, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify(['SREM', 'push-subs:all', key]),
+        });
+      }
+    }
+  }));
+}
 
 async function sendDropNotifications(drop) {
   if (!process.env.GMAIL_USER || !process.env.GMAIL_PASS) return;
@@ -120,7 +178,10 @@ module.exports = async (req, res) => {
         return res.status(409).json({ error: 'Drop with this id already exists' });
       await redis('SET', `drop:${body.drop.id}`, JSON.stringify(body.drop));
       await redis('SADD', 'drops:keys', body.drop.id);
-      if (body.drop.status === 'published') sendDropNotifications(body.drop).catch(() => {});
+      if (body.drop.status === 'published') {
+        sendDropNotifications(body.drop).catch(() => {});
+        sendPushNotifications(body.drop).catch(() => {});
+      }
       return res.status(200).json({ success: true });
     }
 
