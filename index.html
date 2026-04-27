@@ -26,7 +26,11 @@ body{background:var(--deep);color:var(--fr-white);font-family:'DM Sans',sans-ser
 #cursor-ring{position:fixed;width:34px;height:34px;border:1.5px solid rgba(237,41,57,.5);border-radius:50%;pointer-events:none;z-index:9998;transform:translate(-50%,-50%);transition:all .12s ease}
 body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");opacity:.03;pointer-events:none;z-index:1}
 #bg-canvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0}
-nav{position:fixed;top:0;left:0;right:0;z-index:500;display:flex;justify-content:space-between;align-items:center;padding:20px 48px;background:linear-gradient(180deg,rgba(0,21,79,.97) 0%,transparent 100%);backdrop-filter:blur(8px);border-bottom:1px solid rgba(237,41,57,.1)}
+nav{position:fixed;top:38px;left:0;right:0;z-index:500;display:flex;justify-content:space-between;align-items:center;padding:20px 48px;background:linear-gradient(180deg,rgba(0,21,79,.97) 0%,transparent 100%);backdrop-filter:blur(8px);border-bottom:1px solid rgba(237,41,57,.1)}
+.top-bar{position:fixed;top:0;left:0;right:0;z-index:490;height:38px;background:linear-gradient(90deg,#b8001e,#ED2939,#b8001e);color:#fff;display:flex;align-items:center;justify-content:center;gap:8px;font-family:'DM Sans',sans-serif;font-size:.68rem;letter-spacing:2.5px;text-transform:uppercase;cursor:pointer;text-decoration:none;transition:filter .2s}
+.top-bar:hover{filter:brightness(1.1)}
+.top-bar-arrow{font-size:.9rem;letter-spacing:0}
+@media(max-width:640px){.top-bar{font-size:.6rem;letter-spacing:1.5px;padding:0 12px}.mobile-menu{top:38px}}
 .nav-logo{font-family:'Bebas Neue',sans-serif;font-size:1.45rem;letter-spacing:4px;color:var(--fr-white);text-decoration:none;display:flex;align-items:center;gap:10px}
 .logo-dot{width:8px;height:8px;background:var(--fr-red);border-radius:50%;animation:blink 2s ease-in-out infinite;flex-shrink:0}
 @keyframes blink{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.6)}}
@@ -272,6 +276,7 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
 .mobile-menu.open a:nth-child(3){transition-delay:.10s}
 .mobile-menu.open a:nth-child(4){transition-delay:.15s}
 .mobile-menu.open a:nth-child(5){transition-delay:.20s}
+.mobile-menu.open a:nth-child(6){transition-delay:.25s}
 .mobile-menu a:hover{color:var(--fr-red)}
 .mobile-menu-divider{width:48px;height:1px;background:rgba(237,41,57,.3);margin:10px 0;opacity:0;transition:opacity .35s .22s}
 .mobile-menu.open .mobile-menu-divider{opacity:1}
@@ -305,6 +310,8 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
 <div id="cursor-ring"></div>
 <canvas id="bg-canvas"></canvas>
 
+<a class="top-bar" onclick="document.getElementById('newsletter').scrollIntoView({behavior:'smooth'})">🎁 Sign up for drop alerts and get 10% off your first purchase <span class="top-bar-arrow">→</span></a>
+
 <nav>
   <a href="#" class="nav-logo"><div class="logo-dot"></div>🏐 Volleyball Collective</a>
   <div class="nav-links">
@@ -312,6 +319,7 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
     <a href="#shop">Shop</a>
     <a href="#membership">Members</a>
     <a href="#how">How It Works</a>
+    <a href="#newsletter" style="color:#3ecf8e!important;font-weight:600">Get 10% Off</a>
     <a href="https://www.instagram.com/volleyballcollective/" target="_blank" rel="noopener" aria-label="Instagram" style="display:flex;align-items:center;color:var(--muted);transition:color .2s" onmouseover="this.style.color='#E1306C'" onmouseout="this.style.color=''"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg></a>
     <button class="btn-nav-admin" onclick="openAdmin()">Admin ↗</button>
   </div>
@@ -326,6 +334,7 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
   <a href="#shop" onclick="closeMobileMenu()">Shop</a>
   <a href="#membership" onclick="closeMobileMenu()">Members</a>
   <a href="#how" onclick="closeMobileMenu()">How It Works</a>
+  <a href="#newsletter" onclick="closeMobileMenu()" style="color:#3ecf8e!important">Get 10% Off 🎁</a>
   <div class="mobile-menu-divider"></div>
   <a href="https://www.instagram.com/volleyballcollective/" target="_blank" rel="noopener" onclick="closeMobileMenu()" style="display:inline-flex;align-items:center;gap:10px;font-size:1.2rem!important;letter-spacing:3px!important;color:var(--muted)!important"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>Instagram</a>
   <button class="btn-mobile-admin" onclick="closeMobileMenu();openAdmin()">Admin ↗</button>
