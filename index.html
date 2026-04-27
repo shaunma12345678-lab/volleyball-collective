@@ -238,7 +238,33 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
 .toast.show{transform:translateY(0);opacity:1}
 .toast.err{border-left-color:var(--danger)}
 .toast.ok{border-left-color:var(--success)}
+/* ── MOBILE NAV ── */
+.hamburger{display:none;flex-direction:column;justify-content:center;gap:5px;background:none;border:none;cursor:pointer;padding:6px;z-index:601;flex-shrink:0}
+.hamburger span{display:block;width:23px;height:2px;background:var(--fr-white);transition:transform .3s cubic-bezier(.22,1,.36,1),opacity .3s;transform-origin:center}
+.hamburger.open span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+.hamburger.open span:nth-child(2){opacity:0;transform:scaleX(0)}
+.hamburger.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+.mobile-menu{position:fixed;inset:0;background:rgba(0,21,79,.98);z-index:550;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;backdrop-filter:blur(20px);transform:translateX(100%);transition:transform .38s cubic-bezier(.22,1,.36,1);pointer-events:none}
+.mobile-menu.open{transform:translateX(0);pointer-events:auto}
+.mobile-menu-tricolor{position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--fr-blue) 33.3%,var(--fr-white) 33.3%,var(--fr-white) 66.6%,var(--fr-red) 66.6%)}
+.mobile-menu a{font-family:'Bebas Neue',sans-serif;font-size:2.6rem;letter-spacing:6px;color:var(--fr-white);text-decoration:none;padding:14px 0;transition:color .2s,letter-spacing .2s;opacity:0;transform:translateX(30px);transition:color .2s,opacity .35s,transform .35s}
+.mobile-menu.open a{opacity:1;transform:translateX(0)}
+.mobile-menu.open a:nth-child(2){transition-delay:.05s}
+.mobile-menu.open a:nth-child(3){transition-delay:.10s}
+.mobile-menu.open a:nth-child(4){transition-delay:.15s}
+.mobile-menu.open a:nth-child(5){transition-delay:.20s}
+.mobile-menu a:hover{color:var(--fr-red)}
+.mobile-menu-divider{width:48px;height:1px;background:rgba(237,41,57,.3);margin:10px 0;opacity:0;transition:opacity .35s .22s}
+.mobile-menu.open .mobile-menu-divider{opacity:1}
+.btn-mobile-admin{background:transparent;border:1px solid var(--fr-red);color:var(--fr-red);padding:14px 36px;border-radius:2px;cursor:pointer;font-family:'Bebas Neue',sans-serif;font-size:1.1rem;letter-spacing:4px;margin-top:10px;transition:all .2s;opacity:0;transform:translateX(30px);transition:background .2s,color .2s,opacity .35s .25s,transform .35s .25s}
+.mobile-menu.open .btn-mobile-admin{opacity:1;transform:translateX(0)}
+.btn-mobile-admin:hover{background:var(--fr-red);color:#fff}
 @media(max-width:900px){.membership-inner{grid-template-columns:1fr;gap:40px}}
+@media(max-width:768px){
+  .nav-links{display:none}
+  .hamburger{display:flex}
+  #cursor,#cursor-ring{display:none}
+}
 @media(max-width:640px){nav{padding:14px 20px}#drops,#shop,#how,#membership{padding:60px 20px}.ht-big{font-size:clamp(4rem,18vw,7rem)}.modal-header{padding:20px 20px 0}.modal-body{padding:0 20px 20px}.form-row-2{grid-template-columns:1fr}.admin-tabs{padding:0 16px}.tab-content{padding:0 16px 20px}.bids-table{font-size:.72rem}}
 .promo-row{display:flex;gap:8px;align-items:center}
 .promo-row input{flex:1}
@@ -269,7 +295,20 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
     <a href="#how">How It Works</a>
     <button class="btn-nav-admin" onclick="openAdmin()">Admin ↗</button>
   </div>
+  <button class="hamburger" id="hamburger" onclick="toggleMobileMenu()" aria-label="Open menu">
+    <span></span><span></span><span></span>
+  </button>
 </nav>
+
+<div class="mobile-menu" id="mobile-menu">
+  <div class="mobile-menu-tricolor"></div>
+  <a href="#drops" onclick="closeMobileMenu()">Auctions</a>
+  <a href="#shop" onclick="closeMobileMenu()">Shop</a>
+  <a href="#membership" onclick="closeMobileMenu()">Members</a>
+  <a href="#how" onclick="closeMobileMenu()">How It Works</a>
+  <div class="mobile-menu-divider"></div>
+  <button class="btn-mobile-admin" onclick="closeMobileMenu();openAdmin()">Admin ↗</button>
+</div>
 
 <section id="hero">
   <div class="tricolor-top"></div>
@@ -646,6 +685,22 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
 </footer>
 
 <script>
+// ── MOBILE MENU ──
+function toggleMobileMenu(){
+  const ham=document.getElementById('hamburger');
+  const menu=document.getElementById('mobile-menu');
+  const isOpen=menu.classList.toggle('open');
+  ham.classList.toggle('open',isOpen);
+  document.body.style.overflow=isOpen?'hidden':'';
+}
+function closeMobileMenu(){
+  document.getElementById('hamburger').classList.remove('open');
+  document.getElementById('mobile-menu').classList.remove('open');
+  document.body.style.overflow='';
+}
+// Close mobile menu on Escape key
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeMobileMenu()});
+
 // ── CURSOR ──
 const cur=document.getElementById('cursor'),ring=document.getElementById('cursor-ring');
 let mx=0,my=0,rx=0,ry=0;
