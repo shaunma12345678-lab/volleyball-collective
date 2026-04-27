@@ -4,6 +4,16 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Volleyball Collective — Exclusive Drops</title>
+<meta name="description" content="Exclusive volleyball jersey auctions and drops. Bid to win or buy instantly — all payments secured by Stripe.">
+<meta property="og:title" content="Volleyball Collective — Exclusive Drops">
+<meta property="og:description" content="Rare volleyball jerseys. Bid to win or buy instantly. Limited drops, Stripe-secured payments.">
+<meta property="og:url" content="https://volleyball-collective.vercel.app">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://volleyball-collective.vercel.app/og-image.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Volleyball Collective — Exclusive Drops">
+<meta name="twitter:description" content="Rare volleyball jerseys. Bid to win or buy instantly.">
+<meta name="twitter:image" content="https://volleyball-collective.vercel.app/og-image.jpg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <script src="https://js.stripe.com/v3/"></script>
@@ -293,6 +303,7 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
     <a href="#shop">Shop</a>
     <a href="#membership">Members</a>
     <a href="#how">How It Works</a>
+    <a href="https://www.instagram.com/volleyballcollective/" target="_blank" rel="noopener" aria-label="Instagram" style="display:flex;align-items:center;color:var(--muted);transition:color .2s" onmouseover="this.style.color='#E1306C'" onmouseout="this.style.color=''"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg></a>
     <button class="btn-nav-admin" onclick="openAdmin()">Admin ↗</button>
   </div>
   <button class="hamburger" id="hamburger" onclick="toggleMobileMenu()" aria-label="Open menu">
@@ -307,6 +318,7 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
   <a href="#membership" onclick="closeMobileMenu()">Members</a>
   <a href="#how" onclick="closeMobileMenu()">How It Works</a>
   <div class="mobile-menu-divider"></div>
+  <a href="https://www.instagram.com/volleyballcollective/" target="_blank" rel="noopener" onclick="closeMobileMenu()" style="display:inline-flex;align-items:center;gap:10px;font-size:1.2rem!important;letter-spacing:3px!important;color:var(--muted)!important"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>Instagram</a>
   <button class="btn-mobile-admin" onclick="closeMobileMenu();openAdmin()">Admin ↗</button>
 </div>
 
@@ -681,6 +693,9 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
 <footer>
   <span class="f-logo">🏐 Volleyball Collective</span>
   <p>Exclusive drops. Limited jerseys. Bid to win or buy instantly.</p>
+  <p style="margin-top:14px">
+    <a href="https://www.instagram.com/volleyballcollective/" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:7px;color:var(--muted);text-decoration:none;font-size:.78rem;letter-spacing:2px;transition:color .2s" onmouseover="this.style.color='#E1306C'" onmouseout="this.style.color=''"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>@volleyballcollective</a>
+  </p>
   <p class="f-stripe">🔒 All payments secured by Stripe · No bid charges until you win</p>
 </footer>
 
