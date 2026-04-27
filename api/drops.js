@@ -174,7 +174,15 @@ module.exports = async (req, res) => {
       }));
 
       const drops = allDrops.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-      return res.status(200).json({ drops });
+
+      // Fetch watch counts for all drops
+      const watchCounts = {};
+      await Promise.all(drops.map(async d => {
+        const count = await redis('GET', `watch:${d.id}`);
+        if (count) watchCounts[d.id] = parseInt(count);
+      }));
+
+      return res.status(200).json({ drops, watchCounts });
     }
 
     const body = req.body || {};

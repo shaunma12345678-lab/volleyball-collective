@@ -150,6 +150,20 @@ nav{position:fixed;top:38px;left:0;right:0;z-index:500;display:flex;justify-cont
 .empty-drops .ei{font-size:4rem;margin-bottom:16px;display:block}
 .empty-drops p{font-size:.87rem;letter-spacing:1px}
 
+/* ── FLASH SALE ── */
+#flash{position:relative;z-index:2;padding:100px 48px;max-width:1280px;margin:0 auto;border-top:1px solid rgba(251,191,36,.14)}
+.flash-section-badge{background:rgba(251,191,36,.15);color:#fbbf24;font-size:.62rem;font-weight:700;letter-spacing:3px;text-transform:uppercase;padding:5px 12px;border-radius:2px;border:1px solid rgba(251,191,36,.4);animation:pulseBadge 2.5s ease-in-out infinite}
+.flash-badge-chip{position:absolute;top:14px;left:14px;z-index:2;background:rgba(30,15,0,.9);border:1px solid rgba(251,191,36,.65);color:#fbbf24;font-size:.62rem;letter-spacing:3px;text-transform:uppercase;padding:5px 12px;border-radius:2px;backdrop-filter:blur(6px)}
+.flash-card:hover{border-color:rgba(251,191,36,.4)!important;box-shadow:0 24px 64px rgba(0,0,0,.5),0 0 0 1px rgba(251,191,36,.22)!important}
+.card-stripe-flash{height:3px;background:linear-gradient(90deg,#f59e0b,#fcd34d,#f59e0b)}
+.btn-flash-card{background:#f59e0b;color:#150a00;border:none;padding:11px 26px;font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:3px;cursor:pointer;border-radius:2px;transition:all .2s;font-weight:700}
+.btn-flash-card:hover{background:#fbbf24;transform:translateY(-1px);box-shadow:0 6px 20px rgba(251,191,36,.4)}
+.flash-price-wrap{display:flex;align-items:baseline;gap:10px}
+.flash-original-price{font-size:.9rem;color:var(--muted);text-decoration:line-through}
+.flash-sale-price{font-family:'Bebas Neue',sans-serif;font-size:1.6rem;color:#fbbf24}
+.watcher-count{font-size:.68rem;color:var(--muted);opacity:.8;letter-spacing:.5px}
+.countdown-tag{font-size:.72rem;color:var(--fr-red);letter-spacing:1px;font-variant-numeric:tabular-nums;white-space:nowrap}
+
 /* ── MEMBERSHIP SECTION ── */
 #membership{position:relative;z-index:2;padding:100px 48px;border-top:1px solid rgba(237,41,57,.12);background:linear-gradient(180deg,rgba(237,41,57,.03) 0%,rgba(0,21,79,0) 100%)}
 .membership-inner{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center}
@@ -369,6 +383,7 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
   <div class="nav-links">
     <a href="#drops">Auctions</a>
     <a href="#shop">Shop</a>
+    <a href="#flash" style="color:#fbbf24!important;font-weight:600">⚡ Flash</a>
     <a href="#membership">Members</a>
     <a href="#how">How It Works</a>
     <a href="#newsletter" style="color:#3ecf8e!important;font-weight:600">Get 10% Off</a>
@@ -384,6 +399,7 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
   <div class="mobile-menu-tricolor"></div>
   <a href="#drops" onclick="closeMobileMenu()">Auctions</a>
   <a href="#shop" onclick="closeMobileMenu()">Shop</a>
+  <a href="#flash" onclick="closeMobileMenu()" style="color:#fbbf24!important;font-weight:600">⚡ Flash</a>
   <a href="#membership" onclick="closeMobileMenu()">Members</a>
   <a href="#how" onclick="closeMobileMenu()">How It Works</a>
   <a href="#newsletter" onclick="closeMobileMenu()" style="color:#3ecf8e!important">Get 10% Off 🎁</a>
@@ -450,6 +466,20 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
   </div>
   <div class="drops-grid" id="shop-grid">
     <div class="empty-drops"><span class="ei">🛒</span><p>No items in the shop right now — check back soon!</p></div>
+  </div>
+</section>
+
+<!-- FLASH DROPS -->
+<section id="flash">
+  <div class="section-header">
+    <div>
+      <span class="section-eyebrow">Limited Time Only</span>
+      <h2 class="section-title">Flash Drops</h2>
+    </div>
+    <span class="flash-section-badge" id="flash-badge" style="display:none">Live Now</span>
+  </div>
+  <div class="drops-grid" id="flash-grid">
+    <div class="empty-drops"><span class="ei">⚡</span><p>No flash sales right now — follow us so you never miss one!</p></div>
   </div>
 </section>
 
@@ -758,6 +788,7 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
           <div class="type-toggle">
             <button class="active-bid" id="type-btn-bid" onclick="setListingType('bid')">🏆 Auction — Bid to Win</button>
             <button id="type-btn-buy" onclick="setListingType('buynow')">🛒 Shop — Buy Now</button>
+            <button id="type-btn-flash" onclick="setListingType('flash')">⚡ Flash Sale</button>
           </div>
         </div>
         <div class="form-row">
@@ -767,7 +798,8 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
             <button id="access-btn-members" onclick="setAccessType('members')">🔒 Members Only</button>
           </div>
         </div>
-        <div class="form-row" id="price-field" style="display:none"><label>Fixed Price (USD) *</label><div class="amount-wrap"><span>$</span><input type="number" id="add-price" placeholder="0.00" min="1" step="0.01"></div></div>
+        <div class="form-row" id="price-field" style="display:none"><label id="price-label">Fixed Price (USD) *</label><div class="amount-wrap"><span>$</span><input type="number" id="add-price" placeholder="0.00" min="1" step="0.01"></div></div>
+        <div class="form-row" id="original-price-field" style="display:none"><label>Original / Retail Price (USD) <span style="font-weight:400;opacity:.5">(shows as crossed-out)</span></label><div class="amount-wrap"><span>$</span><input type="number" id="add-original-price" placeholder="0.00" min="0" step="0.01"></div></div>
         <div class="form-row"><label>Jersey / Item Name *</label><input type="text" id="add-name" placeholder="e.g. 2024 France National Jersey"></div>
         <div class="form-row"><label>Description</label><textarea id="add-desc" rows="3" placeholder="Team, player, season, details…"></textarea></div>
         <div class="form-row-2">
@@ -1140,11 +1172,11 @@ document.querySelectorAll('button,a,.drop-card').forEach(el=>{
 })();
 
 // ── DATA ──
-let _drops=[],_bids=[],_adminPw=null,_subData={total:0,spotsLeft:200,isEarlyBird:true,currentPrice:'9.99'};
+let _drops=[],_bids=[],_adminPw=null,_subData={total:0,spotsLeft:200,isEarlyBird:true,currentPrice:'9.99'},_watchCounts={};
 
 // ── FETCH ──
 async function fetchDrops(){
-  try{const r=await fetch('/api/drops?_t='+Date.now(),{cache:'no-store'});if(!r.ok)return;const data=await r.json();if(Array.isArray(data.drops))_drops=data.drops;renderDrops();renderShop();const dash=document.getElementById('admin-dashboard');if(dash&&dash.style.display==='block')renderAdminDrops();}catch(e){console.warn('fetchDrops failed',e);}
+  try{const r=await fetch('/api/drops?_t='+Date.now(),{cache:'no-store'});if(!r.ok)return;const data=await r.json();if(Array.isArray(data.drops))_drops=data.drops;if(data.watchCounts)_watchCounts=data.watchCounts;renderDrops();renderShop();renderFlash();const dash=document.getElementById('admin-dashboard');if(dash&&dash.style.display==='block')renderAdminDrops();}catch(e){console.warn('fetchDrops failed',e);}
 }
 async function fetchBids(){
   try{const url=_adminPw?'/api/bids?adminPw='+encodeURIComponent(_adminPw)+'&_t='+Date.now():'/api/bids?_t='+Date.now();const r=await fetch(url,{cache:'no-store'});if(!r.ok)return;const data=await r.json();if(Array.isArray(data.bids))_bids=data.bids;renderDrops();const dash=document.getElementById('admin-dashboard');if(dash&&dash.style.display==='block'){renderAdminDrops();renderAllBids();}}catch(e){console.warn('fetchBids failed',e);}
@@ -1232,8 +1264,11 @@ function renderDrops(){
         ?`<button class="btn-bid-card btn-member-lock" onclick="event.stopPropagation();openMemberVerify(()=>openBidModal('${d.id}'))">🔒 Members Only</button>`
         :`<button class="btn-bid-card" onclick="event.stopPropagation();openBidModal('${d.id}')">Place Bid →</button>`;
     const offerRow=isTeaser?'':`<div class="drop-offer-row"><button class="drop-offer-link" onclick="event.stopPropagation();openDropOfferModal('${d.id}','${d.name.replace(/'/g,"\\'").replace(/"/g,'&quot;')}')"><span class="bell-icon">🔔</span> Get 5% off this drop — click here</button><button class="drop-offer-link" style="color:var(--muted);margin-top:2px" onclick="event.stopPropagation();openNotifyModal('${d.id}','${d.name.replace(/'/g,"\\'").replace(/"/g,'&quot;')}','similar')"><span class="bell-icon">🔔</span> Notify me for drops like this</button></div>`;
-    const teaserTimeLabel=isTeaser?(d.dropTimeLabel?`Drops ${d.dropTimeLabel}`:'Bidding opens soon'):'';
-    const footerLeft=isTeaser?`<span class="drop-bid-count" style="color:var(--muted)">${teaserTimeLabel}</span>`:`<span class="drop-bid-count">${db.length} bid${db.length!==1?'s':''}</span>`;
+    const watchCount=_watchCounts[d.id]||0;
+    const watchStr=watchCount>0?` · <span class="watcher-count">👁 ${watchCount} watching</span>`:'';
+    const footerLeft=isTeaser
+      ?(d.dropTime?`<span class="countdown-tag" data-countdown="${d.dropTime}">—</span>`:`<span class="drop-bid-count" style="color:var(--muted)">Bidding opens soon</span>`)
+      :`<span class="drop-bid-count">${db.length} bid${db.length!==1?'s':''}${watchStr}</span>`;
     return`<div class="drop-card${isTeaser?' teaser-card':''}" style="animation-delay:${i*.09}s${isTeaser?';cursor:default':''}"${cardClick?` onclick="${cardClick}"`:''}">
       <div class="drop-img-wrap">${img}${teaserOverlay}${lockOverlay}${badgeChip}${memberBadge}</div>
       <div class="card-stripe"></div>
@@ -1272,8 +1307,10 @@ function renderShop(){
         :isLocked
           ?`<button class="btn-buynow-card btn-member-lock" onclick="openMemberVerify(()=>openBuyNowModal('${d.id}'))">🔒 Members Only</button>`
           :`<button class="btn-buynow-card" onclick="openBuyNowModal('${d.id}')">Buy Now →</button>`;
-    const teaserPriceLabel=isTeaser?(d.dropTimeLabel?`Drops ${d.dropTimeLabel}`:'Price reveal soon'):'';
-    const priceOrLabel=isTeaser?`<span class="drop-bid-count" style="color:var(--muted)">${teaserPriceLabel}</span>`:`<span class="price-tag">$${parseFloat(d.price||0).toFixed(2)}</span>`;
+    const shopWatchCount=_watchCounts[d.id]||0;
+    const priceOrLabel=isTeaser
+      ?(d.dropTime?`<span class="countdown-tag" data-countdown="${d.dropTime}">—</span>`:`<span class="drop-bid-count" style="color:var(--muted)">Price reveal soon</span>`)
+      :`<div><span class="price-tag">$${parseFloat(d.price||0).toFixed(2)}</span>${shopWatchCount>0?`<div class="watcher-count" style="margin-top:3px">👁 ${shopWatchCount} watching</div>`:''}</div>`;
     const offerRow=isTeaser||d.sold?'':`<div class="drop-offer-row"><button class="drop-offer-link" onclick="event.stopPropagation();openDropOfferModal('${d.id}','${d.name.replace(/'/g,"\\'").replace(/"/g,'&quot;')}')"><span class="bell-icon">🔔</span> Get 5% off this item — click here</button><button class="drop-offer-link" style="color:var(--muted);margin-top:2px" onclick="event.stopPropagation();openNotifyModal('${d.id}','${d.name.replace(/'/g,"\\'").replace(/"/g,'&quot;')}','similar')"><span class="bell-icon">🔔</span> Notify me for items like this</button></div>`;
     return`<div class="drop-card buynow-card${isTeaser?' teaser-card':''}" style="animation-delay:${i*.09}s${isTeaser?';cursor:default':''}"${!isTeaser&&isLocked?` onclick="openMemberVerify(()=>openBuyNowModal('${d.id}'))"`:''}>
       <div class="drop-img-wrap">${img}${soldOverlay}${teaserOverlay}${lockOverlay}${badgeChip}${memberBadge}</div>
@@ -1290,10 +1327,64 @@ function renderShop(){
   requestAnimationFrame(observeCards);
 }
 
+// ── RENDER FLASH ──
+function renderFlash(){
+  const items=_drops.filter(d=>d.type==='flash'&&d.status==='published');
+  const g=document.getElementById('flash-grid');
+  const badge=document.getElementById('flash-badge');
+  if(badge){badge.style.display=items.length?'':'none';if(items.length)badge.textContent=items.length+(items.length===1?' Live':' Live Now');}
+  if(!items.length){g.innerHTML=`<div class="empty-drops"><span class="ei">⚡</span><p>No flash sales right now — follow us so you never miss one!</p></div>`;return}
+  g.innerHTML=items.map((d,i)=>{
+    const img=d.photo?`<img src="${d.photo}" alt="${d.name}" onerror="this.parentElement.innerHTML='<div class=\\'drop-no-img\\'><span>🏐</span></div>'">`:`<div class="drop-no-img"><span>🏐</span></div>`;
+    const isLocked=d.memberOnly&&!isMemberVerified();
+    const memberBadge=d.memberOnly?`<span class="member-badge-chip">🔒 Members</span>`:'';
+    const lockOverlay=isLocked?`<div class="member-drop-overlay"><span class="member-lock-icon">🔒</span></div>`:'';
+    const soldOverlay=d.sold?`<div class="sold-overlay"><span>SOLD</span></div>`:'';
+    const wc=_watchCounts[d.id]||0;
+    const watchStr=wc>0?`<span class="watcher-count">👁 ${wc} watching</span>`:'';
+    const priceDisplay=`<div class="flash-price-wrap">${d.originalPrice?`<span class="flash-original-price">$${parseFloat(d.originalPrice).toFixed(2)}</span>`:''}<span class="flash-sale-price">$${parseFloat(d.price||0).toFixed(2)}</span></div>`;
+    const btn=d.sold
+      ?`<button class="btn-notify-card" onclick="event.stopPropagation();openNotifyModal('${d.id}','${d.name.replace(/'/g,"\\'").replace(/"/g,'&quot;')}')">Notify Me →</button>`
+      :isLocked
+        ?`<button class="btn-flash-card" style="background:rgba(251,191,36,.15);border:1px solid rgba(251,191,36,.3);color:#fbbf24;font-weight:400" onclick="event.stopPropagation();openMemberVerify(()=>openBuyNowModal('${d.id}'))">🔒 Members Only</button>`
+        :`<button class="btn-flash-card" onclick="event.stopPropagation();openBuyNowModal('${d.id}')">Grab It →</button>`;
+    const cardClick=!d.sold&&!isLocked?`openBuyNowModal('${d.id}')`:isLocked?`openMemberVerify(()=>openBuyNowModal('${d.id}'))`:'';
+    return`<div class="drop-card flash-card" style="animation-delay:${i*.09}s"${cardClick?` onclick="${cardClick}"`:''}>${img?'':''}
+      <div class="drop-img-wrap">${img}${soldOverlay}${lockOverlay}<span class="flash-badge-chip">⚡ Flash Sale</span>${memberBadge}</div>
+      <div class="card-stripe-flash"></div>
+      <div class="drop-body">
+        <div class="drop-name">${d.name}</div>
+        <div class="drop-meta">${d.size?`<span>Size: ${d.size}</span>`:''}${d.condition?`<span>${d.condition}</span>`:''}</div>
+        ${d.desc?`<p class="drop-desc">${d.desc}</p>`:''}
+        <div class="drop-footer">${priceDisplay}${btn}</div>
+        <div class="drop-offer-row" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px">${watchStr}<button class="drop-offer-link" style="color:var(--muted)" onclick="event.stopPropagation();openNotifyModal('${d.id}','${d.name.replace(/'/g,"\\'").replace(/"/g,'&quot;')}','similar')"><span class="bell-icon">🔔</span> Notify me for flash sales</button></div>
+      </div>
+    </div>`;
+  }).join('');
+  requestAnimationFrame(observeCards);
+}
+
+// ── WATCHER ──
+async function incrementWatch(dropId){
+  _watchCounts[dropId]=(_watchCounts[dropId]||0)+1;
+  try{await fetch('/api/watch',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({dropId})});}catch{}
+}
+
+// ── COUNTDOWN TICKER ──
+setInterval(()=>{
+  document.querySelectorAll('[data-countdown]').forEach(el=>{
+    const diff=new Date(el.dataset.countdown)-new Date();
+    if(diff<=0){el.textContent='Going live...';return}
+    const d=Math.floor(diff/86400000),h=Math.floor((diff%86400000)/3600000),m=Math.floor((diff%3600000)/60000),s=Math.floor((diff%60000)/1000);
+    el.textContent=d>0?`Drops in ${d}d ${h}h ${m}m`:h>0?`Drops in ${h}h ${m}m ${s}s`:`Drops in ${m}m ${s}s`;
+  });
+},1000);
+
 // ── MODALS ──
 function openBidModal(dropId){
   const drop=_drops.find(d=>d.id===dropId);
   if(drop&&drop.memberOnly&&!isMemberVerified()){openMemberVerify(()=>openBidModal(dropId));return}
+  incrementWatch(dropId);
   activeDrop=dropId;
   _activeBidPromo=null;
   document.getElementById('bid-modal-title').textContent=drop?`Bid on: ${drop.name}`:'Place Your Bid';
@@ -1310,6 +1401,7 @@ function openBuyNowModal(dropId){
   const drop=_drops.find(d=>d.id===dropId);
   if(!drop||drop.sold)return;
   if(drop.memberOnly&&!isMemberVerified()){openMemberVerify(()=>openBuyNowModal(dropId));return}
+  incrementWatch(dropId);
   activeBuyNow=dropId;
   _activePromo=null;
   document.getElementById('buynow-modal-title').textContent=drop.name;
@@ -1585,7 +1677,8 @@ function renderAdminDrops(){
   if(!drops.length){el.innerHTML='<p style="color:var(--muted);font-size:.85rem">No items yet.</p>';return}
   el.innerHTML=drops.map(drop=>{
     const isBuyNow=drop.type==='buynow';
-    if(isBuyNow){return`<div class="drop-group"><div class="drop-group-hd"><div><div class="drop-group-name drop-group-name-green">${drop.name} <span style="font-size:.7rem;font-family:'DM Sans',sans-serif">[BUY NOW — $${parseFloat(drop.price||0).toFixed(2)}]</span></div><div style="font-size:.7rem;color:var(--muted);margin-top:2px">${drop.status}${drop.sold?' · SOLD':''}</div></div><div style="display:flex;gap:8px"><button class="btn-tog" onclick="toggleStatus('${drop.id}')">${drop.status==='published'?'Archive':'Publish'}</button><button class="btn-del" onclick="deleteDrop('${drop.id}')">Delete</button></div></div>${drop.sold&&drop.soldTo?`<div style="padding:14px 18px;font-size:.78rem;color:var(--muted)">Sold to: <strong style="color:var(--fr-white)">${drop.soldTo.name}</strong> (${drop.soldTo.email}) on ${new Date(drop.soldTo.purchasedAt).toLocaleDateString()}</div>`:'<div style="padding:14px 18px;font-size:.78rem;color:var(--muted)">No purchase yet.</div>'}</div>`;}
+    const isFlash=drop.type==='flash';
+    if(isBuyNow||isFlash){const typeLabel=isFlash?`⚡ FLASH — $${parseFloat(drop.price||0).toFixed(2)}${drop.originalPrice?' (was $'+parseFloat(drop.originalPrice).toFixed(2)+')':''}`:`BUY NOW — $${parseFloat(drop.price||0).toFixed(2)}`;return`<div class="drop-group"><div class="drop-group-hd"><div><div class="drop-group-name" style="color:${isFlash?'#fbbf24':'var(--success)'}">${drop.name} <span style="font-size:.7rem;font-family:'DM Sans',sans-serif">[${typeLabel}]</span></div><div style="font-size:.7rem;color:var(--muted);margin-top:2px">${drop.status}${drop.sold?' · SOLD':''}</div></div><div style="display:flex;gap:8px"><button class="btn-tog" onclick="toggleStatus('${drop.id}')">${drop.status==='published'?'Archive':'Publish'}</button><button class="btn-del" onclick="deleteDrop('${drop.id}')">Delete</button></div></div>${drop.sold&&drop.soldTo?`<div style="padding:14px 18px;font-size:.78rem;color:var(--muted)">Sold to: <strong style="color:var(--fr-white)">${drop.soldTo.name}</strong> (${drop.soldTo.email}) on ${new Date(drop.soldTo.purchasedAt).toLocaleDateString()}</div>`:'<div style="padding:14px 18px;font-size:.78rem;color:var(--muted)">No purchase yet.</div>'}</div>`;}
     const db=bids.filter(b=>b.dropId===drop.id).sort((a,b)=>b.amount-a.amount);
     const rows=db.length?db.map(bid=>`<tr><td><strong>${bid.name}</strong><br><span style="color:var(--muted);font-size:.7rem">${bid.email}</span></td><td style="font-size:.73rem;color:var(--muted)">${bid.phone||'—'}</td><td class="bid-amt">$${parseFloat(bid.amount).toFixed(2)}</td><td style="font-size:.7rem;color:var(--muted)">${bid.address?`${bid.address.street}, ${bid.address.city} ${bid.address.state} ${bid.address.zip}`:'—'}</td><td>${bid.charged?`<span class="badge-charged">✅ Charged</span>`:bid.paymentMethodId&&bid.paymentMethodId!=='[no-stripe]'?`<button class="btn-charge" onclick="chargeCard('${bid.id}')">Charge Card</button>`:`<span class="badge-nocard">No card</span>`}</td><td style="font-size:.68rem;color:var(--muted)">${new Date(bid.createdAt).toLocaleDateString()}</td></tr>`).join(''):`<tr><td colspan="6" class="no-bids">No bids yet.</td></tr>`;
     return`<div class="drop-group"><div class="drop-group-hd"><div><div class="drop-group-name">${drop.name}</div><div style="font-size:.7rem;color:var(--muted);margin-top:2px">${drop.status} · ${db.length} bid(s)</div></div><div style="display:flex;gap:8px"><button class="btn-tog" onclick="toggleStatus('${drop.id}')">${drop.status==='published'?'Archive':'Publish'}</button><button class="btn-del" onclick="deleteDrop('${drop.id}')">Delete</button></div></div><div style="overflow-x:auto"><table class="bids-table"><thead><tr><th>Name/Email</th><th>Phone</th><th>Bid</th><th>Address</th><th>Action</th><th>Date</th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
@@ -1774,7 +1867,7 @@ async function renderAdminEmailList(){
 
 // ── LISTING TYPE & ACCESS ──
 let _listingType='bid',_accessType='public';
-function setListingType(type){_listingType=type;document.getElementById('type-btn-bid').className=type==='bid'?'active-bid':'';document.getElementById('type-btn-buy').className=type==='buynow'?'active-buy':'';document.getElementById('price-field').style.display=type==='buynow'?'':'none';document.getElementById('publish-btn-text').textContent=type==='buynow'?'+ Publish to Shop':'+ Publish Drop';}
+function setListingType(type){_listingType=type;document.getElementById('type-btn-bid').className=type==='bid'?'active-bid':'';document.getElementById('type-btn-buy').className=type==='buynow'?'active-buy':'';document.getElementById('type-btn-flash').className=type==='flash'?'active-flash':'';document.getElementById('price-field').style.display=(type==='buynow'||type==='flash')?'':'none';document.getElementById('original-price-field').style.display=type==='flash'?'':'none';const pl=document.getElementById('price-label');if(pl)pl.textContent=type==='flash'?'Flash Sale Price (USD) *':'Fixed Price (USD) *';document.getElementById('publish-btn-text').textContent=type==='flash'?'⚡ Launch Flash Sale':type==='buynow'?'+ Publish to Shop':'+ Publish Drop';}
 function setAccessType(type){_accessType=type;document.getElementById('access-btn-public').className=type==='public'?'active-bid':'';document.getElementById('access-btn-members').className=type==='members'?'active-buy':'';}
 
 // ── MEMBER VERIFICATION ──
@@ -1844,19 +1937,20 @@ async function addDrop(status){
   const name=document.getElementById('add-name').value.trim();
   const errEl=document.getElementById('add-err');
   if(!name){errEl.textContent='Name is required.';errEl.style.display='block';return}
-  if(_listingType==='buynow'){const price=document.getElementById('add-price').value.trim();if(!price||parseFloat(price)<1){errEl.textContent='A valid price is required for Buy Now items.';errEl.style.display='block';return}}
+  if(_listingType==='buynow'||_listingType==='flash'){const price=document.getElementById('add-price').value.trim();if(!price||parseFloat(price)<1){errEl.textContent='A valid price is required.';errEl.style.display='block';return}}
   if(!_adminPw){errEl.textContent='Admin session expired — re-open admin.';errEl.style.display='block';return}
   const desc=document.getElementById('add-desc').value.trim();
   const size=document.getElementById('add-size').value.trim();
   const condition=document.getElementById('add-condition').value;
-  const price=_listingType==='buynow'?document.getElementById('add-price').value.trim():'';
+  const price=(_listingType==='buynow'||_listingType==='flash')?document.getElementById('add-price').value.trim():'';
   let photo='';
   if(photoMode==='upload'){
     if(!uploadedPhotoUrl&&uploadedDataUrl){errEl.textContent='Photo is still uploading — please wait a moment.';errEl.style.display='block';return}
     photo=uploadedPhotoUrl||'';
   }else if(photoMode==='url')photo=document.getElementById('add-photo-url').value.trim();
   const drop={id:'drop_'+Date.now(),name,desc,size,condition,photo,status,type:_listingType,memberOnly:_accessType==='members',createdAt:new Date().toISOString()};
-  if(_listingType==='buynow')drop.price=price;
+  if(_listingType==='buynow'||_listingType==='flash')drop.price=price;
+  if(_listingType==='flash'){const op=document.getElementById('add-original-price').value.trim();if(op&&parseFloat(op)>0)drop.originalPrice=op;}
   const dropTimeEl=document.getElementById('add-drop-time');
   if(dropTimeEl&&dropTimeEl.value.trim()){
     const parsed=new Date(dropTimeEl.value.trim());
@@ -1867,12 +1961,12 @@ async function addDrop(status){
     const text=await res.text();let data={};try{data=JSON.parse(text)}catch{}
     if(!res.ok){errEl.textContent=`Could not save (${res.status}): ${data.error||text}`;errEl.style.display='block';return}
   }catch(e){errEl.textContent='Network error: '+(e&&e.message?e.message:'request failed');errEl.style.display='block';return}
-  if(status==='published'||status==='teaser'){_drops=[..._drops,drop];if(_listingType==='buynow')renderShop();else renderDrops();}
+  if(status==='published'||status==='teaser'){_drops=[..._drops,drop];if(_listingType==='flash')renderFlash();else if(_listingType==='buynow')renderShop();else renderDrops();}
   await refreshAll();renderAdminDrops();errEl.style.display='none';
-  ['add-name','add-desc','add-size','add-photo-url','add-price','add-drop-time'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['add-name','add-desc','add-size','add-photo-url','add-price','add-original-price','add-drop-time'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   uploadedDataUrl=null;uploadedPhotoUrl=null;document.getElementById('upload-preview').style.display='none';document.getElementById('upload-placeholder').style.display='';
   _accessType='public';setAccessType('public');
-  showToast(status==='published'?(_listingType==='buynow'?'✅ Added to shop!':'✅ Drop published!'):status==='teaser'?'📣 Drop teased — showing as Coming Soon!':'📝 Draft saved!');
+  showToast(status==='published'?(_listingType==='flash'?'⚡ Flash sale launched!':_listingType==='buynow'?'✅ Added to shop!':'✅ Drop published!'):status==='teaser'?'📣 Drop teased — showing as Coming Soon!':'📝 Draft saved!');
   if(status==='published'||status==='teaser')switchTab('tab-drops');
 }
 
@@ -1900,7 +1994,7 @@ function showToast(msg,err=false,ok=false){
 })();
 
 // ── INIT ──
-renderDrops();renderShop();refreshAll();
+renderDrops();renderShop();renderFlash();refreshAll();
 </script>
 </body>
 </html>
