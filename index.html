@@ -383,7 +383,7 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
   <div class="nav-links">
     <a href="#drops">Auctions</a>
     <a href="#shop">Shop</a>
-    <a href="#flash" style="color:#fbbf24!important;font-weight:600">⚡ Flash</a>
+    <a href="#flash" style="color:#fbbf24!important;font-weight:600">⚡ Flash Sale</a>
     <a href="#membership">Members</a>
     <a href="#how">How It Works</a>
     <a href="#newsletter" style="color:#3ecf8e!important;font-weight:600">Get 10% Off</a>
@@ -399,7 +399,7 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
   <div class="mobile-menu-tricolor"></div>
   <a href="#drops" onclick="closeMobileMenu()">Auctions</a>
   <a href="#shop" onclick="closeMobileMenu()">Shop</a>
-  <a href="#flash" onclick="closeMobileMenu()" style="color:#fbbf24!important;font-weight:600">⚡ Flash</a>
+  <a href="#flash" onclick="closeMobileMenu()" style="color:#fbbf24!important;font-weight:600">⚡ Flash Sale</a>
   <a href="#membership" onclick="closeMobileMenu()">Members</a>
   <a href="#how" onclick="closeMobileMenu()">How It Works</a>
   <a href="#newsletter" onclick="closeMobileMenu()" style="color:#3ecf8e!important">Get 10% Off 🎁</a>
@@ -473,10 +473,10 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
 <section id="flash">
   <div class="section-header">
     <div>
-      <span class="section-eyebrow">Limited Time Only</span>
-      <h2 class="section-title">Flash Drops</h2>
+      <span class="section-eyebrow">⚡ Limited Time · Don't Sleep On It</span>
+      <h2 class="section-title">Flash Sales</h2>
     </div>
-    <span class="flash-section-badge" id="flash-badge" style="display:none">Live Now</span>
+    <span class="flash-section-badge" id="flash-badge" style="display:none">🔥 Flash Sale Live</span>
   </div>
   <div class="drops-grid" id="flash-grid">
     <div class="empty-drops"><span class="ei">⚡</span><p>No flash sales right now — follow us so you never miss one!</p></div>
@@ -1341,7 +1341,7 @@ function renderFlash(){
   const items=_drops.filter(d=>d.type==='flash'&&d.status==='published');
   const g=document.getElementById('flash-grid');
   const badge=document.getElementById('flash-badge');
-  if(badge){badge.style.display=items.length?'':'none';if(items.length)badge.textContent=items.length+(items.length===1?' Live':' Live Now');}
+  if(badge){badge.style.display=items.length?'':'none';if(items.length)badge.textContent='🔥 '+items.length+' Flash Sale'+(items.length===1?' Live':' Live Now');}
   if(!items.length){g.innerHTML=`<div class="empty-drops"><span class="ei">⚡</span><p>No flash sales right now — follow us so you never miss one!</p></div>`;return}
   g.innerHTML=items.map((d,i)=>{
     const img=d.photo?`<img src="${d.photo}" alt="${d.name}" onerror="this.parentElement.innerHTML='<div class=\\'drop-no-img\\'><span>🏐</span></div>'">`:`<div class="drop-no-img"><span>🏐</span></div>`;
@@ -1356,7 +1356,7 @@ function renderFlash(){
       ?`<button class="btn-notify-card" onclick="event.stopPropagation();openNotifyModal('${d.id}','${d.name.replace(/'/g,"\\'").replace(/"/g,'&quot;')}')">Notify Me →</button>`
       :isLocked
         ?`<button class="btn-flash-card" style="background:rgba(251,191,36,.15);border:1px solid rgba(251,191,36,.3);color:#fbbf24;font-weight:400" onclick="event.stopPropagation();openMemberVerify(()=>openBuyNowModal('${d.id}'))">🔒 Members Only</button>`
-        :`<button class="btn-flash-card" onclick="event.stopPropagation();openBuyNowModal('${d.id}')">Grab It →</button>`;
+        :`<button class="btn-flash-card" onclick="event.stopPropagation();openBuyNowModal('${d.id}')">⚡ Buy Now →</button>`;
     const cardClick=!d.sold&&!isLocked?`openBuyNowModal('${d.id}')`:isLocked?`openMemberVerify(()=>openBuyNowModal('${d.id}'))`:'';
     return`<div class="drop-card flash-card" style="animation-delay:${i*.09}s"${cardClick?` onclick="${cardClick}"`:''}>${img?'':''}
       <div class="drop-img-wrap">${img}${soldOverlay}${lockOverlay}<span class="flash-badge-chip">⚡ Flash Sale</span>${memberBadge}</div>
