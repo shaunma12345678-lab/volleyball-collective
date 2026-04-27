@@ -103,6 +103,8 @@ nav{position:fixed;top:0;left:0;right:0;z-index:500;display:flex;justify-content
 .btn-buynow-card{background:var(--success);color:#021a0e;border:none;padding:11px 26px;font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:3px;cursor:pointer;border-radius:2px;transition:all .2s;font-weight:700}
 .btn-buynow-card:hover{background:#5de3a8;transform:translateY(-1px);box-shadow:0 6px 20px rgba(62,207,142,.35)}
 .btn-buynow-card:disabled{opacity:.45;cursor:not-allowed;transform:none}
+.btn-notify-card{background:transparent;color:var(--muted);border:1px solid rgba(123,159,212,.3);padding:11px 26px;font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:3px;cursor:pointer;border-radius:2px;transition:all .2s}
+.btn-notify-card:hover{border-color:rgba(123,159,212,.7);color:var(--fr-white);transform:translateY(-1px)}
 .empty-drops{grid-column:1/-1;text-align:center;padding:80px 0;color:var(--muted)}
 .empty-drops .ei{font-size:4rem;margin-bottom:16px;display:block}
 .empty-drops p{font-size:.87rem;letter-spacing:1px}
@@ -554,6 +556,34 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
   </div>
 </div>
 
+<!-- NOTIFY ME MODAL -->
+<div class="overlay" id="notify-overlay" onclick="overlayClick(event,'notify-overlay')">
+  <div class="modal" style="max-width:400px">
+    <div id="notify-form-view">
+      <div class="modal-header">
+        <div><div class="modal-title">Notify Me</div><div class="modal-sub" id="notify-drop-label">Get alerted when similar items drop</div></div>
+        <button class="btn-close" onclick="closeModal('notify-overlay')">✕</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size:.85rem;color:var(--muted);margin-bottom:18px;line-height:1.6">This item is sold out. Drop your email and we'll alert you the next time something similar goes live.</p>
+        <div class="field-group">
+          <label class="field-label">Email</label>
+          <input type="email" id="notify-email" placeholder="your@email.com" onkeydown="if(event.key==='Enter')submitNotify()">
+        </div>
+        <div class="error-msg" id="notify-err" style="display:none"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-submit" onclick="submitNotify()"><span class="btn-text">Notify Me →</span><div class="spinner"></div></button>
+      </div>
+    </div>
+    <div id="notify-success" style="display:none;text-align:center;padding:32px 0">
+      <span class="check">✓</span><h3 class="green">You're on the list!</h3>
+      <p>We'll email you when a similar item drops.</p>
+      <button class="btn-secondary" onclick="closeModal('notify-overlay')">Close</button>
+    </div>
+  </div>
+</div>
+
 <!-- SUBSCRIBE MODAL -->
 <div class="overlay" id="subscribe-overlay" onclick="overlayClick(event,'subscribe-overlay')">
   <div class="modal">
@@ -854,7 +884,7 @@ function renderShop(){
     const memberBadge=d.memberOnly?`<span class="member-badge-chip">🔒 Members</span>`:'';
     const lockOverlay=isLocked?`<div class="member-drop-overlay"><span class="member-lock-icon">🔒</span></div>`:'';
     const buyBtn=d.sold
-      ?`<button class="btn-buynow-card" disabled>Sold Out</button>`
+      ?`<button class="btn-notify-card" onclick="event.stopPropagation();openNotifyModal('${d.id}','${d.name.replace(/'/g,"\\'").replace(/"/g,'&quot;')}')">Notify Me →</button>`
       :isLocked
         ?`<button class="btn-buynow-card btn-member-lock" onclick="openMemberVerify(()=>openBuyNowModal('${d.id}'))">🔒 Members Only</button>`
         :`<button class="btn-buynow-card" onclick="openBuyNowModal('${d.id}')">Buy Now →</button>`;
@@ -1215,6 +1245,46 @@ async function deleteDrop(id){
   if(!confirm('Delete this item and all bids?'))return;
   if(!_adminPw){showToast('Admin session expired',true);return}
   try{const res=await fetch('/api/drops',{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,adminPw:_adminPw})});if(!res.ok){showToast('❌ Could not delete',true);return}try{await fetch('/api/bids',{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({dropId:id,adminPw:_adminPw})});}catch(e){}await refreshAll();renderAdminDrops();}catch(e){showToast('❌ Network error',true)}
+}
+
+// ── NOTIFY ME ──
+let _notifyDropId = null;
+function openNotifyModal(dropId, dropName) {
+  _notifyDropId = dropId;
+  document.getElementById('notify-drop-label').textContent = dropName + ' — sold out';
+  document.getElementById('notify-email').value = '';
+  document.getElementById('notify-err').style.display = 'none';
+  document.getElementById('notify-form-view').style.display = '';
+  document.getElementById('notify-success').style.display = 'none';
+  document.getElementById('notify-overlay').classList.add('active');
+}
+async function submitNotify() {
+  const email = document.getElementById('notify-email').value.trim();
+  const errEl = document.getElementById('notify-err');
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    errEl.textContent = 'Please enter a valid email address.';
+    errEl.style.display = 'block';
+    return;
+  }
+  errEl.style.display = 'none';
+  try {
+    const res = await fetch('/api/notify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ dropId: _notifyDropId, email }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      document.getElementById('notify-form-view').style.display = 'none';
+      document.getElementById('notify-success').style.display = 'block';
+    } else {
+      errEl.textContent = data.error || 'Something went wrong. Please try again.';
+      errEl.style.display = 'block';
+    }
+  } catch {
+    errEl.textContent = 'Network error. Please try again.';
+    errEl.style.display = 'block';
+  }
 }
 
 // ── NEWSLETTER ──
