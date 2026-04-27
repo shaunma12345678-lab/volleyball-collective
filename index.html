@@ -796,7 +796,7 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
 
 <div class="popup-overlay" id="email-popup" style="display:none">
   <div class="popup-card">
-    <button class="popup-close" onclick="dismissPopup()">✕</button>
+    <button class="popup-close" onclick="dismissPopupTemp()">✕</button>
     <div class="popup-eyebrow">Drop Alerts</div>
     <div class="popup-title">Get Early Access + 10% Off</div>
     <p class="popup-sub">Be the first to know when new jerseys drop. Subscribers get alerts on every release and a one-time 10% discount code.</p>
@@ -806,7 +806,10 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
         <button onclick="submitPopupSignup()">Get 10% Off</button>
       </div>
       <div class="popup-err" id="popup-err"></div>
-      <span class="popup-dismiss" onclick="dismissPopup()">No thanks</span>
+      <div style="display:flex;justify-content:center;gap:20px;margin-top:14px">
+        <span class="popup-dismiss" onclick="dismissPopupTemp()">Not Now</span>
+        <span class="popup-dismiss" style="color:rgba(123,159,212,.45);font-size:.65rem" onclick="dismissPopupPerm()">Never Show Again</span>
+      </div>
     </div>
     <div id="popup-success" style="display:none" class="popup-success">
       <span class="ps-icon">🎉</span>
@@ -828,17 +831,24 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
 <script>
 // ── EMAIL POPUP ──
 (function(){
-  if(localStorage.getItem('vc_popup_done'))return;
+  if(localStorage.getItem('vc_popup_done')||sessionStorage.getItem('vc_popup_session'))return;
   setTimeout(()=>{
-    if(localStorage.getItem('vc_popup_done'))return;
+    if(localStorage.getItem('vc_popup_done')||sessionStorage.getItem('vc_popup_session'))return;
     const popup=document.getElementById('email-popup');
     if(popup){popup.style.display='flex';document.body.style.overflow='hidden';}
   },20000);
 })();
-function dismissPopup(){
+function _closePopup(){
   const popup=document.getElementById('email-popup');
   if(popup)popup.style.display='none';
   document.body.style.overflow='';
+}
+function dismissPopupTemp(){
+  _closePopup();
+  sessionStorage.setItem('vc_popup_session','1');
+}
+function dismissPopupPerm(){
+  _closePopup();
   localStorage.setItem('vc_popup_done','1');
 }
 async function submitPopupSignup(){
