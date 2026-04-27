@@ -105,6 +105,11 @@ nav{position:fixed;top:0;left:0;right:0;z-index:500;display:flex;justify-content
 .btn-buynow-card:disabled{opacity:.45;cursor:not-allowed;transform:none}
 .btn-notify-card{background:transparent;color:var(--muted);border:1px solid rgba(123,159,212,.3);padding:11px 26px;font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:3px;cursor:pointer;border-radius:2px;transition:all .2s}
 .btn-notify-card:hover{border-color:rgba(123,159,212,.7);color:var(--fr-white);transform:translateY(-1px)}
+.drop-offer-row{border-top:1px solid rgba(255,255,255,.05);margin-top:10px;padding-top:10px;text-align:center}
+.drop-offer-link{background:none;border:none;font-family:'DM Sans',sans-serif;font-size:.72rem;letter-spacing:2px;text-transform:uppercase;color:var(--muted);cursor:pointer;padding:4px 8px;transition:color .2s}
+.drop-offer-link:hover{color:#3ecf8e}
+.offer-code-reveal{font-family:monospace;font-size:22px;font-weight:700;letter-spacing:3px;color:#3ecf8e;background:rgba(62,207,142,.08);border:1px solid rgba(62,207,142,.25);border-radius:4px;padding:14px;text-align:center;margin:16px 0 4px}
+.offer-code-sub{font-size:.75rem;color:var(--muted);text-align:center;margin-bottom:8px}
 .empty-drops{grid-column:1/-1;text-align:center;padding:80px 0;color:var(--muted)}
 .empty-drops .ei{font-size:4rem;margin-bottom:16px;display:block}
 .empty-drops p{font-size:.87rem;letter-spacing:1px}
@@ -556,6 +561,41 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
   </div>
 </div>
 
+<!-- DROP OFFER MODAL -->
+<div class="overlay" id="drop-offer-overlay" onclick="overlayClick(event,'drop-offer-overlay')">
+  <div class="modal" style="max-width:400px">
+    <div id="drop-offer-form-view">
+      <div class="modal-header">
+        <div><div class="modal-title">Get 5% Off</div><div class="modal-sub" id="drop-offer-label">Enter your email for an instant discount</div></div>
+        <button class="btn-close" onclick="closeModal('drop-offer-overlay')">✕</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size:.85rem;color:var(--muted);margin-bottom:18px;line-height:1.6">Drop your email and we'll send you 5% off — use it on this drop or any purchase. You'll also get alerts on future drops.</p>
+        <div class="field-group">
+          <label class="field-label">Email</label>
+          <input type="email" id="drop-offer-email" placeholder="your@email.com" onkeydown="if(event.key==='Enter')submitDropOffer()">
+        </div>
+        <div class="error-msg" id="drop-offer-err" style="display:none"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-submit btn-submit-green" id="drop-offer-btn" onclick="submitDropOffer()"><span class="btn-text">Send My Code →</span><div class="spinner"></div></button>
+      </div>
+    </div>
+    <div id="drop-offer-success" style="display:none;padding:8px 0 16px">
+      <div class="modal-header">
+        <div><div class="modal-title" style="color:#3ecf8e">Code Unlocked!</div></div>
+        <button class="btn-close" onclick="closeModal('drop-offer-overlay')">✕</button>
+      </div>
+      <div class="modal-body" style="padding-top:8px">
+        <p style="font-size:.85rem;color:var(--muted);margin-bottom:4px">Enter this at checkout for 5% off:</p>
+        <div class="offer-code-reveal" id="drop-offer-code-display"></div>
+        <div class="offer-code-sub">One-time use · Any bid or purchase · Also sent to your email</div>
+        <button class="btn-secondary" style="width:100%;margin-top:12px" onclick="closeModal('drop-offer-overlay')">Got It</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- NOTIFY ME MODAL -->
 <div class="overlay" id="notify-overlay" onclick="overlayClick(event,'notify-overlay')">
   <div class="modal" style="max-width:400px">
@@ -865,6 +905,7 @@ function renderDrops(){
         <div class="drop-meta">${d.size?`<span>Size: ${d.size}</span>`:''}${d.condition?`<span>${d.condition}</span>`:''}</div>
         ${d.desc?`<p class="drop-desc">${d.desc}</p>`:''}
         <div class="drop-footer"><span class="drop-bid-count">${db.length} bid${db.length!==1?'s':''}</span>${bidBtn}</div>
+        <div class="drop-offer-row"><button class="drop-offer-link" onclick="event.stopPropagation();openDropOfferModal('${d.id}','${d.name.replace(/'/g,"\\'").replace(/"/g,'&quot;')}')">🔔 Get 5% off this drop</button></div>
       </div>
     </div>`;
   }).join('');
@@ -896,6 +937,7 @@ function renderShop(){
         <div class="drop-meta">${d.size?`<span>Size: ${d.size}</span>`:''}${d.condition?`<span>${d.condition}</span>`:''}</div>
         ${d.desc?`<p class="drop-desc">${d.desc}</p>`:''}
         <div class="drop-footer"><span class="price-tag">$${parseFloat(d.price||0).toFixed(2)}</span>${buyBtn}</div>
+        ${!d.sold?`<div class="drop-offer-row"><button class="drop-offer-link" onclick="event.stopPropagation();openDropOfferModal('${d.id}','${d.name.replace(/'/g,"\\'").replace(/"/g,'&quot;')}')">🔔 Get 5% off this item</button></div>`:''}
       </div>
     </div>`;
   }).join('');
@@ -1245,6 +1287,54 @@ async function deleteDrop(id){
   if(!confirm('Delete this item and all bids?'))return;
   if(!_adminPw){showToast('Admin session expired',true);return}
   try{const res=await fetch('/api/drops',{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,adminPw:_adminPw})});if(!res.ok){showToast('❌ Could not delete',true);return}try{await fetch('/api/bids',{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({dropId:id,adminPw:_adminPw})});}catch(e){}await refreshAll();renderAdminDrops();}catch(e){showToast('❌ Network error',true)}
+}
+
+// ── DROP OFFER ──
+let _dropOfferDropId = null, _dropOfferDropName = null;
+function openDropOfferModal(dropId, dropName) {
+  _dropOfferDropId = dropId;
+  _dropOfferDropName = dropName;
+  document.getElementById('drop-offer-label').textContent = dropName;
+  document.getElementById('drop-offer-email').value = '';
+  document.getElementById('drop-offer-err').style.display = 'none';
+  document.getElementById('drop-offer-form-view').style.display = '';
+  document.getElementById('drop-offer-success').style.display = 'none';
+  const btn = document.getElementById('drop-offer-btn');
+  btn.disabled = false; btn.classList.remove('loading');
+  document.getElementById('drop-offer-overlay').classList.add('active');
+}
+async function submitDropOffer() {
+  const email = document.getElementById('drop-offer-email').value.trim();
+  const errEl = document.getElementById('drop-offer-err');
+  const btn = document.getElementById('drop-offer-btn');
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    errEl.textContent = 'Please enter a valid email address.';
+    errEl.style.display = 'block';
+    return;
+  }
+  errEl.style.display = 'none';
+  btn.disabled = true; btn.classList.add('loading');
+  try {
+    const res = await fetch('/api/drop-signup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ dropId: _dropOfferDropId, email, dropName: _dropOfferDropName }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      document.getElementById('drop-offer-code-display').textContent = data.code;
+      document.getElementById('drop-offer-form-view').style.display = 'none';
+      document.getElementById('drop-offer-success').style.display = 'block';
+    } else {
+      errEl.textContent = data.error || 'Something went wrong. Please try again.';
+      errEl.style.display = 'block';
+      btn.disabled = false; btn.classList.remove('loading');
+    }
+  } catch {
+    errEl.textContent = 'Network error. Please try again.';
+    errEl.style.display = 'block';
+    btn.disabled = false; btn.classList.remove('loading');
+  }
 }
 
 // ── NOTIFY ME ──
