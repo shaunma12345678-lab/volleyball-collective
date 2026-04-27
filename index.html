@@ -297,6 +297,28 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
 .promo-feedback{font-size:.73rem;margin-top:5px;display:none}
 .promo-feedback.ok{color:var(--success)}
 .promo-feedback.err{color:var(--danger)}
+/* ── EMAIL POPUP ── */
+.popup-overlay{position:fixed;inset:0;background:rgba(0,21,79,.88);z-index:700;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(14px);animation:fadeIn .3s ease}
+.popup-card{background:var(--card);border:1px solid rgba(237,41,57,.3);border-top:3px solid var(--fr-red);border-radius:4px;width:100%;max-width:460px;padding:36px 32px;position:relative;animation:slideUp .35s cubic-bezier(.22,1,.36,1)}
+.popup-close{position:absolute;top:14px;right:16px;background:none;border:none;color:var(--muted);font-size:1.1rem;cursor:pointer;line-height:1;padding:4px;transition:color .2s}
+.popup-close:hover{color:var(--fr-red)}
+.popup-eyebrow{font-size:.66rem;letter-spacing:4px;text-transform:uppercase;color:var(--fr-red);margin-bottom:10px}
+.popup-title{font-family:'Bebas Neue',sans-serif;font-size:2rem;letter-spacing:2px;color:var(--fr-white);margin-bottom:8px;line-height:1}
+.popup-sub{font-size:.84rem;color:var(--muted);line-height:1.65;margin-bottom:22px}
+.popup-input-row{display:flex;gap:0}
+.popup-input-row input{flex:1;border-radius:2px 0 0 2px;border-right:none}
+.popup-input-row button{background:var(--fr-red);border:none;color:#fff;padding:0 18px;font-family:'Bebas Neue',sans-serif;font-size:.9rem;letter-spacing:2px;cursor:pointer;border-radius:0 2px 2px 0;white-space:nowrap;transition:background .2s;flex-shrink:0}
+.popup-input-row button:hover{background:#c7202d}
+.popup-err{font-size:.74rem;color:var(--danger);margin-top:8px;display:none}
+.popup-dismiss{display:block;text-align:center;margin-top:14px;font-size:.7rem;color:var(--muted);cursor:pointer;letter-spacing:1px;transition:color .2s}
+.popup-dismiss:hover{color:var(--fr-white)}
+.popup-success{text-align:center;padding:8px 0}
+.popup-success .ps-icon{font-size:2.5rem;display:block;margin-bottom:12px}
+.popup-success p{font-size:.84rem;color:var(--muted);line-height:1.65}
+/* ── TEASER CARDS ── */
+.teaser-badge-chip{position:absolute;top:14px;left:14px;z-index:2;background:rgba(0,21,79,.88);border:1px solid rgba(245,240,232,.3);color:var(--fr-white);font-size:.62rem;letter-spacing:3px;text-transform:uppercase;padding:5px 12px;border-radius:2px;backdrop-filter:blur(6px)}
+.teaser-img-overlay{position:absolute;inset:0;background:rgba(0,21,79,.5);backdrop-filter:blur(4px);z-index:1}
+.btn-coming-soon{background:rgba(245,240,232,.06);border:1px solid rgba(245,240,232,.15);color:var(--muted);padding:11px 26px;font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:3px;border-radius:2px;cursor:default;pointer-events:none}
 .member-badge-chip{position:absolute;bottom:10px;left:10px;background:rgba(0,21,79,.88);border:1px solid rgba(123,159,212,.45);color:#7b9fd4;padding:4px 10px;font-size:.62rem;letter-spacing:2px;text-transform:uppercase;border-radius:2px;backdrop-filter:blur(4px)}
 .btn-member-lock{background:rgba(123,159,212,.1)!important;border:1px solid rgba(123,159,212,.3)!important;color:var(--muted)!important}
 .btn-member-lock:hover{background:rgba(123,159,212,.2)!important;color:var(--fr-white)!important}
@@ -737,9 +759,10 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
           </div>
           <div id="pw-url-wrap" style="display:none"><input type="text" id="add-photo-url" placeholder="https://example.com/jersey.jpg"></div>
         </div>
-        <div style="display:flex;gap:12px">
-          <button class="btn-submit" style="flex:1" id="publish-btn" onclick="addDrop('published')"><span class="btn-text" id="publish-btn-text">+ Publish Drop</span><div class="spinner"></div></button>
-          <button class="btn-secondary" style="flex:1" onclick="addDrop('draft')">Save Draft</button>
+        <div style="display:flex;gap:12px;flex-wrap:wrap">
+          <button class="btn-submit" style="flex:1;min-width:140px" id="publish-btn" onclick="addDrop('published')"><span class="btn-text" id="publish-btn-text">+ Publish Drop</span><div class="spinner"></div></button>
+          <button class="btn-secondary" style="flex:1;min-width:120px;border-color:rgba(245,240,232,.35);color:var(--fr-white)" onclick="addDrop('teaser')">📣 Tease It</button>
+          <button class="btn-secondary" style="flex:1;min-width:100px" onclick="addDrop('draft')">Save Draft</button>
         </div>
         <div class="error-msg" id="add-err"></div>
       </div>
@@ -770,6 +793,28 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
 </section>
 
 <div class="toast" id="toast"></div>
+
+<div class="popup-overlay" id="email-popup" style="display:none">
+  <div class="popup-card">
+    <button class="popup-close" onclick="dismissPopup()">✕</button>
+    <div class="popup-eyebrow">Drop Alerts</div>
+    <div class="popup-title">Get Early Access + 10% Off</div>
+    <p class="popup-sub">Be the first to know when new jerseys drop. Subscribers get alerts on every release and a one-time 10% discount code.</p>
+    <div id="popup-form">
+      <div class="popup-input-row">
+        <input type="email" id="popup-email" placeholder="your@gmail.com" onkeydown="if(event.key==='Enter')submitPopupSignup()">
+        <button onclick="submitPopupSignup()">Get 10% Off</button>
+      </div>
+      <div class="popup-err" id="popup-err"></div>
+      <span class="popup-dismiss" onclick="dismissPopup()">No thanks</span>
+    </div>
+    <div id="popup-success" style="display:none" class="popup-success">
+      <span class="ps-icon">🎉</span>
+      <p>You're on the list! Check your inbox for your 10% off code.</p>
+    </div>
+  </div>
+</div>
+
 <div class="tricolor"></div>
 <footer>
   <span class="f-logo">🏐 Volleyball Collective</span>
@@ -781,6 +826,42 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
 </footer>
 
 <script>
+// ── EMAIL POPUP ──
+(function(){
+  if(localStorage.getItem('vc_popup_done'))return;
+  setTimeout(()=>{
+    if(localStorage.getItem('vc_popup_done'))return;
+    const popup=document.getElementById('email-popup');
+    if(popup){popup.style.display='flex';document.body.style.overflow='hidden';}
+  },20000);
+})();
+function dismissPopup(){
+  const popup=document.getElementById('email-popup');
+  if(popup)popup.style.display='none';
+  document.body.style.overflow='';
+  localStorage.setItem('vc_popup_done','1');
+}
+async function submitPopupSignup(){
+  const input=document.getElementById('popup-email');
+  const errEl=document.getElementById('popup-err');
+  const email=(input.value||'').trim();
+  if(!email||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){errEl.textContent='Please enter a valid email.';errEl.style.display='block';return;}
+  errEl.style.display='none';
+  try{
+    const res=await fetch('/api/email-subscribe',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email})});
+    const data=await res.json();
+    if(!res.ok&&res.status!==409){errEl.textContent=data.error||'Something went wrong.';errEl.style.display='block';return;}
+    document.getElementById('popup-form').style.display='none';
+    document.getElementById('popup-success').style.display='block';
+    localStorage.setItem('vc_popup_done','1');
+    setTimeout(()=>{
+      const popup=document.getElementById('email-popup');
+      if(popup)popup.style.display='none';
+      document.body.style.overflow='';
+    },3000);
+  }catch(e){errEl.textContent='Network error — please try again.';errEl.style.display='block';}
+}
+
 // ── MOBILE MENU ──
 function toggleMobileMenu(){
   const ham=document.getElementById('hamburger');
@@ -891,32 +972,40 @@ function renderMembershipSection(data){
 // ── RENDER DROPS ──
 let activeDrop=null;
 function renderDrops(){
-  const drops=_drops.filter(d=>d.status==='published'&&d.type!=='buynow');
+  const drops=_drops.filter(d=>(d.status==='published'||d.status==='teaser')&&d.type!=='buynow');
   const bids=_bids;
-  document.getElementById('stat-drops').textContent=drops.length;
+  const liveCount=drops.filter(d=>d.status==='published').length;
+  document.getElementById('stat-drops').textContent=liveCount;
   document.getElementById('stat-bids').textContent=bids.length;
-  document.getElementById('drops-badge').textContent=drops.length?drops.length+' Live':'Coming Soon';
+  document.getElementById('drops-badge').textContent=liveCount?liveCount+' Live':'Coming Soon';
   const g=document.getElementById('drops-grid');
   if(!drops.length){g.innerHTML=`<div class="empty-drops"><span class="ei">🏐</span><p>No active auctions — check back soon!</p></div>`;return}
   g.innerHTML=drops.map((d,i)=>{
+    const isTeaser=d.status==='teaser';
     const db=bids.filter(b=>b.dropId===d.id);
     const img=d.photo?`<img src="${d.photo}" alt="${d.name}" onerror="this.parentElement.innerHTML='<div class=\\'drop-no-img\\'><span>🏐</span></div>'">`:`<div class="drop-no-img"><span>🏐</span></div>`;
-    const isLocked=d.memberOnly&&!isMemberVerified();
+    const isLocked=!isTeaser&&d.memberOnly&&!isMemberVerified();
     const memberBadge=d.memberOnly?`<span class="member-badge-chip">🔒 Members</span>`:'';
     const lockOverlay=isLocked?`<div class="member-drop-overlay"><span class="member-lock-icon">🔒</span></div>`:'';
-    const cardClick=isLocked?`openMemberVerify(()=>openBidModal('${d.id}'))`:`openBidModal('${d.id}')`;
-    const bidBtn=isLocked
-      ?`<button class="btn-bid-card btn-member-lock" onclick="event.stopPropagation();openMemberVerify(()=>openBidModal('${d.id}'))">🔒 Members Only</button>`
-      :`<button class="btn-bid-card" onclick="event.stopPropagation();openBidModal('${d.id}')">Place Bid →</button>`;
-    return`<div class="drop-card" style="animation-delay:${i*.09}s" onclick="${cardClick}">
-      <div class="drop-img-wrap">${img}${lockOverlay}<span class="drop-badge-chip">Active Drop</span>${memberBadge}</div>
+    const teaserOverlay=isTeaser?`<div class="teaser-img-overlay"></div>`:'';
+    const badgeChip=isTeaser?`<span class="teaser-badge-chip">Coming Soon</span>`:`<span class="drop-badge-chip">Active Drop</span>`;
+    const cardClick=isTeaser?'':(isLocked?`openMemberVerify(()=>openBidModal('${d.id}'))`:`openBidModal('${d.id}')`);
+    const actionBtn=isTeaser
+      ?`<button class="btn-coming-soon">Coming Soon</button>`
+      :isLocked
+        ?`<button class="btn-bid-card btn-member-lock" onclick="event.stopPropagation();openMemberVerify(()=>openBidModal('${d.id}'))">🔒 Members Only</button>`
+        :`<button class="btn-bid-card" onclick="event.stopPropagation();openBidModal('${d.id}')">Place Bid →</button>`;
+    const offerRow=isTeaser?'':`<div class="drop-offer-row"><button class="drop-offer-link" onclick="event.stopPropagation();openDropOfferModal('${d.id}','${d.name.replace(/'/g,"\\'").replace(/"/g,'&quot;')}')"><span class="bell-icon">🔔</span> Get 5% off this drop — click here</button></div>`;
+    const footerLeft=isTeaser?`<span class="drop-bid-count" style="color:var(--muted)">Bidding opens soon</span>`:`<span class="drop-bid-count">${db.length} bid${db.length!==1?'s':''}</span>`;
+    return`<div class="drop-card${isTeaser?' teaser-card':''}" style="animation-delay:${i*.09}s${isTeaser?';cursor:default':''}"${cardClick?` onclick="${cardClick}"`:''}">
+      <div class="drop-img-wrap">${img}${teaserOverlay}${lockOverlay}${badgeChip}${memberBadge}</div>
       <div class="card-stripe"></div>
       <div class="drop-body">
         <div class="drop-name">${d.name}</div>
         <div class="drop-meta">${d.size?`<span>Size: ${d.size}</span>`:''}${d.condition?`<span>${d.condition}</span>`:''}</div>
         ${d.desc?`<p class="drop-desc">${d.desc}</p>`:''}
-        <div class="drop-footer"><span class="drop-bid-count">${db.length} bid${db.length!==1?'s':''}</span>${bidBtn}</div>
-        <div class="drop-offer-row"><button class="drop-offer-link" onclick="event.stopPropagation();openDropOfferModal('${d.id}','${d.name.replace(/'/g,"\\'").replace(/"/g,'&quot;')}')"><span class="bell-icon">🔔</span> Get 5% off this drop — click here</button></div>
+        <div class="drop-footer">${footerLeft}${actionBtn}</div>
+        ${offerRow}
       </div>
     </div>`;
   }).join('');
@@ -925,30 +1014,37 @@ function renderDrops(){
 // ── RENDER SHOP ──
 let activeBuyNow=null;
 function renderShop(){
-  const items=_drops.filter(d=>d.type==='buynow'&&d.status==='published');
+  const items=_drops.filter(d=>d.type==='buynow'&&(d.status==='published'||d.status==='teaser'));
   document.getElementById('stat-shop').textContent=items.length;
   const g=document.getElementById('shop-grid');
   if(!items.length){g.innerHTML=`<div class="empty-drops"><span class="ei">🛒</span><p>No items in the shop right now — check back soon!</p></div>`;return}
   g.innerHTML=items.map((d,i)=>{
+    const isTeaser=d.status==='teaser';
     const img=d.photo?`<img src="${d.photo}" alt="${d.name}" onerror="this.parentElement.innerHTML='<div class=\\'drop-no-img\\'><span>🏐</span></div>'">`:`<div class="drop-no-img"><span>🏐</span></div>`;
     const soldOverlay=d.sold?`<div class="sold-overlay"><span>SOLD</span></div>`:'';
-    const isLocked=d.memberOnly&&!isMemberVerified();
+    const teaserOverlay=isTeaser?`<div class="teaser-img-overlay"></div>`:'';
+    const isLocked=!isTeaser&&d.memberOnly&&!isMemberVerified();
     const memberBadge=d.memberOnly?`<span class="member-badge-chip">🔒 Members</span>`:'';
     const lockOverlay=isLocked?`<div class="member-drop-overlay"><span class="member-lock-icon">🔒</span></div>`:'';
-    const buyBtn=d.sold
-      ?`<button class="btn-notify-card" onclick="event.stopPropagation();openNotifyModal('${d.id}','${d.name.replace(/'/g,"\\'").replace(/"/g,'&quot;')}')">Notify Me →</button>`
-      :isLocked
-        ?`<button class="btn-buynow-card btn-member-lock" onclick="openMemberVerify(()=>openBuyNowModal('${d.id}'))">🔒 Members Only</button>`
-        :`<button class="btn-buynow-card" onclick="openBuyNowModal('${d.id}')">Buy Now →</button>`;
-    return`<div class="drop-card buynow-card" style="animation-delay:${i*.09}s" onclick="${isLocked?`openMemberVerify(()=>openBuyNowModal('${d.id}'))`:''}">
-      <div class="drop-img-wrap">${img}${soldOverlay}${lockOverlay}<span class="buynow-badge-chip">Buy Now</span>${memberBadge}</div>
+    const badgeChip=isTeaser?`<span class="teaser-badge-chip">Coming Soon</span>`:`<span class="buynow-badge-chip">Buy Now</span>`;
+    const buyBtn=isTeaser
+      ?`<button class="btn-coming-soon">Coming Soon</button>`
+      :d.sold
+        ?`<button class="btn-notify-card" onclick="event.stopPropagation();openNotifyModal('${d.id}','${d.name.replace(/'/g,"\\'").replace(/"/g,'&quot;')}')">Notify Me →</button>`
+        :isLocked
+          ?`<button class="btn-buynow-card btn-member-lock" onclick="openMemberVerify(()=>openBuyNowModal('${d.id}'))">🔒 Members Only</button>`
+          :`<button class="btn-buynow-card" onclick="openBuyNowModal('${d.id}')">Buy Now →</button>`;
+    const priceOrLabel=isTeaser?`<span class="drop-bid-count" style="color:var(--muted)">Price reveal soon</span>`:`<span class="price-tag">$${parseFloat(d.price||0).toFixed(2)}</span>`;
+    const offerRow=isTeaser||d.sold?'':`<div class="drop-offer-row"><button class="drop-offer-link" onclick="event.stopPropagation();openDropOfferModal('${d.id}','${d.name.replace(/'/g,"\\'").replace(/"/g,'&quot;')}')"><span class="bell-icon">🔔</span> Get 5% off this item — click here</button></div>`;
+    return`<div class="drop-card buynow-card${isTeaser?' teaser-card':''}" style="animation-delay:${i*.09}s${isTeaser?';cursor:default':''}"${!isTeaser&&isLocked?` onclick="openMemberVerify(()=>openBuyNowModal('${d.id}'))"`:''}>
+      <div class="drop-img-wrap">${img}${soldOverlay}${teaserOverlay}${lockOverlay}${badgeChip}${memberBadge}</div>
       <div class="card-stripe-green"></div>
       <div class="drop-body">
         <div class="drop-name">${d.name}</div>
         <div class="drop-meta">${d.size?`<span>Size: ${d.size}</span>`:''}${d.condition?`<span>${d.condition}</span>`:''}</div>
         ${d.desc?`<p class="drop-desc">${d.desc}</p>`:''}
-        <div class="drop-footer"><span class="price-tag">$${parseFloat(d.price||0).toFixed(2)}</span>${buyBtn}</div>
-        ${!d.sold?`<div class="drop-offer-row"><button class="drop-offer-link" onclick="event.stopPropagation();openDropOfferModal('${d.id}','${d.name.replace(/'/g,"\\'").replace(/"/g,'&quot;')}')"><span class="bell-icon">🔔</span> Get 5% off this item — click here</button></div>`:''}
+        <div class="drop-footer">${priceOrLabel}${buyBtn}</div>
+        ${offerRow}
       </div>
     </div>`;
   }).join('');
@@ -1515,13 +1611,13 @@ async function addDrop(status){
     const text=await res.text();let data={};try{data=JSON.parse(text)}catch{}
     if(!res.ok){errEl.textContent=`Could not save (${res.status}): ${data.error||text}`;errEl.style.display='block';return}
   }catch(e){errEl.textContent='Network error: '+(e&&e.message?e.message:'request failed');errEl.style.display='block';return}
-  if(status==='published'){_drops=[..._drops,drop];if(_listingType==='buynow')renderShop();else renderDrops();}
+  if(status==='published'||status==='teaser'){_drops=[..._drops,drop];if(_listingType==='buynow')renderShop();else renderDrops();}
   await refreshAll();renderAdminDrops();errEl.style.display='none';
   ['add-name','add-desc','add-size','add-photo-url','add-price'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   uploadedDataUrl=null;uploadedPhotoUrl=null;document.getElementById('upload-preview').style.display='none';document.getElementById('upload-placeholder').style.display='';
   _accessType='public';setAccessType('public');
-  showToast(status==='published'?(_listingType==='buynow'?'✅ Added to shop!':'✅ Drop published!'):'📝 Draft saved!');
-  if(status==='published')switchTab('tab-drops');
+  showToast(status==='published'?(_listingType==='buynow'?'✅ Added to shop!':'✅ Drop published!'):status==='teaser'?'📣 Drop teased — showing as Coming Soon!':'📝 Draft saved!');
+  if(status==='published'||status==='teaser')switchTab('tab-drops');
 }
 
 function showToast(msg,err=false,ok=false){
