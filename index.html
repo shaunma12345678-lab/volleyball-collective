@@ -791,7 +791,7 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
         </div>
         <div style="margin-bottom:16px">
           <label style="font-size:.75rem;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;display:block">Drop Date &amp; Time <span style="opacity:.5;text-transform:none;letter-spacing:0">(optional — shows on teaser cards)</span></label>
-          <input type="datetime-local" id="add-drop-time" style="width:100%;color-scheme:dark">
+          <input type="text" id="add-drop-time" placeholder="e.g. May 3 at 8:00 PM" style="width:100%">
         </div>
         <div style="display:flex;gap:12px;flex-wrap:wrap">
           <button class="btn-submit" style="flex:1;min-width:140px" id="publish-btn" onclick="addDrop('published')"><span class="btn-text" id="publish-btn-text">+ Publish Drop</span><div class="spinner"></div></button>
@@ -1207,10 +1207,7 @@ function renderMembershipSection(data){
 
 // ── RENDER DROPS ──
 let activeDrop=null;
-function formatDropTime(dt){
-  const d=new Date(dt);
-  return d.toLocaleDateString('en-US',{month:'short',day:'numeric'})+' at '+d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
-}
+function formatDropTime(dt){return dt;}
 
 function renderDrops(){
   const drops=_drops.filter(d=>(d.status==='published'||d.status==='teaser')&&d.type!=='buynow');
