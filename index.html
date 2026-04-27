@@ -68,6 +68,7 @@ nav{position:fixed;top:38px;left:0;right:0;z-index:500;display:flex;justify-cont
 .scroll-arrow{width:20px;height:20px;border-right:1.5px solid var(--muted);border-bottom:1.5px solid var(--muted);transform:rotate(45deg);animation:sarrow 2s ease-in-out infinite}
 @keyframes sarrow{0%,100%{transform:rotate(45deg) translate(0,0);opacity:1}50%{transform:rotate(45deg) translate(4px,4px);opacity:.3}}
 .marquee-wrap{position:relative;z-index:2;overflow:hidden;border-top:1px solid rgba(237,41,57,.18);border-bottom:1px solid rgba(237,41,57,.18);padding:13px 0;background:linear-gradient(90deg,rgba(237,41,57,.05),rgba(0,35,149,.06),rgba(237,41,57,.05))}
+.marquee-wrap:hover .marquee-track{animation-play-state:paused}
 .marquee-track{display:flex;animation:marquee 26s linear infinite;white-space:nowrap;width:max-content}
 .marquee-track .mt{font-family:'Bebas Neue',sans-serif;font-size:.88rem;letter-spacing:5px;padding:0 26px;color:var(--fr-white)}
 .marquee-track .ms{color:rgba(237,41,57,.4);font-family:'Bebas Neue',sans-serif;font-size:.88rem}
@@ -81,12 +82,15 @@ nav{position:fixed;top:38px;left:0;right:0;z-index:500;display:flex;justify-cont
 #drops{position:relative;z-index:2;padding:100px 48px;max-width:1280px;margin:0 auto}
 #shop{position:relative;z-index:2;padding:100px 48px;max-width:1280px;margin:0 auto;border-top:1px solid rgba(62,207,142,.1)}
 .drops-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:28px}
-.drop-card{background:var(--card);border:1px solid rgba(0,35,149,.4);border-radius:4px;overflow:hidden;cursor:pointer;transition:transform .35s cubic-bezier(.22,1,.36,1),box-shadow .35s,border-color .35s;animation:fadeUp .6s ease both;position:relative}
+.drop-card{background:var(--card);border:1px solid rgba(0,35,149,.4);border-radius:4px;overflow:hidden;cursor:pointer;transition:transform .35s cubic-bezier(.22,1,.36,1),box-shadow .35s,border-color .35s,opacity .55s ease,translate .55s ease;position:relative;opacity:0;translate:0 28px}
+.drop-card.in-view{opacity:1;translate:0 0}
 .drop-card:hover{transform:translateY(-8px);box-shadow:0 24px 64px rgba(0,0,0,.5),0 0 0 1px rgba(237,41,57,.25);border-color:rgba(237,41,57,.3)}
 .buynow-card:hover{border-color:rgba(62,207,142,.3);box-shadow:0 24px 64px rgba(0,0,0,.5),0 0 0 1px rgba(62,207,142,.25)}
 .drop-img-wrap{position:relative;height:290px;overflow:hidden;background:linear-gradient(135deg,var(--deep),var(--fr-blue))}
 .drop-img-wrap img{width:100%;height:100%;object-fit:cover;transition:transform .5s cubic-bezier(.22,1,.36,1)}
 .drop-card:hover .drop-img-wrap img{transform:scale(1.07)}
+.drop-img-wrap::after{content:'';position:absolute;inset:0;background:linear-gradient(115deg,transparent 30%,rgba(255,255,255,.13) 50%,transparent 70%);transform:translateX(-100%);transition:transform 0s;pointer-events:none;z-index:4}
+.drop-card:hover .drop-img-wrap::after{transform:translateX(100%);transition:transform .55s ease}
 .drop-no-img{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:4rem;background:linear-gradient(135deg,var(--deep),var(--fr-blue))}
 .drop-badge-chip{position:absolute;top:14px;left:14px;z-index:2;background:rgba(0,21,79,.88);border:1px solid rgba(237,41,57,.5);color:var(--fr-red);font-size:.62rem;letter-spacing:3px;text-transform:uppercase;padding:5px 12px;border-radius:2px;backdrop-filter:blur(6px)}
 .buynow-badge-chip{position:absolute;top:14px;left:14px;z-index:2;background:rgba(2,26,14,.88);border:1px solid rgba(62,207,142,.5);color:var(--success);font-size:.62rem;letter-spacing:3px;text-transform:uppercase;padding:5px 12px;border-radius:2px;backdrop-filter:blur(6px)}
@@ -872,6 +876,21 @@ async function submitPopupSignup(){
   }catch(e){errEl.textContent='Network error — please try again.';errEl.style.display='block';}
 }
 
+// ── SCROLL CARD ENTRANCE ──
+const _cardObserver=new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      const el=e.target;
+      const delay=parseFloat(el.style.animationDelay)||0;
+      setTimeout(()=>el.classList.add('in-view'),delay*1000);
+      _cardObserver.unobserve(el);
+    }
+  });
+},{threshold:0.12});
+function observeCards(){
+  document.querySelectorAll('.drop-card').forEach(c=>_cardObserver.observe(c));
+}
+
 // ── MOBILE MENU ──
 function toggleMobileMenu(){
   const ham=document.getElementById('hamburger');
@@ -1019,6 +1038,7 @@ function renderDrops(){
       </div>
     </div>`;
   }).join('');
+  requestAnimationFrame(observeCards);
 }
 
 // ── RENDER SHOP ──
@@ -1058,6 +1078,7 @@ function renderShop(){
       </div>
     </div>`;
   }).join('');
+  requestAnimationFrame(observeCards);
 }
 
 // ── MODALS ──
