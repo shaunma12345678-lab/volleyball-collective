@@ -791,7 +791,7 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
         </div>
         <div style="margin-bottom:16px">
           <label style="font-size:.75rem;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;display:block">Drop Date &amp; Time <span style="opacity:.5;text-transform:none;letter-spacing:0">(optional — shows on teaser cards)</span></label>
-          <input type="text" id="add-drop-time" placeholder="e.g. May 3 at 8:00 PM" style="width:100%">
+          <input type="text" id="add-drop-time" placeholder="e.g. May 3, 2026 8:00 PM" style="width:100%">
         </div>
         <div style="display:flex;gap:12px;flex-wrap:wrap">
           <button class="btn-submit" style="flex:1;min-width:140px" id="publish-btn" onclick="addDrop('published')"><span class="btn-text" id="publish-btn-text">+ Publish Drop</span><div class="spinner"></div></button>
@@ -1207,8 +1207,6 @@ function renderMembershipSection(data){
 
 // ── RENDER DROPS ──
 let activeDrop=null;
-function formatDropTime(dt){return dt;}
-
 function renderDrops(){
   const drops=_drops.filter(d=>(d.status==='published'||d.status==='teaser')&&d.type!=='buynow');
   const bids=_bids;
@@ -1234,7 +1232,7 @@ function renderDrops(){
         ?`<button class="btn-bid-card btn-member-lock" onclick="event.stopPropagation();openMemberVerify(()=>openBidModal('${d.id}'))">🔒 Members Only</button>`
         :`<button class="btn-bid-card" onclick="event.stopPropagation();openBidModal('${d.id}')">Place Bid →</button>`;
     const offerRow=isTeaser?'':`<div class="drop-offer-row"><button class="drop-offer-link" onclick="event.stopPropagation();openDropOfferModal('${d.id}','${d.name.replace(/'/g,"\\'").replace(/"/g,'&quot;')}')"><span class="bell-icon">🔔</span> Get 5% off this drop — click here</button><button class="drop-offer-link" style="color:var(--muted);margin-top:2px" onclick="event.stopPropagation();openNotifyModal('${d.id}','${d.name.replace(/'/g,"\\'").replace(/"/g,'&quot;')}','similar')"><span class="bell-icon">🔔</span> Notify me for drops like this</button></div>`;
-    const teaserTimeLabel=isTeaser?(d.dropTime?`Drops ${formatDropTime(d.dropTime)}`:'Bidding opens soon'):'';
+    const teaserTimeLabel=isTeaser?(d.dropTimeLabel?`Drops ${d.dropTimeLabel}`:'Bidding opens soon'):'';
     const footerLeft=isTeaser?`<span class="drop-bid-count" style="color:var(--muted)">${teaserTimeLabel}</span>`:`<span class="drop-bid-count">${db.length} bid${db.length!==1?'s':''}</span>`;
     return`<div class="drop-card${isTeaser?' teaser-card':''}" style="animation-delay:${i*.09}s${isTeaser?';cursor:default':''}"${cardClick?` onclick="${cardClick}"`:''}">
       <div class="drop-img-wrap">${img}${teaserOverlay}${lockOverlay}${badgeChip}${memberBadge}</div>
@@ -1274,7 +1272,7 @@ function renderShop(){
         :isLocked
           ?`<button class="btn-buynow-card btn-member-lock" onclick="openMemberVerify(()=>openBuyNowModal('${d.id}'))">🔒 Members Only</button>`
           :`<button class="btn-buynow-card" onclick="openBuyNowModal('${d.id}')">Buy Now →</button>`;
-    const teaserPriceLabel=isTeaser?(d.dropTime?`Drops ${formatDropTime(d.dropTime)}`:'Price reveal soon'):'';
+    const teaserPriceLabel=isTeaser?(d.dropTimeLabel?`Drops ${d.dropTimeLabel}`:'Price reveal soon'):'';
     const priceOrLabel=isTeaser?`<span class="drop-bid-count" style="color:var(--muted)">${teaserPriceLabel}</span>`:`<span class="price-tag">$${parseFloat(d.price||0).toFixed(2)}</span>`;
     const offerRow=isTeaser||d.sold?'':`<div class="drop-offer-row"><button class="drop-offer-link" onclick="event.stopPropagation();openDropOfferModal('${d.id}','${d.name.replace(/'/g,"\\'").replace(/"/g,'&quot;')}')"><span class="bell-icon">🔔</span> Get 5% off this item — click here</button><button class="drop-offer-link" style="color:var(--muted);margin-top:2px" onclick="event.stopPropagation();openNotifyModal('${d.id}','${d.name.replace(/'/g,"\\'").replace(/"/g,'&quot;')}','similar')"><span class="bell-icon">🔔</span> Notify me for items like this</button></div>`;
     return`<div class="drop-card buynow-card${isTeaser?' teaser-card':''}" style="animation-delay:${i*.09}s${isTeaser?';cursor:default':''}"${!isTeaser&&isLocked?` onclick="openMemberVerify(()=>openBuyNowModal('${d.id}'))"`:''}>
@@ -1860,7 +1858,10 @@ async function addDrop(status){
   const drop={id:'drop_'+Date.now(),name,desc,size,condition,photo,status,type:_listingType,memberOnly:_accessType==='members',createdAt:new Date().toISOString()};
   if(_listingType==='buynow')drop.price=price;
   const dropTimeEl=document.getElementById('add-drop-time');
-  if(dropTimeEl&&dropTimeEl.value)drop.dropTime=dropTimeEl.value;
+  if(dropTimeEl&&dropTimeEl.value.trim()){
+    const parsed=new Date(dropTimeEl.value.trim());
+    if(!isNaN(parsed.getTime())){drop.dropTime=parsed.toISOString();drop.dropTimeLabel=dropTimeEl.value.trim();}
+  }
   try{
     const res=await fetch('/api/drops',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({drop,adminPw:_adminPw})});
     const text=await res.text();let data={};try{data=JSON.parse(text)}catch{}

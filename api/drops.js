@@ -153,16 +153,27 @@ module.exports = async (req, res) => {
   try {
     if (req.method === 'GET') {
       const ids = (await redis('SMEMBERS', 'drops:keys')) || [];
-      const drops = (
+      const allDrops = (
         await Promise.all(
           ids.map(async (id) => {
             const raw = await redis('GET', `drop:${id}`);
             try { return JSON.parse(raw); } catch { return null; }
           })
         )
-      )
-        .filter(Boolean)
-        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      ).filter(Boolean);
+
+      // Auto-publish any teaser whose scheduled drop time has passed
+      const now = new Date();
+      await Promise.all(allDrops.map(async drop => {
+        if (drop.status === 'teaser' && drop.dropTime && new Date(drop.dropTime) <= now) {
+          drop.status = 'published';
+          await redis('SET', `drop:${drop.id}`, JSON.stringify(drop));
+          sendDropNotifications(drop).catch(() => {});
+          sendPushNotifications(drop).catch(() => {});
+        }
+      }));
+
+      const drops = allDrops.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
       return res.status(200).json({ drops });
     }
 
