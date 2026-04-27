@@ -379,7 +379,7 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
     <div class="stat"><span class="stat-num" id="stat-drops">0</span><span class="stat-label">Active Auctions</span></div>
     <div class="stat"><span class="stat-num" id="stat-shop">0</span><span class="stat-label">In Shop</span></div>
     <div class="stat"><span class="stat-num" id="stat-bids">0</span><span class="stat-label">Bids Placed</span></div>
-    <div class="stat"><span class="stat-num" id="stat-members">0</span><span class="stat-label">Members</span></div>
+    <span id="stat-members" style="display:none"></span>
   </div>
   <div class="scroll-hint"><span>Scroll</span><div class="scroll-arrow"></div></div>
 </section>
@@ -967,11 +967,11 @@ function renderMembershipSection(data){
   if(badge)badge.textContent=data.isEarlyBird?'Founding Member Rate':'Standard Rate';
   if(counter){
     if(data.isEarlyBird&&data.spotsLeft>0){
-      counter.innerHTML=`<strong>${data.spotsLeft}</strong> founding spots left at $${data.currentPrice}/mo · <strong>${data.total}</strong> members joined`;
+      counter.innerHTML=`<strong>${data.spotsLeft}</strong> founding spots left at $${data.currentPrice}/mo`;
     } else if(!data.isEarlyBird){
-      counter.innerHTML=`<strong>${data.total}</strong> members · Standard rate`;
+      counter.innerHTML=`Standard rate`;
     } else {
-      counter.innerHTML=`<strong>${data.total}</strong> members joined`;
+      counter.innerHTML=`Founding spots available`;
     }
   }
   if(subModalPrice)subModalPrice.innerHTML=`$${data.currentPrice}<span style="font-size:1.2rem;color:var(--muted)">/mo</span>`;
