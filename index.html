@@ -668,7 +668,7 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
         <button class="btn-close" onclick="closeModal('notify-overlay')">✕</button>
       </div>
       <div class="modal-body">
-        <p style="font-size:.85rem;color:var(--muted);margin-bottom:18px;line-height:1.6">This item is sold out. Drop your email and we'll alert you the next time something similar goes live.</p>
+        <p style="font-size:.85rem;color:var(--muted);margin-bottom:18px;line-height:1.6" id="notify-body-text">This item is sold out. Drop your email and we'll alert you the next time something similar goes live.</p>
         <div class="field-group">
           <label class="field-label">Email</label>
           <input type="email" id="notify-email" placeholder="your@email.com" onkeydown="if(event.key==='Enter')submitNotify()">
@@ -788,6 +788,10 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
             </div>
           </div>
           <div id="pw-url-wrap" style="display:none"><input type="text" id="add-photo-url" placeholder="https://example.com/jersey.jpg"></div>
+        </div>
+        <div style="margin-bottom:16px">
+          <label style="font-size:.75rem;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;display:block">Drop Date &amp; Time <span style="opacity:.5;text-transform:none;letter-spacing:0">(optional — shows on teaser cards)</span></label>
+          <input type="datetime-local" id="add-drop-time" style="width:100%;color-scheme:dark">
         </div>
         <div style="display:flex;gap:12px;flex-wrap:wrap">
           <button class="btn-submit" style="flex:1;min-width:140px" id="publish-btn" onclick="addDrop('published')"><span class="btn-text" id="publish-btn-text">+ Publish Drop</span><div class="spinner"></div></button>
@@ -1203,6 +1207,11 @@ function renderMembershipSection(data){
 
 // ── RENDER DROPS ──
 let activeDrop=null;
+function formatDropTime(dt){
+  const d=new Date(dt);
+  return d.toLocaleDateString('en-US',{month:'short',day:'numeric'})+' at '+d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+}
+
 function renderDrops(){
   const drops=_drops.filter(d=>(d.status==='published'||d.status==='teaser')&&d.type!=='buynow');
   const bids=_bids;
@@ -1223,12 +1232,13 @@ function renderDrops(){
     const badgeChip=isTeaser?`<span class="teaser-badge-chip">Coming Soon</span>`:`<span class="drop-badge-chip">Active Drop</span>`;
     const cardClick=isTeaser?'':(isLocked?`openMemberVerify(()=>openBidModal('${d.id}'))`:`openBidModal('${d.id}')`);
     const actionBtn=isTeaser
-      ?`<button class="btn-bid-card" style="background:rgba(123,159,212,.15);border:1px solid rgba(123,159,212,.4);color:var(--muted)" onclick="event.stopPropagation();openNotifyModal('${d.id}','${d.name.replace(/'/g,"\\'").replace(/"/g,'&quot;')}')">Notify Me →</button>`
+      ?`<button class="btn-bid-card" style="background:rgba(123,159,212,.15);border:1px solid rgba(123,159,212,.4);color:var(--muted)" onclick="event.stopPropagation();openNotifyModal('${d.id}','${d.name.replace(/'/g,"\\'").replace(/"/g,'&quot;')}','teaser')">Notify Me →</button>`
       :isLocked
         ?`<button class="btn-bid-card btn-member-lock" onclick="event.stopPropagation();openMemberVerify(()=>openBidModal('${d.id}'))">🔒 Members Only</button>`
         :`<button class="btn-bid-card" onclick="event.stopPropagation();openBidModal('${d.id}')">Place Bid →</button>`;
-    const offerRow=isTeaser?'':`<div class="drop-offer-row"><button class="drop-offer-link" onclick="event.stopPropagation();openDropOfferModal('${d.id}','${d.name.replace(/'/g,"\\'").replace(/"/g,'&quot;')}')"><span class="bell-icon">🔔</span> Get 5% off this drop — click here</button></div>`;
-    const footerLeft=isTeaser?`<span class="drop-bid-count" style="color:var(--muted)">Bidding opens soon</span>`:`<span class="drop-bid-count">${db.length} bid${db.length!==1?'s':''}</span>`;
+    const offerRow=isTeaser?'':`<div class="drop-offer-row"><button class="drop-offer-link" onclick="event.stopPropagation();openDropOfferModal('${d.id}','${d.name.replace(/'/g,"\\'").replace(/"/g,'&quot;')}')"><span class="bell-icon">🔔</span> Get 5% off this drop — click here</button><button class="drop-offer-link" style="color:var(--muted);margin-top:2px" onclick="event.stopPropagation();openNotifyModal('${d.id}','${d.name.replace(/'/g,"\\'").replace(/"/g,'&quot;')}','similar')"><span class="bell-icon">🔔</span> Notify me for drops like this</button></div>`;
+    const teaserTimeLabel=isTeaser?(d.dropTime?`Drops ${formatDropTime(d.dropTime)}`:'Bidding opens soon'):'';
+    const footerLeft=isTeaser?`<span class="drop-bid-count" style="color:var(--muted)">${teaserTimeLabel}</span>`:`<span class="drop-bid-count">${db.length} bid${db.length!==1?'s':''}</span>`;
     return`<div class="drop-card${isTeaser?' teaser-card':''}" style="animation-delay:${i*.09}s${isTeaser?';cursor:default':''}"${cardClick?` onclick="${cardClick}"`:''}">
       <div class="drop-img-wrap">${img}${teaserOverlay}${lockOverlay}${badgeChip}${memberBadge}</div>
       <div class="card-stripe"></div>
@@ -1261,14 +1271,15 @@ function renderShop(){
     const lockOverlay=isLocked?`<div class="member-drop-overlay"><span class="member-lock-icon">🔒</span></div>`:'';
     const badgeChip=isTeaser?`<span class="teaser-badge-chip">Coming Soon</span>`:`<span class="buynow-badge-chip">Buy Now</span>`;
     const buyBtn=isTeaser
-      ?`<button class="btn-buynow-card" style="background:rgba(123,159,212,.15);border:1px solid rgba(123,159,212,.4);color:var(--muted);font-weight:400" onclick="event.stopPropagation();openNotifyModal('${d.id}','${d.name.replace(/'/g,"\\'").replace(/"/g,'&quot;')}')">Notify Me →</button>`
+      ?`<button class="btn-buynow-card" style="background:rgba(123,159,212,.15);border:1px solid rgba(123,159,212,.4);color:var(--muted);font-weight:400" onclick="event.stopPropagation();openNotifyModal('${d.id}','${d.name.replace(/'/g,"\\'").replace(/"/g,'&quot;')}','teaser')">Notify Me →</button>`
       :d.sold
         ?`<button class="btn-notify-card" onclick="event.stopPropagation();openNotifyModal('${d.id}','${d.name.replace(/'/g,"\\'").replace(/"/g,'&quot;')}')">Notify Me →</button>`
         :isLocked
           ?`<button class="btn-buynow-card btn-member-lock" onclick="openMemberVerify(()=>openBuyNowModal('${d.id}'))">🔒 Members Only</button>`
           :`<button class="btn-buynow-card" onclick="openBuyNowModal('${d.id}')">Buy Now →</button>`;
-    const priceOrLabel=isTeaser?`<span class="drop-bid-count" style="color:var(--muted)">Price reveal soon</span>`:`<span class="price-tag">$${parseFloat(d.price||0).toFixed(2)}</span>`;
-    const offerRow=isTeaser||d.sold?'':`<div class="drop-offer-row"><button class="drop-offer-link" onclick="event.stopPropagation();openDropOfferModal('${d.id}','${d.name.replace(/'/g,"\\'").replace(/"/g,'&quot;')}')"><span class="bell-icon">🔔</span> Get 5% off this item — click here</button></div>`;
+    const teaserPriceLabel=isTeaser?(d.dropTime?`Drops ${formatDropTime(d.dropTime)}`:'Price reveal soon'):'';
+    const priceOrLabel=isTeaser?`<span class="drop-bid-count" style="color:var(--muted)">${teaserPriceLabel}</span>`:`<span class="price-tag">$${parseFloat(d.price||0).toFixed(2)}</span>`;
+    const offerRow=isTeaser||d.sold?'':`<div class="drop-offer-row"><button class="drop-offer-link" onclick="event.stopPropagation();openDropOfferModal('${d.id}','${d.name.replace(/'/g,"\\'").replace(/"/g,'&quot;')}')"><span class="bell-icon">🔔</span> Get 5% off this item — click here</button><button class="drop-offer-link" style="color:var(--muted);margin-top:2px" onclick="event.stopPropagation();openNotifyModal('${d.id}','${d.name.replace(/'/g,"\\'").replace(/"/g,'&quot;')}','similar')"><span class="bell-icon">🔔</span> Notify me for items like this</button></div>`;
     return`<div class="drop-card buynow-card${isTeaser?' teaser-card':''}" style="animation-delay:${i*.09}s${isTeaser?';cursor:default':''}"${!isTeaser&&isLocked?` onclick="openMemberVerify(()=>openBuyNowModal('${d.id}'))"`:''}>
       <div class="drop-img-wrap">${img}${soldOverlay}${teaserOverlay}${lockOverlay}${badgeChip}${memberBadge}</div>
       <div class="card-stripe-green"></div>
@@ -1680,9 +1691,20 @@ async function submitDropOffer() {
 
 // ── NOTIFY ME ──
 let _notifyDropId = null;
-function openNotifyModal(dropId, dropName) {
+function openNotifyModal(dropId, dropName, mode='sold') {
   _notifyDropId = dropId;
-  document.getElementById('notify-drop-label').textContent = dropName + ' — sold out';
+  const label = document.getElementById('notify-drop-label');
+  const body = document.getElementById('notify-body-text');
+  if (mode === 'teaser') {
+    label.textContent = dropName + ' — coming soon';
+    body.textContent = "This drop isn't live yet. Leave your email and we'll alert you the moment it goes live.";
+  } else if (mode === 'similar') {
+    label.textContent = dropName;
+    body.textContent = "Want alerts for future drops like this? Leave your email and we'll hit you first.";
+  } else {
+    label.textContent = dropName + ' — sold out';
+    body.textContent = "This item is sold out. Leave your email and we'll alert you the next time something similar goes live.";
+  }
   document.getElementById('notify-email').value = '';
   document.getElementById('notify-err').style.display = 'none';
   document.getElementById('notify-form-view').style.display = '';
@@ -1840,6 +1862,8 @@ async function addDrop(status){
   }else if(photoMode==='url')photo=document.getElementById('add-photo-url').value.trim();
   const drop={id:'drop_'+Date.now(),name,desc,size,condition,photo,status,type:_listingType,memberOnly:_accessType==='members',createdAt:new Date().toISOString()};
   if(_listingType==='buynow')drop.price=price;
+  const dropTimeEl=document.getElementById('add-drop-time');
+  if(dropTimeEl&&dropTimeEl.value)drop.dropTime=dropTimeEl.value;
   try{
     const res=await fetch('/api/drops',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({drop,adminPw:_adminPw})});
     const text=await res.text();let data={};try{data=JSON.parse(text)}catch{}
@@ -1847,7 +1871,7 @@ async function addDrop(status){
   }catch(e){errEl.textContent='Network error: '+(e&&e.message?e.message:'request failed');errEl.style.display='block';return}
   if(status==='published'||status==='teaser'){_drops=[..._drops,drop];if(_listingType==='buynow')renderShop();else renderDrops();}
   await refreshAll();renderAdminDrops();errEl.style.display='none';
-  ['add-name','add-desc','add-size','add-photo-url','add-price'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['add-name','add-desc','add-size','add-photo-url','add-price','add-drop-time'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   uploadedDataUrl=null;uploadedPhotoUrl=null;document.getElementById('upload-preview').style.display='none';document.getElementById('upload-placeholder').style.display='';
   _accessType='public';setAccessType('public');
   showToast(status==='published'?(_listingType==='buynow'?'✅ Added to shop!':'✅ Drop published!'):status==='teaser'?'📣 Drop teased — showing as Coming Soon!':'📝 Draft saved!');
