@@ -1239,6 +1239,15 @@ function renderMembershipSection(data){
 
 // ── RENDER DROPS ──
 let activeDrop=null;
+function fmtBids(n){
+  if(n<5)return`${n} bid${n!==1?'s':''}`;
+  if(n<10)return'5+ bids';
+  if(n<16)return'10+ bids';
+  if(n<26)return'15+ bids';
+  if(n<31)return'25+ bids';
+  return'30+ bids';
+}
+
 function renderDrops(){
   const drops=_drops.filter(d=>(d.status==='published'||d.status==='teaser')&&d.type!=='buynow');
   const bids=_bids;
@@ -1268,7 +1277,7 @@ function renderDrops(){
     const watchStr=watchCount>0?` · <span class="watcher-count">👁 ${watchCount} watching</span>`:'';
     const footerLeft=isTeaser
       ?(d.dropTime?`<span class="countdown-tag" data-countdown="${d.dropTime}">—</span>`:`<span class="drop-bid-count" style="color:var(--muted)">Bidding opens soon</span>`)
-      :`<span class="drop-bid-count">${db.length} bid${db.length!==1?'s':''}${watchStr}</span>`;
+      :`<span class="drop-bid-count">${fmtBids(db.length)}${watchStr}</span>`;
     return`<div class="drop-card${isTeaser?' teaser-card':''}" style="animation-delay:${i*.09}s${isTeaser?';cursor:default':''}"${cardClick?` onclick="${cardClick}"`:''}">
       <div class="drop-img-wrap">${img}${teaserOverlay}${lockOverlay}${badgeChip}${memberBadge}</div>
       <div class="card-stripe"></div>
