@@ -255,6 +255,23 @@ module.exports = async (req, res) => {
       await redis('SET', `bid:${bid.id}`, JSON.stringify(bid));
       await redis('SADD', 'bids:keys', bid.id);
 
+      // Anti-sniping: if bid lands in final 5 minutes, push end time out by 5 minutes
+      try {
+        const dropRaw = await redis('GET', `drop:${bid.dropId}`);
+        if (dropRaw) {
+          const drop = JSON.parse(dropRaw);
+          if (drop.endTime) {
+            const msLeft = new Date(drop.endTime) - Date.now();
+            if (msLeft > 0 && msLeft < 5 * 60 * 1000) {
+              drop.endTime = new Date(Date.now() + 5 * 60 * 1000).toISOString();
+              await redis('SET', `drop:${drop.id}`, JSON.stringify(drop));
+            }
+          }
+        }
+      } catch (e) {
+        console.warn('Anti-snipe extension failed:', e.message);
+      }
+
       autoSubscribeEmail(bid.email.toLowerCase().trim()).catch(() => {});
 
       // First-bid bonus: generate 5% off promo code and email the first bidder
