@@ -1451,7 +1451,6 @@ function renderFlash(){
 
 // ── LIVE ACTIVITY FEED ──
 let _activityIdx=0,_activityTimer=null;
-function fmtBidderName(n){if(!n)return'Someone';const p=n.trim().split(/\s+/);return p.length>1?`${p[0]} ${p[p.length-1][0]}.`:p[0];}
 function showActivityItem(msg){
   const feed=document.getElementById('activity-feed');if(!feed)return;
   const el=document.createElement('div');el.className='activity-item';el.textContent=msg;
@@ -1461,13 +1460,18 @@ function showActivityItem(msg){
 }
 function startActivityFeed(){
   if(!_bids||!_bids.length)return;
-  const pool=[..._bids].filter(b=>b.name&&b.amount&&b.dropId).sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt)).slice(0,20);
+  // Build one entry per drop: the highest bid on that drop
+  const byDrop={};
+  _bids.filter(b=>b.amount&&b.dropId).forEach(b=>{
+    if(!byDrop[b.dropId]||parseFloat(b.amount)>parseFloat(byDrop[b.dropId].amount))byDrop[b.dropId]=b;
+  });
+  const pool=Object.values(byDrop).filter(b=>{const d=_drops.find(x=>x.id===b.dropId);return d&&(d.status==='published');});
   if(!pool.length)return;
   if(_activityTimer){clearInterval(_activityTimer);_activityTimer=null;}
   function tick(){
     const bid=pool[_activityIdx%pool.length];
     const drop=_drops.find(d=>d.id===bid.dropId);
-    if(drop){const msg=`🏐 ${fmtBidderName(bid.name)} bid $${parseFloat(bid.amount).toFixed(2)} on ${drop.name}`;showActivityItem(msg);}
+    if(drop){showActivityItem(`🏐 Highest bid: $${parseFloat(bid.amount).toFixed(2)} on ${drop.name}`);}
     _activityIdx++;
   }
   setTimeout(()=>{tick();_activityTimer=setInterval(tick,11000);},3500);
