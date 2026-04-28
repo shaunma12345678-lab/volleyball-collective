@@ -181,6 +181,14 @@ nav{position:fixed;top:38px;left:0;right:0;z-index:500;display:flex;justify-cont
 .activity-item{background:rgba(0,18,96,.93);border:1px solid rgba(237,41,57,.18);border-right:3px solid var(--fr-red);padding:10px 14px;border-radius:3px;font-size:.76rem;color:var(--fr-white);max-width:280px;opacity:0;transform:translateX(14px);transition:opacity .38s ease,transform .38s ease;backdrop-filter:blur(10px);line-height:1.4;text-align:right}
 .activity-item.show{opacity:1;transform:translateX(0)}
 @media(max-width:640px){#activity-feed{top:100px;right:10px}.activity-item{max-width:220px;font-size:.7rem}}
+.live-viewers-row{display:flex;align-items:center;gap:6px;font-size:.7rem;color:#3ecf8e;margin-top:7px;letter-spacing:.4px}
+.live-dot{width:7px;height:7px;border-radius:50%;background:#3ecf8e;flex-shrink:0;animation:livePulse 1.4s ease-in-out infinite}
+@keyframes livePulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.65)}}
+.notify-waiting-row{font-size:.68rem;color:var(--muted);margin-top:8px;letter-spacing:.4px;display:flex;align-items:center;justify-content:center;gap:5px}
+#bid-alert{position:fixed;bottom:28px;left:28px;z-index:601;pointer-events:none}
+.bid-alert-item{background:rgba(0,18,96,.95);border:1px solid rgba(237,41,57,.35);border-left:3px solid var(--fr-red);padding:10px 14px;border-radius:3px;font-size:.76rem;color:var(--fr-white);max-width:280px;opacity:0;transform:translateX(-12px);transition:opacity .38s ease,transform .38s ease;backdrop-filter:blur(10px);line-height:1.4}
+.bid-alert-item.show{opacity:1;transform:translateX(0)}
+@media(max-width:640px){#bid-alert{bottom:18px;left:10px}.bid-alert-item{max-width:220px;font-size:.7rem}}
 
 /* ── MEMBERSHIP SECTION ── */
 #membership{position:relative;z-index:2;padding:100px 48px;border-top:1px solid rgba(237,41,57,.12);background:linear-gradient(180deg,rgba(237,41,57,.03) 0%,rgba(0,21,79,0) 100%)}
@@ -1298,14 +1306,36 @@ document.querySelectorAll('button,a,.drop-card').forEach(el=>{
 })();
 
 // ── DATA ──
-let _drops=[],_bids=[],_adminPw=null,_subData={total:0,spotsLeft:200,isEarlyBird:true,currentPrice:'9.99'},_watchCounts={};
+let _drops=[],_bids=[],_adminPw=null,_subData={total:0,spotsLeft:200,isEarlyBird:true,currentPrice:'9.99'},_watchCounts={},_notifyCounts={},_prevBidsByDrop=null;
 
 // ── FETCH ──
 async function fetchDrops(){
-  try{const r=await fetch('/api/drops?_t='+Date.now(),{cache:'no-store'});if(!r.ok)return;const data=await r.json();if(Array.isArray(data.drops))_drops=data.drops;if(data.watchCounts)_watchCounts=data.watchCounts;renderDrops();renderShop();renderFlash();const dash=document.getElementById('admin-dashboard');if(dash&&dash.style.display==='block')renderAdminDrops();}catch(e){console.warn('fetchDrops failed',e);}
+  try{const r=await fetch('/api/drops?_t='+Date.now(),{cache:'no-store'});if(!r.ok)return;const data=await r.json();if(Array.isArray(data.drops))_drops=data.drops;if(data.watchCounts)_watchCounts=data.watchCounts;if(data.notifyCounts)_notifyCounts=data.notifyCounts;renderDrops();renderShop();renderFlash();const dash=document.getElementById('admin-dashboard');if(dash&&dash.style.display==='block')renderAdminDrops();}catch(e){console.warn('fetchDrops failed',e);}
 }
 async function fetchBids(){
-  try{const url=_adminPw?'/api/bids?adminPw='+encodeURIComponent(_adminPw)+'&_t='+Date.now():'/api/bids?_t='+Date.now();const r=await fetch(url,{cache:'no-store'});if(!r.ok)return;const data=await r.json();if(Array.isArray(data.bids))_bids=data.bids;renderDrops();startActivityFeed();const dash=document.getElementById('admin-dashboard');if(dash&&dash.style.display==='block'){renderAdminDrops();renderAllBids();}}catch(e){console.warn('fetchBids failed',e);}
+  try{
+    const url=_adminPw?'/api/bids?adminPw='+encodeURIComponent(_adminPw)+'&_t='+Date.now():'/api/bids?_t='+Date.now();
+    const r=await fetch(url,{cache:'no-store'});if(!r.ok)return;
+    const data=await r.json();
+    if(Array.isArray(data.bids)){
+      const incoming=data.bids;
+      const incomingCounts={};
+      incoming.forEach(b=>{incomingCounts[b.dropId]=(incomingCounts[b.dropId]||0)+1;});
+      if(_prevBidsByDrop!==null){
+        for(const [dropId,newCount] of Object.entries(incomingCounts)){
+          if(newCount>(_prevBidsByDrop[dropId]||0)){
+            const drop=(_drops||[]).find(d=>d.id===dropId&&d.status==='published');
+            if(drop){showBidAlert(`🏐 Someone just placed a bid on ${drop.name}`);break;}
+          }
+        }
+      }
+      _prevBidsByDrop=incomingCounts;
+      _bids=incoming;
+    }
+    renderDrops();startActivityFeed();
+    const dash=document.getElementById('admin-dashboard');
+    if(dash&&dash.style.display==='block'){renderAdminDrops();renderAllBids();}
+  }catch(e){console.warn('fetchBids failed',e);}
 }
 async function fetchSubscriptionCount(){
   try{
@@ -1425,7 +1455,9 @@ function renderDrops(){
         :`<button class="btn-bid-card" onclick="event.stopPropagation();openBidModal('${d.id}')">Place Bid →</button>`;
     const offerRow=isTeaser?'':`<div class="drop-offer-row"><button class="drop-offer-link" onclick="event.stopPropagation();openDropOfferModal('${d.id}','${d.name.replace(/'/g,"\\'").replace(/"/g,'&quot;')}')"><span class="bell-icon">🔔</span> Get 5% off this drop — click here</button><button class="drop-offer-link" style="color:var(--muted);margin-top:2px" onclick="event.stopPropagation();openNotifyModal('${d.id}','${d.name.replace(/'/g,"\\'").replace(/"/g,'&quot;')}','similar')"><span class="bell-icon">🔔</span> Notify me for drops like this</button></div>`;
     const watchCount=_watchCounts[d.id]||0;
-    const watchStr=watchCount>0?` · <span class="watcher-count">👁 ${watchCount} watching</span>`:'';
+    const notifyCount=isTeaser?((_notifyCounts&&_notifyCounts[d.id])||0):0;
+    const viewersRow=!isTeaser&&watchCount>0?`<div class="live-viewers-row"><span class="live-dot"></span>${watchCount} viewing right now</div>`:'';
+    const notifyWaitingRow=isTeaser&&notifyCount>0?`<div class="notify-waiting-row">🔔 ${notifyCount} ${notifyCount===1?'person':'people'} already waiting</div>`:'';
     const endTimeStr=!isTeaser&&d.endTime?`<span class="end-countdown-tag" data-endtime="${d.endTime}">—</span>`:'';
     const now=Date.now();
     const recentBids=!isTeaser?db.filter(b=>now-new Date(b.createdAt).getTime()<3600000).length:0;
@@ -1434,7 +1466,7 @@ function renderDrops(){
     const badgeChipFinal=isTeaser?`<span class="teaser-badge-chip">Coming Soon</span>`:closingSoon?`<span class="closing-soon-chip">⏰ Closing Soon</span>`:`<span class="drop-badge-chip">Active Drop</span>`;
     const footerLeft=isTeaser
       ?(d.dropTime?`<span class="countdown-tag" data-countdown="${d.dropTime}">—</span>`:`<span class="drop-bid-count" style="color:var(--muted)">Bidding opens soon</span>`)
-      :`<div><span class="drop-bid-count">${fmtBids(db.length)}${watchStr}</span>${endTimeStr}${velocityTag}</div>`;
+      :`<div><span class="drop-bid-count">${fmtBids(db.length)}</span>${endTimeStr}${velocityTag}</div>`;
     const hotLevel=!isTeaser&&db.length>=25?3:db.length>=10?2:db.length>=5?1:0;
     const hotClass=hotLevel?` card-hot-${hotLevel}`:'';
     const hotBadgeText=hotLevel===3?'🔥 On Fire':hotLevel===2?'🔥 Heating Up':hotLevel===1?'🔥 Hot':'';
@@ -1447,7 +1479,7 @@ function renderDrops(){
         <div class="drop-meta">${d.size?`<span>Size: ${d.size}</span>`:''}${d.condition?`<span>${d.condition}</span>`:''}</div>
         ${d.desc?`<p class="drop-desc">${d.desc}</p>`:''}
         <div class="drop-footer">${footerLeft}${actionBtn}</div>
-        ${offerRow}
+        ${offerRow}${viewersRow}${notifyWaitingRow}
       </div>
     </div>`;
   }).join('');
@@ -1478,10 +1510,13 @@ function renderShop(){
           ?`<button class="btn-buynow-card btn-member-lock" onclick="openMemberVerify(()=>openBuyNowModal('${d.id}'))">🔒 Members Only</button>`
           :`<button class="btn-buynow-card" onclick="openBuyNowModal('${d.id}')">Buy Now →</button>`;
     const shopWatchCount=_watchCounts[d.id]||0;
+    const shopNotifyCount=isTeaser?((_notifyCounts&&_notifyCounts[d.id])||0):0;
+    const shopViewersRow=!isTeaser&&shopWatchCount>0?`<div class="live-viewers-row"><span class="live-dot"></span>${shopWatchCount} viewing right now</div>`:'';
+    const shopNotifyWaitingRow=isTeaser&&shopNotifyCount>0?`<div class="notify-waiting-row">🔔 ${shopNotifyCount} ${shopNotifyCount===1?'person':'people'} already waiting</div>`:'';
     const shopEndStr=!isTeaser&&d.endTime?`<span class="end-countdown-tag" data-endtime="${d.endTime}">—</span>`:'';
     const priceOrLabel=isTeaser
       ?(d.dropTime?`<span class="countdown-tag" data-countdown="${d.dropTime}">—</span>`:`<span class="drop-bid-count" style="color:var(--muted)">Price reveal soon</span>`)
-      :`<div><span class="price-tag">$${parseFloat(d.price||0).toFixed(2)}</span>${shopWatchCount>0?`<div class="watcher-count" style="margin-top:3px">👁 ${shopWatchCount} watching</div>`:''}${shopEndStr}</div>`;
+      :`<div><span class="price-tag">$${parseFloat(d.price||0).toFixed(2)}</span>${shopEndStr}</div>`;
     const offerRow=isTeaser||d.sold?'':`<div class="drop-offer-row"><button class="drop-offer-link" onclick="event.stopPropagation();openDropOfferModal('${d.id}','${d.name.replace(/'/g,"\\'").replace(/"/g,'&quot;')}')"><span class="bell-icon">🔔</span> Get 5% off this item — click here</button><button class="drop-offer-link" style="color:var(--muted);margin-top:2px" onclick="event.stopPropagation();openNotifyModal('${d.id}','${d.name.replace(/'/g,"\\'").replace(/"/g,'&quot;')}','similar')"><span class="bell-icon">🔔</span> Notify me for items like this</button></div>`;
     return`<div class="drop-card buynow-card${isTeaser?' teaser-card':''}" style="animation-delay:${i*.09}s${isTeaser?';cursor:default':''}"${!isTeaser&&isLocked?` onclick="openMemberVerify(()=>openBuyNowModal('${d.id}'))"`:''}>
       <div class="drop-img-wrap">${img}${soldOverlay}${teaserOverlay}${lockOverlay}${badgeChip}${memberBadge}</div>
@@ -1491,7 +1526,7 @@ function renderShop(){
         <div class="drop-meta">${d.size?`<span>Size: ${d.size}</span>`:''}${d.condition?`<span>${d.condition}</span>`:''}</div>
         ${d.desc?`<p class="drop-desc">${d.desc}</p>`:''}
         <div class="drop-footer">${priceOrLabel}${buyBtn}</div>
-        ${offerRow}
+        ${offerRow}${shopViewersRow}${shopNotifyWaitingRow}
       </div>
     </div>`;
   }).join('');
@@ -1570,6 +1605,19 @@ function startActivityFeed(){
     _activityIdx++;
   }
   setTimeout(()=>{tick();_activityTimer=setInterval(tick,20000);},5000);
+}
+
+// ── BID ALERT ──
+function showBidAlert(msg){
+  const feed=document.getElementById('bid-alert');if(!feed)return;
+  feed.querySelectorAll('.bid-alert-item').forEach(el=>{
+    el.classList.remove('show');
+    setTimeout(()=>{if(el.parentNode)el.remove();},420);
+  });
+  const el=document.createElement('div');el.className='bid-alert-item';el.textContent=msg;
+  feed.appendChild(el);
+  requestAnimationFrame(()=>requestAnimationFrame(()=>el.classList.add('show')));
+  setTimeout(()=>{el.classList.remove('show');setTimeout(()=>{if(el.parentNode)el.remove();},420);},6000);
 }
 
 // ── WATCHER ──
@@ -2282,5 +2330,6 @@ function showToast(msg,err=false,ok=false){
 renderDrops();renderShop();renderFlash();refreshAll();
 </script>
 <div id="activity-feed"></div>
+<div id="bid-alert"></div>
 </body>
 </html>

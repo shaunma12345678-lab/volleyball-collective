@@ -185,7 +185,14 @@ module.exports = async (req, res) => {
         if (count) watchCounts[d.id] = parseInt(count);
       }));
 
-      return res.status(200).json({ drops, watchCounts });
+      // Fetch notify waitlist counts for teaser drops
+      const notifyCounts = {};
+      await Promise.all(drops.filter(d => d.status === 'teaser').map(async d => {
+        const count = await redis('SCARD', `notify:${d.id}`);
+        if (count) notifyCounts[d.id] = parseInt(count);
+      }));
+
+      return res.status(200).json({ drops, watchCounts, notifyCounts });
     }
 
     const body = req.body || {};
