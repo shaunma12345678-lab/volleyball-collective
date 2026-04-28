@@ -1540,27 +1540,36 @@ function renderFlash(){
 let _activityIdx=0,_activityTimer=null;
 function showActivityItem(msg){
   const feed=document.getElementById('activity-feed');if(!feed)return;
+  feed.querySelectorAll('.activity-item').forEach(el=>{
+    el.classList.remove('show');
+    setTimeout(()=>{if(el.parentNode)el.remove();},420);
+  });
   const el=document.createElement('div');el.className='activity-item';el.textContent=msg;
   feed.appendChild(el);
   requestAnimationFrame(()=>requestAnimationFrame(()=>el.classList.add('show')));
-  setTimeout(()=>{el.classList.remove('show');setTimeout(()=>{if(el.parentNode)el.remove();},420);},5000);
+  setTimeout(()=>{el.classList.remove('show');setTimeout(()=>{if(el.parentNode)el.remove();},420);},7000);
 }
 function startActivityFeed(){
   if(_activityTimer){clearInterval(_activityTimer);_activityTimer=null;}
   const liveDrops=(_drops||[]).filter(d=>d.status==='published');
   if(!liveDrops.length)return;
   function tick(){
-    const drop=liveDrops[_activityIdx%liveDrops.length];
+    const active=liveDrops.filter(d=>{
+      const bc=(_bids||[]).filter(b=>b.dropId===d.id).length;
+      const wc=(_watchCounts&&_watchCounts[d.id])||0;
+      return bc>0||wc>0;
+    });
+    if(!active.length)return;
+    const drop=active[_activityIdx%active.length];
     const bidCount=(_bids||[]).filter(b=>b.dropId===drop.id).length;
     const watches=(_watchCounts&&_watchCounts[drop.id])||0;
     const parts=[];
     if(bidCount>0)parts.push(fmtBids(bidCount));
     if(watches>0)parts.push(`👁 ${watches} watching`);
-    if(!parts.length)parts.push(drop.type==='flash'?'Flash Sale Live':drop.type==='buynow'?'Available Now':'Auction Live');
     showActivityItem(`🏐 ${drop.name} — ${parts.join(' · ')}`);
     _activityIdx++;
   }
-  setTimeout(()=>{tick();_activityTimer=setInterval(tick,11000);},3500);
+  setTimeout(()=>{tick();_activityTimer=setInterval(tick,20000);},5000);
 }
 
 // ── WATCHER ──
