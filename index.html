@@ -129,6 +129,9 @@ nav{position:fixed;top:38px;left:0;right:0;z-index:500;display:flex;justify-cont
 .drop-card:hover .drop-img-wrap::after{transform:translateX(100%);transition:transform .55s ease}
 .drop-no-img{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:4rem;background:linear-gradient(135deg,var(--deep),var(--fr-blue))}
 .drop-badge-chip{position:absolute;top:14px;left:14px;z-index:2;background:rgba(0,21,79,.88);border:1px solid rgba(237,41,57,.5);color:var(--fr-red);font-size:.62rem;letter-spacing:3px;text-transform:uppercase;padding:5px 12px;border-radius:2px;backdrop-filter:blur(6px)}
+@keyframes closingPulse{0%,100%{box-shadow:0 0 0 0 rgba(237,41,57,.5);background:rgba(100,0,0,.92)}50%{box-shadow:0 0 0 4px rgba(237,41,57,.15);background:rgba(180,0,0,.95)}}
+.closing-soon-chip{position:absolute;top:14px;left:14px;z-index:5;background:rgba(180,0,0,.92);border:1px solid rgba(237,41,57,.8);color:#fff;font-size:.62rem;letter-spacing:3px;text-transform:uppercase;padding:5px 12px;border-radius:2px;backdrop-filter:blur(6px);animation:closingPulse 1.4s ease-in-out infinite;font-weight:700}
+.velocity-tag{font-size:.64rem;color:#f97316;letter-spacing:.5px;display:flex;align-items:center;gap:4px;margin-top:5px;opacity:.9}
 .buynow-badge-chip{position:absolute;top:14px;left:14px;z-index:2;background:rgba(2,26,14,.88);border:1px solid rgba(62,207,142,.5);color:var(--success);font-size:.62rem;letter-spacing:3px;text-transform:uppercase;padding:5px 12px;border-radius:2px;backdrop-filter:blur(6px)}
 .sold-overlay{position:absolute;inset:0;background:rgba(0,21,79,.75);display:flex;align-items:center;justify-content:center;z-index:3}
 .sold-overlay span{font-family:'Bebas Neue',sans-serif;font-size:2rem;letter-spacing:6px;color:var(--fr-white);opacity:.7}
@@ -1359,15 +1362,20 @@ function renderDrops(){
     const watchCount=_watchCounts[d.id]||0;
     const watchStr=watchCount>0?` · <span class="watcher-count">👁 ${watchCount} watching</span>`:'';
     const endTimeStr=!isTeaser&&d.endTime?`<span class="end-countdown-tag" data-endtime="${d.endTime}">—</span>`:'';
+    const now=Date.now();
+    const recentBids=!isTeaser?db.filter(b=>now-new Date(b.createdAt).getTime()<3600000).length:0;
+    const velocityTag=recentBids>0?`<div class="velocity-tag">⚡ ${recentBids} bid${recentBids>1?'s':''} in the last hour</div>`:'';
+    const closingSoon=!isTeaser&&d.endTime&&(new Date(d.endTime)-now)<7200000&&(new Date(d.endTime)-now)>0;
+    const badgeChipFinal=isTeaser?`<span class="teaser-badge-chip">Coming Soon</span>`:closingSoon?`<span class="closing-soon-chip">⏰ Closing Soon</span>`:`<span class="drop-badge-chip">Active Drop</span>`;
     const footerLeft=isTeaser
       ?(d.dropTime?`<span class="countdown-tag" data-countdown="${d.dropTime}">—</span>`:`<span class="drop-bid-count" style="color:var(--muted)">Bidding opens soon</span>`)
-      :`<div><span class="drop-bid-count">${fmtBids(db.length)}${watchStr}</span>${endTimeStr}</div>`;
+      :`<div><span class="drop-bid-count">${fmtBids(db.length)}${watchStr}</span>${endTimeStr}${velocityTag}</div>`;
     const hotLevel=!isTeaser&&db.length>=25?3:db.length>=10?2:db.length>=5?1:0;
     const hotClass=hotLevel?` card-hot-${hotLevel}`:'';
     const hotBadgeText=hotLevel===3?'🔥 On Fire':hotLevel===2?'🔥 Heating Up':hotLevel===1?'🔥 Hot':'';
     const hotBadge=hotLevel?`<span class="hot-badge hot-badge-${hotLevel}">${hotBadgeText}</span>`:'';
     return`<div class="drop-card${isTeaser?' teaser-card':''}${hotClass}" style="animation-delay:${i*.09}s${isTeaser?';cursor:default':''}"${cardClick?` onclick="${cardClick}"`:''}">
-      <div class="drop-img-wrap">${img}${teaserOverlay}${lockOverlay}${badgeChip}${memberBadge}${hotBadge}</div>
+      <div class="drop-img-wrap">${img}${teaserOverlay}${lockOverlay}${badgeChipFinal}${memberBadge}${hotBadge}</div>
       <div class="card-stripe"></div>
       <div class="drop-body">
         <div class="drop-name">${d.name}</div>
