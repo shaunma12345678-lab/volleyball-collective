@@ -187,6 +187,16 @@ nav{position:fixed;top:38px;left:0;right:0;z-index:500;display:flex;justify-cont
 @keyframes bidFlash{0%{color:inherit;transform:scale(1)}30%{color:#ED2939;transform:scale(1.2)}70%{color:#ED2939;transform:scale(1.1)}100%{color:inherit;transform:scale(1)}}
 .bid-flash{animation:bidFlash .9s ease-out forwards}
 .zero-risk-callout{background:rgba(62,207,142,.07);border:1px solid rgba(62,207,142,.2);border-radius:3px;padding:10px 14px;font-size:.73rem;color:#3ecf8e;text-align:center;margin-bottom:14px;line-height:1.5}
+.drop-img-badges{position:absolute;bottom:10px;right:10px;z-index:3;display:flex;flex-direction:column;gap:4px;align-items:flex-end}
+.item-badge{padding:3px 9px;border-radius:2px;font-size:.58rem;letter-spacing:2px;text-transform:uppercase;backdrop-filter:blur(6px);font-weight:600;white-space:nowrap}
+.item-badge-red{background:rgba(40,0,0,.84);border:1px solid rgba(237,41,57,.6);color:#ED2939}
+.item-badge-gold{background:rgba(40,30,0,.84);border:1px solid rgba(251,191,36,.55);color:#fbbf24}
+.item-badge-green{background:rgba(0,30,10,.84);border:1px solid rgba(62,207,142,.5);color:#3ecf8e}
+.item-badge-purple{background:rgba(30,0,40,.84);border:1px solid rgba(167,139,250,.5);color:#a78bfa}
+.item-badge-blue{background:rgba(0,10,40,.84);border:1px solid rgba(96,165,250,.5);color:#60a5fa}
+.item-badge-orange{background:rgba(40,15,0,.84);border:1px solid rgba(251,146,60,.5);color:#fb923c}
+.badge-toggle{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);color:var(--muted);padding:5px 12px;border-radius:2px;font-size:.7rem;cursor:pointer;transition:all .15s;letter-spacing:.5px}
+.badge-toggle.active-badge{background:rgba(237,41,57,.12);border-color:rgba(237,41,57,.5);color:var(--fr-white)}
 .notify-waiting-row{font-size:.68rem;color:var(--muted);margin-top:8px;letter-spacing:.4px;display:flex;align-items:center;justify-content:center;gap:5px}
 #bid-alert{position:fixed;bottom:28px;left:28px;z-index:601;pointer-events:none}
 .bid-alert-item{background:rgba(0,18,96,.95);border:1px solid rgba(237,41,57,.35);border-left:3px solid var(--fr-red);padding:10px 14px;border-radius:3px;font-size:.76rem;color:var(--fr-white);max-width:280px;opacity:0;transform:translateX(-12px);transition:opacity .38s ease,transform .38s ease;backdrop-filter:blur(10px);line-height:1.4}
@@ -642,7 +652,7 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
     </div>
     <div class="bid-success" id="bid-success">
       <span class="check">✅</span><h3>Bid Secured!</h3>
-      <p>Your bid is recorded and card saved securely via Stripe. You'll get a confirmation email.<br><br><strong>Your card is only charged if you win.</strong> Good luck!</p>
+      <p id="bid-compete-text">Your bid is recorded and your card is saved securely via Stripe. You'll get a confirmation email.<br><br><strong>Your card is only charged if you win.</strong></p>
       <button class="btn-secondary" onclick="closeModal('bid-overlay')">Close</button>
     </div>
   </div>
@@ -876,6 +886,21 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
             <button id="dur-btn-48" onclick="setDropDuration(172800000)">48 Hours</button>
             <button id="dur-btn-72" onclick="setDropDuration(259200000)">72 Hours</button>
             <button id="dur-btn-7d" onclick="setDropDuration(604800000)">7 Days</button>
+          </div>
+        </div>
+        <div style="margin-bottom:16px">
+          <label style="font-size:.75rem;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;display:block">Item Badges <span style="opacity:.5;text-transform:none;letter-spacing:0">(optional — shown on the card)</span></label>
+          <div id="badge-picker" style="display:flex;flex-wrap:wrap;gap:6px">
+            <button type="button" class="badge-toggle" data-badge="game-worn" data-label="Game Worn" data-color="red" onclick="toggleBadge(this)">🏐 Game Worn</button>
+            <button type="button" class="badge-toggle" data-badge="match-worn" data-label="Match Worn" data-color="purple" onclick="toggleBadge(this)">🏆 Match Worn</button>
+            <button type="button" class="badge-toggle" data-badge="signed" data-label="Signed" data-color="gold" onclick="toggleBadge(this)">✍️ Signed</button>
+            <button type="button" class="badge-toggle" data-badge="autographed" data-label="Autographed" data-color="gold" onclick="toggleBadge(this)">🎖️ Autographed</button>
+            <button type="button" class="badge-toggle" data-badge="limited-edition" data-label="Limited Edition" data-color="blue" onclick="toggleBadge(this)">⭐ Limited Edition</button>
+            <button type="button" class="badge-toggle" data-badge="rare" data-label="Rare" data-color="orange" onclick="toggleBadge(this)">🔥 Rare</button>
+            <button type="button" class="badge-toggle" data-badge="final-match" data-label="Final Match" data-color="red" onclick="toggleBadge(this)">🎯 Final Match</button>
+            <button type="button" class="badge-toggle" data-badge="captains" data-label="Captain's" data-color="gold" onclick="toggleBadge(this)">🏅 Captain's</button>
+            <button type="button" class="badge-toggle" data-badge="historic" data-label="Historic" data-color="purple" onclick="toggleBadge(this)">👑 Historic</button>
+            <button type="button" class="badge-toggle" data-badge="mint" data-label="Mint" data-color="green" onclick="toggleBadge(this)">💎 Mint</button>
           </div>
         </div>
         <div style="display:flex;gap:12px;flex-wrap:wrap">
@@ -1479,8 +1504,9 @@ function renderDrops(){
     const hotClass=hotLevel?` card-hot-${hotLevel}`:'';
     const hotBadgeText=hotLevel===3?'🔥 On Fire':hotLevel===2?'🔥 Heating Up':hotLevel===1?'🔥 Hot':'';
     const hotBadge=hotLevel?`<span class="hot-badge hot-badge-${hotLevel}">${hotBadgeText}</span>`:'';
+    const customBadges=d.badges&&d.badges.length?`<div class="drop-img-badges">${d.badges.map(b=>`<span class="item-badge item-badge-${b.color}">${b.label}</span>`).join('')}</div>`:'';
     return`<div class="drop-card${isTeaser?' teaser-card':''}${hotClass}" data-drop-id="${d.id}" style="animation-delay:${i*.09}s${isTeaser?';cursor:default':''}"${cardClick?` onclick="${cardClick}"`:''}">
-      <div class="drop-img-wrap">${img}${teaserOverlay}${lockOverlay}${badgeChipFinal}${memberBadge}${hotBadge}</div>
+      <div class="drop-img-wrap">${img}${teaserOverlay}${lockOverlay}${badgeChipFinal}${memberBadge}${hotBadge}${customBadges}</div>
       <div class="card-stripe"></div>
       <div class="drop-body">
         <div class="drop-name">${d.name}</div>
@@ -1533,8 +1559,9 @@ function renderShop(){
       ?(d.dropTime?`<span class="countdown-tag" data-countdown="${d.dropTime}">—</span>`:`<span class="drop-bid-count" style="color:var(--muted)">Price reveal soon</span>`)
       :`<div><span class="price-tag">$${parseFloat(d.price||0).toFixed(2)}</span>${shopEndStr}</div>`;
     const offerRow=isTeaser||d.sold?'':`<div class="drop-offer-row"><button class="drop-offer-link" onclick="event.stopPropagation();openDropOfferModal('${d.id}','${d.name.replace(/'/g,"\\'").replace(/"/g,'&quot;')}')"><span class="bell-icon">🔔</span> Get 5% off this item — click here</button><button class="drop-offer-link" style="color:var(--muted);margin-top:2px" onclick="event.stopPropagation();openNotifyModal('${d.id}','${d.name.replace(/'/g,"\\'").replace(/"/g,'&quot;')}','similar')"><span class="bell-icon">🔔</span> Notify me for items like this</button></div>`;
+    const shopCustomBadges=d.badges&&d.badges.length?`<div class="drop-img-badges">${d.badges.map(b=>`<span class="item-badge item-badge-${b.color}">${b.label}</span>`).join('')}</div>`:'';
     return`<div class="drop-card buynow-card${isTeaser?' teaser-card':''}" style="animation-delay:${i*.09}s${isTeaser?';cursor:default':''}"${!isTeaser&&isLocked?` onclick="openMemberVerify(()=>openBuyNowModal('${d.id}'))"`:''}>
-      <div class="drop-img-wrap">${img}${soldOverlay}${teaserOverlay}${lockOverlay}${badgeChip}${memberBadge}</div>
+      <div class="drop-img-wrap">${img}${soldOverlay}${teaserOverlay}${lockOverlay}${badgeChip}${memberBadge}${shopCustomBadges}</div>
       <div class="card-stripe-green"></div>
       <div class="drop-body">
         <div class="drop-name">${d.name}</div>
@@ -1571,8 +1598,9 @@ function renderFlash(){
         ?`<button class="btn-flash-card" style="background:rgba(251,191,36,.15);border:1px solid rgba(251,191,36,.3);color:#fbbf24;font-weight:400" onclick="event.stopPropagation();openMemberVerify(()=>openBuyNowModal('${d.id}'))">🔒 Members Only</button>`
         :`<button class="btn-flash-card" onclick="event.stopPropagation();openBuyNowModal('${d.id}')">⚡ Buy Now →</button>`;
     const cardClick=!d.sold&&!isLocked?`openBuyNowModal('${d.id}')`:isLocked?`openMemberVerify(()=>openBuyNowModal('${d.id}'))`:'';
+    const flashCustomBadges=d.badges&&d.badges.length?`<div class="drop-img-badges">${d.badges.map(b=>`<span class="item-badge item-badge-${b.color}">${b.label}</span>`).join('')}</div>`:'';
     return`<div class="drop-card flash-card" style="animation-delay:${i*.09}s"${cardClick?` onclick="${cardClick}"`:''}>
-      <div class="drop-img-wrap">${img}${soldOverlay}${lockOverlay}<span class="flash-badge-chip">⚡ Flash Sale</span>${memberBadge}</div>
+      <div class="drop-img-wrap">${img}${soldOverlay}${lockOverlay}<span class="flash-badge-chip">⚡ Flash Sale</span>${memberBadge}${flashCustomBadges}</div>
       <div class="card-stripe-flash"></div>
       <div class="drop-body">
         <div class="drop-name">${d.name}</div>
@@ -1732,7 +1760,14 @@ async function submitBid(){
     const data=await res.json().catch(()=>({}));
     if(!res.ok){showErr(errEl,data.error||'Could not submit bid.');btn.disabled=false;btn.classList.remove('loading');return}
   }catch(e){showErr(errEl,'Network error — please try again.');btn.disabled=false;btn.classList.remove('loading');return}
+  const otherBidCount=_bids.filter(b=>b.dropId===activeDrop).length;
   _bids=[..._bids,{id:bid.id,dropId:bid.dropId,createdAt:bid.createdAt}];
+  const competeMsg=otherBidCount===0
+    ?`You were first — you're setting the pace. Your card is only charged if you win.`
+    :otherBidCount===1
+      ?`You're now competing with <strong>1 other bidder</strong>. Only the winner gets charged.`
+      :`You're now competing with <strong>${otherBidCount} other bidders</strong>. Only the winner gets charged.`;
+  document.getElementById('bid-compete-text').innerHTML=`Your bid is recorded and your card is saved securely via Stripe. You'll get a confirmation email.<br><br>${competeMsg}`;
   renderDrops();await refreshAll();
   btn.disabled=false;btn.classList.remove('loading');
   document.getElementById('bid-form-view').style.display='none';
@@ -2161,7 +2196,17 @@ async function renderAdminEmailList(){
 }
 
 // ── LISTING TYPE & ACCESS ──
-let _listingType='bid',_accessType='public',_dropDuration=0;
+let _listingType='bid',_accessType='public',_dropDuration=0,_dropBadges=[];
+function toggleBadge(btn){
+  const badge=btn.dataset.badge,label=btn.dataset.label,color=btn.dataset.color;
+  if(_dropBadges.find(b=>b.id===badge)){
+    _dropBadges=_dropBadges.filter(b=>b.id!==badge);
+    btn.classList.remove('active-badge');
+  }else{
+    _dropBadges.push({id:badge,label,color});
+    btn.classList.add('active-badge');
+  }
+}
 function setDropDuration(ms){
   _dropDuration=ms;
   ['none','24','48','72','7d'].forEach(k=>document.getElementById('dur-btn-'+k).className='');
@@ -2294,7 +2339,7 @@ async function addDrop(status){
     photos=uploadedPhotos.filter(p=>p.url).map(p=>p.url);
     photo=photos[0]||'';
   }else if(photoMode==='url'){photo=document.getElementById('add-photo-url').value.trim();if(photo)photos=[photo];}
-  const drop={id:'drop_'+Date.now(),name,desc,size,condition,photo,photos,status,type:_listingType,memberOnly:_accessType==='members',createdAt:new Date().toISOString()};
+  const drop={id:'drop_'+Date.now(),name,desc,size,condition,photo,photos,status,type:_listingType,memberOnly:_accessType==='members',badges:_dropBadges.length>0?[..._dropBadges]:undefined,createdAt:new Date().toISOString()};
   if(_listingType==='buynow'||_listingType==='flash')drop.price=price;
   if(_listingType==='flash'){const op=document.getElementById('add-original-price').value.trim();if(op&&parseFloat(op)>0)drop.originalPrice=op;}
   const dropTimeEl=document.getElementById('add-drop-time');
@@ -2314,6 +2359,7 @@ async function addDrop(status){
   uploadedPhotos=[];renderUploadThumbs();
   _accessType='public';setAccessType('public');
   _dropDuration=0;setDropDuration(0);
+  _dropBadges=[];document.querySelectorAll('.badge-toggle.active-badge').forEach(b=>b.classList.remove('active-badge'));
   showToast(status==='published'?(_listingType==='flash'?'⚡ Flash sale launched!':_listingType==='buynow'?'✅ Added to shop!':'✅ Drop published!'):status==='teaser'?'📣 Drop teased — showing as Coming Soon!':'📝 Draft saved!');
   if(status==='published'||status==='teaser')switchTab('tab-drops');
 }
