@@ -164,10 +164,10 @@ nav{position:fixed;top:38px;left:0;right:0;z-index:500;display:flex;justify-cont
 .watcher-count{font-size:.68rem;color:var(--muted);opacity:.8;letter-spacing:.5px}
 .countdown-tag{font-size:.72rem;color:var(--fr-red);letter-spacing:1px;font-variant-numeric:tabular-nums;white-space:nowrap}
 .end-countdown-tag{font-size:.67rem;color:#fbbf24;letter-spacing:.5px;font-variant-numeric:tabular-nums;white-space:nowrap;display:block;margin-top:3px;opacity:.85}
-#activity-feed{position:fixed;bottom:28px;left:28px;z-index:600;pointer-events:none;display:flex;flex-direction:column;gap:8px}
-.activity-item{background:rgba(0,18,96,.93);border:1px solid rgba(237,41,57,.18);border-left:3px solid var(--fr-red);padding:11px 16px;border-radius:3px;font-size:.78rem;color:var(--fr-white);max-width:300px;opacity:0;transform:translateX(-14px);transition:opacity .38s ease,transform .38s ease;backdrop-filter:blur(10px);line-height:1.4}
+#activity-feed{position:fixed;top:110px;right:20px;z-index:600;pointer-events:none;display:flex;flex-direction:column;gap:8px}
+.activity-item{background:rgba(0,18,96,.93);border:1px solid rgba(237,41,57,.18);border-right:3px solid var(--fr-red);padding:10px 14px;border-radius:3px;font-size:.76rem;color:var(--fr-white);max-width:280px;opacity:0;transform:translateX(14px);transition:opacity .38s ease,transform .38s ease;backdrop-filter:blur(10px);line-height:1.4;text-align:right}
 .activity-item.show{opacity:1;transform:translateX(0)}
-@media(max-width:640px){#activity-feed{bottom:80px;left:10px}.activity-item{max-width:230px;font-size:.72rem}}
+@media(max-width:640px){#activity-feed{top:100px;right:10px}.activity-item{max-width:220px;font-size:.7rem}}
 
 /* ── MEMBERSHIP SECTION ── */
 #membership{position:relative;z-index:2;padding:100px 48px;border-top:1px solid rgba(237,41,57,.12);background:linear-gradient(180deg,rgba(237,41,57,.03) 0%,rgba(0,21,79,0) 100%)}
