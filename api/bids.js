@@ -167,7 +167,7 @@ module.exports = async (req, res) => {
 
       if (isAdmin) return res.status(200).json({ bids });
       return res.status(200).json({
-        bids: bids.map(b => ({ id: b.id, dropId: b.dropId, createdAt: b.createdAt })),
+        bids: bids.map(b => ({ id: b.id, dropId: b.dropId, amount: b.amount, createdAt: b.createdAt })),
       });
     }
 

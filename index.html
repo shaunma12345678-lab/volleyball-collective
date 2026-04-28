@@ -1459,19 +1459,27 @@ function showActivityItem(msg){
   setTimeout(()=>{el.classList.remove('show');setTimeout(()=>{if(el.parentNode)el.remove();},420);},5000);
 }
 function startActivityFeed(){
-  if(!_bids||!_bids.length)return;
-  // Build one entry per drop: the highest bid on that drop
+  if(_activityTimer){clearInterval(_activityTimer);_activityTimer=null;}
+  // Build one entry per drop: highest bid amount
   const byDrop={};
-  _bids.filter(b=>b.amount&&b.dropId).forEach(b=>{
+  (_bids||[]).filter(b=>b.amount&&b.dropId).forEach(b=>{
     if(!byDrop[b.dropId]||parseFloat(b.amount)>parseFloat(byDrop[b.dropId].amount))byDrop[b.dropId]=b;
   });
-  const pool=Object.values(byDrop).filter(b=>{const d=_drops.find(x=>x.id===b.dropId);return d&&(d.status==='published');});
-  if(!pool.length)return;
-  if(_activityTimer){clearInterval(_activityTimer);_activityTimer=null;}
+  const bidPool=Object.values(byDrop).filter(b=>{const d=_drops.find(x=>x.id===b.dropId);return d&&d.status==='published';});
+  // If no bids yet, fall back to showing active drops
+  const liveDrops=(_drops||[]).filter(d=>d.status==='published');
+  if(!bidPool.length&&!liveDrops.length)return;
+  const pool=bidPool.length?bidPool:null;
   function tick(){
-    const bid=pool[_activityIdx%pool.length];
-    const drop=_drops.find(d=>d.id===bid.dropId);
-    if(drop){showActivityItem(`🏐 Highest bid: $${parseFloat(bid.amount).toFixed(2)} on ${drop.name}`);}
+    if(pool){
+      const bid=pool[_activityIdx%pool.length];
+      const drop=_drops.find(d=>d.id===bid.dropId);
+      if(drop)showActivityItem(`🏐 Highest bid: $${parseFloat(bid.amount).toFixed(2)} on ${drop.name}`);
+    }else{
+      const drop=liveDrops[_activityIdx%liveDrops.length];
+      const label=drop.type==='flash'?'⚡ Flash Sale Live':drop.type==='buynow'?'🛒 Available Now':'🏐 Auction Live';
+      showActivityItem(`${label} — ${drop.name}`);
+    }
     _activityIdx++;
   }
   setTimeout(()=>{tick();_activityTimer=setInterval(tick,11000);},3500);
