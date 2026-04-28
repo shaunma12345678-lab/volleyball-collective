@@ -299,6 +299,9 @@ module.exports = async (req, res) => {
       if (body.action === 'setTimer') {
         if (body.endTime) drop.endTime = body.endTime;
         else delete drop.endTime;
+      } else if (body.action === 'setBadges') {
+        if (Array.isArray(body.badges) && body.badges.length > 0) drop.badges = body.badges;
+        else delete drop.badges;
       } else {
         drop.status = drop.status === 'published' ? 'archived' : 'published';
       }
