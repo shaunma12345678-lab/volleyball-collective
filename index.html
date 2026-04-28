@@ -1600,7 +1600,7 @@ function startActivityFeed(){
     const watches=(_watchCounts&&_watchCounts[drop.id])||0;
     const parts=[];
     if(bidCount>0)parts.push(fmtBids(bidCount));
-    if(watches>0)parts.push(`👁 ${watches} watching`);
+    if(watches>0)parts.push(`${watches} viewing right now`);
     showActivityItem(`🏐 ${drop.name} — ${parts.join(' · ')}`);
     _activityIdx++;
   }
