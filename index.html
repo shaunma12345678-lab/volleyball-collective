@@ -111,6 +111,16 @@ nav{position:fixed;top:38px;left:0;right:0;z-index:500;display:flex;justify-cont
 .drop-card{background:var(--card);border:1px solid rgba(0,35,149,.4);border-radius:4px;overflow:hidden;cursor:pointer;transition:transform .35s cubic-bezier(.22,1,.36,1),box-shadow .35s,border-color .35s,opacity .55s ease,translate .55s ease;position:relative;opacity:0;translate:0 28px}
 .drop-card.in-view{opacity:1;translate:0 0}
 .drop-card:hover{transform:translateY(-8px);box-shadow:0 24px 64px rgba(0,0,0,.5),0 0 0 1px rgba(237,41,57,.25);border-color:rgba(237,41,57,.3)}
+@keyframes hotGlow1{0%,100%{box-shadow:0 0 10px rgba(237,41,57,.15),0 0 0 1px rgba(237,41,57,.2)}50%{box-shadow:0 0 22px rgba(237,41,57,.35),0 0 0 1px rgba(237,41,57,.45)}}
+@keyframes hotGlow2{0%,100%{box-shadow:0 0 14px rgba(251,100,20,.25),0 0 0 1px rgba(251,100,20,.35),0 0 40px rgba(237,41,57,.1)}50%{box-shadow:0 0 30px rgba(251,100,20,.55),0 0 0 1px rgba(251,100,20,.7),0 0 60px rgba(237,41,57,.22)}}
+@keyframes hotGlow3{0%,100%{box-shadow:0 0 20px rgba(255,120,0,.4),0 0 0 2px rgba(255,120,0,.55),0 0 70px rgba(237,41,57,.25)}50%{box-shadow:0 0 42px rgba(255,120,0,.75),0 0 0 2px rgba(255,165,0,.9),0 0 100px rgba(237,41,57,.4)}}
+.card-hot-1{border-color:rgba(237,41,57,.35)!important;animation:hotGlow1 3s ease-in-out infinite}
+.card-hot-2{border-color:rgba(251,100,20,.5)!important;animation:hotGlow2 2.2s ease-in-out infinite}
+.card-hot-3{border-color:rgba(255,140,0,.65)!important;animation:hotGlow3 1.5s ease-in-out infinite}
+.hot-badge{position:absolute;bottom:10px;left:10px;z-index:6;padding:4px 11px;border-radius:2px;font-size:.62rem;letter-spacing:2px;text-transform:uppercase;font-family:'DM Sans',sans-serif;font-weight:700;pointer-events:none}
+.hot-badge-1{background:linear-gradient(135deg,rgba(180,20,20,.9),rgba(237,41,57,.85));color:#fff;border:1px solid rgba(255,100,100,.3)}
+.hot-badge-2{background:linear-gradient(135deg,rgba(200,60,0,.92),rgba(251,100,20,.88));color:#fff;border:1px solid rgba(255,140,60,.35)}
+.hot-badge-3{background:linear-gradient(135deg,rgba(220,80,0,.95),rgba(255,140,0,.9));color:#fff;border:1px solid rgba(255,180,0,.45);animation:hotGlow3 1.5s ease-in-out infinite}
 .buynow-card:hover{border-color:rgba(62,207,142,.3);box-shadow:0 24px 64px rgba(0,0,0,.5),0 0 0 1px rgba(62,207,142,.25)}
 .drop-img-wrap{position:relative;height:290px;overflow:hidden;background:linear-gradient(135deg,var(--deep),var(--fr-blue))}
 .drop-img-wrap img{width:100%;height:100%;object-fit:cover;transition:transform .5s cubic-bezier(.22,1,.36,1)}
@@ -1352,8 +1362,12 @@ function renderDrops(){
     const footerLeft=isTeaser
       ?(d.dropTime?`<span class="countdown-tag" data-countdown="${d.dropTime}">—</span>`:`<span class="drop-bid-count" style="color:var(--muted)">Bidding opens soon</span>`)
       :`<div><span class="drop-bid-count">${fmtBids(db.length)}${watchStr}</span>${endTimeStr}</div>`;
-    return`<div class="drop-card${isTeaser?' teaser-card':''}" style="animation-delay:${i*.09}s${isTeaser?';cursor:default':''}"${cardClick?` onclick="${cardClick}"`:''}">
-      <div class="drop-img-wrap">${img}${teaserOverlay}${lockOverlay}${badgeChip}${memberBadge}</div>
+    const hotLevel=!isTeaser&&db.length>=25?3:db.length>=10?2:db.length>=5?1:0;
+    const hotClass=hotLevel?` card-hot-${hotLevel}`:'';
+    const hotBadgeText=hotLevel===3?'🔥 On Fire':hotLevel===2?'🔥 Heating Up':hotLevel===1?'🔥 Hot':'';
+    const hotBadge=hotLevel?`<span class="hot-badge hot-badge-${hotLevel}">${hotBadgeText}</span>`:'';
+    return`<div class="drop-card${isTeaser?' teaser-card':''}${hotClass}" style="animation-delay:${i*.09}s${isTeaser?';cursor:default':''}"${cardClick?` onclick="${cardClick}"`:''}">
+      <div class="drop-img-wrap">${img}${teaserOverlay}${lockOverlay}${badgeChip}${memberBadge}${hotBadge}</div>
       <div class="card-stripe"></div>
       <div class="drop-body">
         <div class="drop-name">${d.name}</div>
