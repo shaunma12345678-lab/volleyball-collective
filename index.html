@@ -1106,6 +1106,53 @@ document.querySelectorAll('button,a,.drop-card').forEach(el=>{
     }
   }
 
+  // ── AURORA ──
+  class Aurora{
+    constructor(init){this.reset(init)}
+    reset(init){
+      this.y=init?Math.random()*H*.55:-130;
+      this.vy=Math.random()*.18+.045;
+      this.amp=Math.random()*55+28;
+      this.freq=Math.random()*.0035+.0015;
+      this.phase=Math.random()*Math.PI*2;
+      this.phaseSpd=Math.random()*.007+.003;
+      this.thick=Math.random()*90+45;
+      this.maxA=Math.random()*.055+.018;
+      this.a=init?Math.random()*this.maxA:0;
+      const t=Math.random();
+      this.col=t<.32?'237,41,57':t<.62?'0,35,149':t<.82?'245,240,232':'80,160,255';
+    }
+    update(){
+      this.y+=this.vy;this.phase+=this.phaseSpd;
+      if(this.a<this.maxA)this.a=Math.min(this.maxA,this.a+.00025);
+      if(this.y>H*.7)this.a=Math.max(0,this.a-.0008);
+      if(this.y>H+160)this.reset(false);
+    }
+    draw(){
+      if(this.a<.002)return;
+      const steps=Math.ceil(W/6)+1;
+      ctx.save();ctx.beginPath();
+      for(let i=0;i<=steps;i++){
+        const x=(i/steps)*W;
+        const wy=this.y+Math.sin(x*this.freq+this.phase)*this.amp;
+        i===0?ctx.moveTo(x,wy):ctx.lineTo(x,wy);
+      }
+      for(let i=steps;i>=0;i--){
+        const x=(i/steps)*W;
+        const wy=this.y+Math.sin(x*this.freq+this.phase+.6)*this.amp+this.thick;
+        ctx.lineTo(x,wy);
+      }
+      ctx.closePath();
+      const topY=this.y-this.amp,botY=this.y+this.thick+this.amp;
+      const grd=ctx.createLinearGradient(0,topY,0,botY);
+      grd.addColorStop(0,`rgba(${this.col},0)`);
+      grd.addColorStop(.22,`rgba(${this.col},${this.a})`);
+      grd.addColorStop(.78,`rgba(${this.col},${this.a})`);
+      grd.addColorStop(1,`rgba(${this.col},0)`);
+      ctx.fillStyle=grd;ctx.fill();ctx.restore();
+    }
+  }
+
   class Star{
     constructor(init){this.reset(init)}
     reset(init){
@@ -1259,6 +1306,7 @@ document.querySelectorAll('button,a,.drop-card').forEach(el=>{
   }
 
   const nebulas=[];for(let i=0;i<7;i++)nebulas.push(new Nebula(true));
+  const auroras=[];for(let i=0;i<4;i++)auroras.push(new Aurora(true));
   const stars=[];for(let i=0;i<210;i++)stars.push(new Star(true));
   const shoots=[new Shoot(0),new Shoot(90),new Shoot(220),new Shoot(380),new Shoot(520),new Shoot(660),new Shoot(800),new Shoot(950)];
   let burstShoots=[],lastBurst=Date.now(),nextBurstIn=50000+Math.random()*12000;
@@ -1285,6 +1333,7 @@ document.querySelectorAll('button,a,.drop-card').forEach(el=>{
     oX+=(targetOX-oX)*.045;oY+=(targetOY-oY)*.045;
     ctx.clearRect(0,0,W,H);
     nebulas.forEach(n=>{n.update();n.draw()});
+    auroras.forEach(a=>{a.update();a.draw()});
     stars.forEach(s=>{s.update();s.draw()});
     shoots.forEach(s=>{s.update();s.draw()});
     burstShoots=burstShoots.filter(s=>!s.dead);
