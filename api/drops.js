@@ -162,7 +162,7 @@ module.exports = async (req, res) => {
         )
       ).filter(Boolean);
 
-      // Auto-publish any teaser whose scheduled drop time has passed
+      // Auto-publish teasers whose scheduled time has passed; auto-archive auctions past their end time
       const now = new Date();
       await Promise.all(allDrops.map(async drop => {
         if (drop.status === 'teaser' && drop.dropTime && new Date(drop.dropTime) <= now) {
@@ -170,6 +170,9 @@ module.exports = async (req, res) => {
           await redis('SET', `drop:${drop.id}`, JSON.stringify(drop));
           sendDropNotifications(drop).catch(() => {});
           sendPushNotifications(drop).catch(() => {});
+        } else if (drop.status === 'published' && drop.endTime && new Date(drop.endTime) <= now) {
+          drop.status = 'archived';
+          await redis('SET', `drop:${drop.id}`, JSON.stringify(drop));
         }
       }));
 
@@ -211,7 +214,12 @@ module.exports = async (req, res) => {
       if (!raw)
         return res.status(404).json({ error: 'Drop not found' });
       const drop = JSON.parse(raw);
-      drop.status = drop.status === 'published' ? 'archived' : 'published';
+      if (body.action === 'setTimer') {
+        if (body.endTime) drop.endTime = body.endTime;
+        else delete drop.endTime;
+      } else {
+        drop.status = drop.status === 'published' ? 'archived' : 'published';
+      }
       await redis('SET', `drop:${body.id}`, JSON.stringify(drop));
       return res.status(200).json({ success: true });
     }

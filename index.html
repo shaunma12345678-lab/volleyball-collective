@@ -163,6 +163,11 @@ nav{position:fixed;top:38px;left:0;right:0;z-index:500;display:flex;justify-cont
 .flash-sale-price{font-family:'Bebas Neue',sans-serif;font-size:1.6rem;color:#fbbf24}
 .watcher-count{font-size:.68rem;color:var(--muted);opacity:.8;letter-spacing:.5px}
 .countdown-tag{font-size:.72rem;color:var(--fr-red);letter-spacing:1px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.end-countdown-tag{font-size:.67rem;color:#fbbf24;letter-spacing:.5px;font-variant-numeric:tabular-nums;white-space:nowrap;display:block;margin-top:3px;opacity:.85}
+#activity-feed{position:fixed;bottom:28px;left:28px;z-index:600;pointer-events:none;display:flex;flex-direction:column;gap:8px}
+.activity-item{background:rgba(0,18,96,.93);border:1px solid rgba(237,41,57,.18);border-left:3px solid var(--fr-red);padding:11px 16px;border-radius:3px;font-size:.78rem;color:var(--fr-white);max-width:300px;opacity:0;transform:translateX(-14px);transition:opacity .38s ease,transform .38s ease;backdrop-filter:blur(10px);line-height:1.4}
+.activity-item.show{opacity:1;transform:translateX(0)}
+@media(max-width:640px){#activity-feed{bottom:80px;left:10px}.activity-item{max-width:230px;font-size:.72rem}}
 
 /* ── MEMBERSHIP SECTION ── */
 #membership{position:relative;z-index:2;padding:100px 48px;border-top:1px solid rgba(237,41,57,.12);background:linear-gradient(180deg,rgba(237,41,57,.03) 0%,rgba(0,21,79,0) 100%)}
@@ -838,6 +843,16 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
           <label style="font-size:.75rem;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;display:block">Drop Date &amp; Time <span style="opacity:.5;text-transform:none;letter-spacing:0">(optional — shows on teaser cards)</span></label>
           <input type="text" id="add-drop-time" placeholder="e.g. May 3, 2026 8:00 PM" style="width:100%">
         </div>
+        <div id="end-time-field" style="margin-bottom:16px">
+          <label style="font-size:.75rem;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;display:block">Drop Duration <span style="opacity:.5;text-transform:none;letter-spacing:0">(auto-archives when done · shows countdown to buyers)</span></label>
+          <div class="type-toggle" style="flex-wrap:wrap;gap:6px">
+            <button class="active-bid" id="dur-btn-none" onclick="setDropDuration(0)">No Limit</button>
+            <button id="dur-btn-24" onclick="setDropDuration(86400000)">24 Hours</button>
+            <button id="dur-btn-48" onclick="setDropDuration(172800000)">48 Hours</button>
+            <button id="dur-btn-72" onclick="setDropDuration(259200000)">72 Hours</button>
+            <button id="dur-btn-7d" onclick="setDropDuration(604800000)">7 Days</button>
+          </div>
+        </div>
         <div style="display:flex;gap:12px;flex-wrap:wrap">
           <button class="btn-submit" style="flex:1;min-width:140px" id="publish-btn" onclick="addDrop('published')"><span class="btn-text" id="publish-btn-text">+ Publish Drop</span><div class="spinner"></div></button>
           <button class="btn-secondary" style="flex:1;min-width:120px;border-color:rgba(245,240,232,.35);color:var(--fr-white)" onclick="addDrop('teaser')">📣 Tease It</button>
@@ -1212,7 +1227,7 @@ async function fetchDrops(){
   try{const r=await fetch('/api/drops?_t='+Date.now(),{cache:'no-store'});if(!r.ok)return;const data=await r.json();if(Array.isArray(data.drops))_drops=data.drops;if(data.watchCounts)_watchCounts=data.watchCounts;renderDrops();renderShop();renderFlash();const dash=document.getElementById('admin-dashboard');if(dash&&dash.style.display==='block')renderAdminDrops();}catch(e){console.warn('fetchDrops failed',e);}
 }
 async function fetchBids(){
-  try{const url=_adminPw?'/api/bids?adminPw='+encodeURIComponent(_adminPw)+'&_t='+Date.now():'/api/bids?_t='+Date.now();const r=await fetch(url,{cache:'no-store'});if(!r.ok)return;const data=await r.json();if(Array.isArray(data.bids))_bids=data.bids;renderDrops();const dash=document.getElementById('admin-dashboard');if(dash&&dash.style.display==='block'){renderAdminDrops();renderAllBids();}}catch(e){console.warn('fetchBids failed',e);}
+  try{const url=_adminPw?'/api/bids?adminPw='+encodeURIComponent(_adminPw)+'&_t='+Date.now():'/api/bids?_t='+Date.now();const r=await fetch(url,{cache:'no-store'});if(!r.ok)return;const data=await r.json();if(Array.isArray(data.bids))_bids=data.bids;renderDrops();startActivityFeed();const dash=document.getElementById('admin-dashboard');if(dash&&dash.style.display==='block'){renderAdminDrops();renderAllBids();}}catch(e){console.warn('fetchBids failed',e);}
 }
 async function fetchSubscriptionCount(){
   try{
@@ -1333,9 +1348,10 @@ function renderDrops(){
     const offerRow=isTeaser?'':`<div class="drop-offer-row"><button class="drop-offer-link" onclick="event.stopPropagation();openDropOfferModal('${d.id}','${d.name.replace(/'/g,"\\'").replace(/"/g,'&quot;')}')"><span class="bell-icon">🔔</span> Get 5% off this drop — click here</button><button class="drop-offer-link" style="color:var(--muted);margin-top:2px" onclick="event.stopPropagation();openNotifyModal('${d.id}','${d.name.replace(/'/g,"\\'").replace(/"/g,'&quot;')}','similar')"><span class="bell-icon">🔔</span> Notify me for drops like this</button></div>`;
     const watchCount=_watchCounts[d.id]||0;
     const watchStr=watchCount>0?` · <span class="watcher-count">👁 ${watchCount} watching</span>`:'';
+    const endTimeStr=!isTeaser&&d.endTime?`<span class="end-countdown-tag" data-endtime="${d.endTime}">—</span>`:'';
     const footerLeft=isTeaser
       ?(d.dropTime?`<span class="countdown-tag" data-countdown="${d.dropTime}">—</span>`:`<span class="drop-bid-count" style="color:var(--muted)">Bidding opens soon</span>`)
-      :`<span class="drop-bid-count">${fmtBids(db.length)}${watchStr}</span>`;
+      :`<div><span class="drop-bid-count">${fmtBids(db.length)}${watchStr}</span>${endTimeStr}</div>`;
     return`<div class="drop-card${isTeaser?' teaser-card':''}" style="animation-delay:${i*.09}s${isTeaser?';cursor:default':''}"${cardClick?` onclick="${cardClick}"`:''}">
       <div class="drop-img-wrap">${img}${teaserOverlay}${lockOverlay}${badgeChip}${memberBadge}</div>
       <div class="card-stripe"></div>
@@ -1375,9 +1391,10 @@ function renderShop(){
           ?`<button class="btn-buynow-card btn-member-lock" onclick="openMemberVerify(()=>openBuyNowModal('${d.id}'))">🔒 Members Only</button>`
           :`<button class="btn-buynow-card" onclick="openBuyNowModal('${d.id}')">Buy Now →</button>`;
     const shopWatchCount=_watchCounts[d.id]||0;
+    const shopEndStr=!isTeaser&&d.endTime?`<span class="end-countdown-tag" data-endtime="${d.endTime}">—</span>`:'';
     const priceOrLabel=isTeaser
       ?(d.dropTime?`<span class="countdown-tag" data-countdown="${d.dropTime}">—</span>`:`<span class="drop-bid-count" style="color:var(--muted)">Price reveal soon</span>`)
-      :`<div><span class="price-tag">$${parseFloat(d.price||0).toFixed(2)}</span>${shopWatchCount>0?`<div class="watcher-count" style="margin-top:3px">👁 ${shopWatchCount} watching</div>`:''}</div>`;
+      :`<div><span class="price-tag">$${parseFloat(d.price||0).toFixed(2)}</span>${shopWatchCount>0?`<div class="watcher-count" style="margin-top:3px">👁 ${shopWatchCount} watching</div>`:''}${shopEndStr}</div>`;
     const offerRow=isTeaser||d.sold?'':`<div class="drop-offer-row"><button class="drop-offer-link" onclick="event.stopPropagation();openDropOfferModal('${d.id}','${d.name.replace(/'/g,"\\'").replace(/"/g,'&quot;')}')"><span class="bell-icon">🔔</span> Get 5% off this item — click here</button><button class="drop-offer-link" style="color:var(--muted);margin-top:2px" onclick="event.stopPropagation();openNotifyModal('${d.id}','${d.name.replace(/'/g,"\\'").replace(/"/g,'&quot;')}','similar')"><span class="bell-icon">🔔</span> Notify me for items like this</button></div>`;
     return`<div class="drop-card buynow-card${isTeaser?' teaser-card':''}" style="animation-delay:${i*.09}s${isTeaser?';cursor:default':''}"${!isTeaser&&isLocked?` onclick="openMemberVerify(()=>openBuyNowModal('${d.id}'))"`:''}>
       <div class="drop-img-wrap">${img}${soldOverlay}${teaserOverlay}${lockOverlay}${badgeChip}${memberBadge}</div>
@@ -1409,7 +1426,8 @@ function renderFlash(){
     const soldOverlay=d.sold?`<div class="sold-overlay"><span>SOLD</span></div>`:'';
     const wc=_watchCounts[d.id]||0;
     const watchStr=wc>0?`<span class="watcher-count">👁 ${wc} watching</span>`:'';
-    const priceDisplay=`<div class="flash-price-wrap">${d.originalPrice?`<span class="flash-original-price">$${parseFloat(d.originalPrice).toFixed(2)}</span>`:''}<span class="flash-sale-price">$${parseFloat(d.price||0).toFixed(2)}</span></div>`;
+    const flashEndStr=d.endTime?`<span class="end-countdown-tag" data-endtime="${d.endTime}">—</span>`:'';
+    const priceDisplay=`<div class="flash-price-wrap">${d.originalPrice?`<span class="flash-original-price">$${parseFloat(d.originalPrice).toFixed(2)}</span>`:''}<span class="flash-sale-price">$${parseFloat(d.price||0).toFixed(2)}</span>${flashEndStr}</div>`;
     const btn=d.sold
       ?`<button class="btn-notify-card" onclick="event.stopPropagation();openNotifyModal('${d.id}','${d.name.replace(/'/g,"\\'").replace(/"/g,'&quot;')}')">Notify Me →</button>`
       :isLocked
@@ -1431,6 +1449,30 @@ function renderFlash(){
   requestAnimationFrame(observeCards);
 }
 
+// ── LIVE ACTIVITY FEED ──
+let _activityIdx=0,_activityTimer=null;
+function fmtBidderName(n){if(!n)return'Someone';const p=n.trim().split(/\s+/);return p.length>1?`${p[0]} ${p[p.length-1][0]}.`:p[0];}
+function showActivityItem(msg){
+  const feed=document.getElementById('activity-feed');if(!feed)return;
+  const el=document.createElement('div');el.className='activity-item';el.textContent=msg;
+  feed.appendChild(el);
+  requestAnimationFrame(()=>requestAnimationFrame(()=>el.classList.add('show')));
+  setTimeout(()=>{el.classList.remove('show');setTimeout(()=>{if(el.parentNode)el.remove();},420);},5000);
+}
+function startActivityFeed(){
+  if(!_bids||!_bids.length)return;
+  const pool=[..._bids].filter(b=>b.name&&b.amount&&b.dropId).sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt)).slice(0,20);
+  if(!pool.length)return;
+  if(_activityTimer){clearInterval(_activityTimer);_activityTimer=null;}
+  function tick(){
+    const bid=pool[_activityIdx%pool.length];
+    const drop=_drops.find(d=>d.id===bid.dropId);
+    if(drop){const msg=`🏐 ${fmtBidderName(bid.name)} bid $${parseFloat(bid.amount).toFixed(2)} on ${drop.name}`;showActivityItem(msg);}
+    _activityIdx++;
+  }
+  setTimeout(()=>{tick();_activityTimer=setInterval(tick,11000);},3500);
+}
+
 // ── WATCHER ──
 async function incrementWatch(dropId){
   _watchCounts[dropId]=(_watchCounts[dropId]||0)+1;
@@ -1444,6 +1486,12 @@ setInterval(()=>{
     if(diff<=0){el.textContent='Going live...';return}
     const d=Math.floor(diff/86400000),h=Math.floor((diff%86400000)/3600000),m=Math.floor((diff%3600000)/60000),s=Math.floor((diff%60000)/1000);
     el.textContent=d>0?`Drops in ${d}d ${h}h ${m}m`:h>0?`Drops in ${h}h ${m}m ${s}s`:`Drops in ${m}m ${s}s`;
+  });
+  document.querySelectorAll('[data-endtime]').forEach(el=>{
+    const diff=new Date(el.dataset.endtime)-new Date();
+    if(diff<=0){el.textContent='Auction ended';return}
+    const d=Math.floor(diff/86400000),h=Math.floor((diff%86400000)/3600000),m=Math.floor((diff%3600000)/60000),s=Math.floor((diff%60000)/1000);
+    el.textContent=d>0?`⏱ Ends in ${d}d ${h}h ${m}m`:h>0?`⏱ Ends in ${h}h ${m}m ${s}s`:`⏱ Ends in ${m}m ${s}s`;
   });
 },1000);
 
@@ -1742,13 +1790,20 @@ function renderAdminDrops(){
   const drops=_drops,bids=_bids;
   const el=document.getElementById('admin-drops-list');
   if(!drops.length){el.innerHTML='<p style="color:var(--muted);font-size:.85rem">No items yet.</p>';return}
+  const btnS='font-size:.61rem;padding:3px 10px;border-radius:2px;cursor:pointer;font-family:\'DM Sans\',sans-serif;letter-spacing:1px;transition:all .15s';
   el.innerHTML=drops.map(drop=>{
     const isBuyNow=drop.type==='buynow';
     const isFlash=drop.type==='flash';
-    if(isBuyNow||isFlash){const typeLabel=isFlash?`⚡ FLASH — $${parseFloat(drop.price||0).toFixed(2)}${drop.originalPrice?' (was $'+parseFloat(drop.originalPrice).toFixed(2)+')':''}`:`BUY NOW — $${parseFloat(drop.price||0).toFixed(2)}`;return`<div class="drop-group"><div class="drop-group-hd"><div><div class="drop-group-name" style="color:${isFlash?'#fbbf24':'var(--success)'}">${drop.name} <span style="font-size:.7rem;font-family:'DM Sans',sans-serif">[${typeLabel}]</span></div><div style="font-size:.7rem;color:var(--muted);margin-top:2px">${drop.status}${drop.sold?' · SOLD':''}</div></div><div style="display:flex;gap:8px"><button class="btn-tog" onclick="toggleStatus('${drop.id}')">${drop.status==='published'?'Archive':'Publish'}</button><button class="btn-del" onclick="deleteDrop('${drop.id}')">Delete</button></div></div>${drop.sold&&drop.soldTo?`<div style="padding:14px 18px;font-size:.78rem;color:var(--muted)">Sold to: <strong style="color:var(--fr-white)">${drop.soldTo.name}</strong> (${drop.soldTo.email}) on ${new Date(drop.soldTo.purchasedAt).toLocaleDateString()}</div>`:'<div style="padding:14px 18px;font-size:.78rem;color:var(--muted)">No purchase yet.</div>'}</div>`;}
+    const isOff=!drop.endTime;
+    const durBtns=[['Off',0],['24h',86400000],['48h',172800000],['72h',259200000],['7d',604800000]].map(([lbl,ms])=>{
+      const active=ms===0?isOff:false;
+      return`<button onclick="setDropTimer('${drop.id}',${ms})" style="${btnS};border:1px solid ${active?'var(--fr-red)':'rgba(123,159,212,.22)'};background:${active?'rgba(237,41,57,.13)':'transparent'};color:${active?'var(--fr-red)':'var(--muted)'}">${lbl}</button>`;
+    }).join('');
+    const timerRow=`<div style="padding:8px 18px;border-top:1px solid rgba(0,35,149,.18);display:flex;align-items:center;gap:6px;flex-wrap:wrap"><span style="font-size:.6rem;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-right:2px">Duration:</span>${durBtns}${drop.endTime?`<span style="font-size:.64rem;color:#fbbf24;margin-left:2px">⏱ ends ${new Date(drop.endTime).toLocaleString()}</span>`:''}</div>`;
+    if(isBuyNow||isFlash){const typeLabel=isFlash?`⚡ FLASH — $${parseFloat(drop.price||0).toFixed(2)}${drop.originalPrice?' (was $'+parseFloat(drop.originalPrice).toFixed(2)+')':''}`:`BUY NOW — $${parseFloat(drop.price||0).toFixed(2)}`;return`<div class="drop-group"><div class="drop-group-hd"><div><div class="drop-group-name" style="color:${isFlash?'#fbbf24':'var(--success)'}">${drop.name} <span style="font-size:.7rem;font-family:'DM Sans',sans-serif">[${typeLabel}]</span></div><div style="font-size:.7rem;color:var(--muted);margin-top:2px">${drop.status}${drop.sold?' · SOLD':''}</div></div><div style="display:flex;gap:8px"><button class="btn-tog" onclick="toggleStatus('${drop.id}')">${drop.status==='published'?'Archive':'Publish'}</button><button class="btn-del" onclick="deleteDrop('${drop.id}')">Delete</button></div></div>${timerRow}${drop.sold&&drop.soldTo?`<div style="padding:14px 18px;font-size:.78rem;color:var(--muted)">Sold to: <strong style="color:var(--fr-white)">${drop.soldTo.name}</strong> (${drop.soldTo.email}) on ${new Date(drop.soldTo.purchasedAt).toLocaleDateString()}</div>`:'<div style="padding:14px 18px;font-size:.78rem;color:var(--muted)">No purchase yet.</div>'}</div>`;}
     const db=bids.filter(b=>b.dropId===drop.id).sort((a,b)=>b.amount-a.amount);
     const rows=db.length?db.map(bid=>`<tr><td><strong>${bid.name}</strong><br><span style="color:var(--muted);font-size:.7rem">${bid.email}</span></td><td style="font-size:.73rem;color:var(--muted)">${bid.phone||'—'}</td><td class="bid-amt">$${parseFloat(bid.amount).toFixed(2)}</td><td style="font-size:.7rem;color:var(--muted)">${bid.address?`${bid.address.street}, ${bid.address.city} ${bid.address.state} ${bid.address.zip}`:'—'}</td><td>${bid.charged?`<span class="badge-charged">✅ Charged</span>`:bid.paymentMethodId&&bid.paymentMethodId!=='[no-stripe]'?`<button class="btn-charge" onclick="chargeCard('${bid.id}')">Charge Card</button>`:`<span class="badge-nocard">No card</span>`}</td><td style="font-size:.68rem;color:var(--muted)">${new Date(bid.createdAt).toLocaleDateString()}</td></tr>`).join(''):`<tr><td colspan="6" class="no-bids">No bids yet.</td></tr>`;
-    return`<div class="drop-group"><div class="drop-group-hd"><div><div class="drop-group-name">${drop.name}</div><div style="font-size:.7rem;color:var(--muted);margin-top:2px">${drop.status} · ${db.length} bid(s)</div></div><div style="display:flex;gap:8px"><button class="btn-tog" onclick="toggleStatus('${drop.id}')">${drop.status==='published'?'Archive':'Publish'}</button><button class="btn-del" onclick="deleteDrop('${drop.id}')">Delete</button></div></div><div style="overflow-x:auto"><table class="bids-table"><thead><tr><th>Name/Email</th><th>Phone</th><th>Bid</th><th>Address</th><th>Action</th><th>Date</th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
+    return`<div class="drop-group"><div class="drop-group-hd"><div><div class="drop-group-name">${drop.name}</div><div style="font-size:.7rem;color:var(--muted);margin-top:2px">${drop.status} · ${db.length} bid(s)</div></div><div style="display:flex;gap:8px"><button class="btn-tog" onclick="toggleStatus('${drop.id}')">${drop.status==='published'?'Archive':'Publish'}</button><button class="btn-del" onclick="deleteDrop('${drop.id}')">Delete</button></div></div>${timerRow}<div style="overflow-x:auto"><table class="bids-table"><thead><tr><th>Name/Email</th><th>Phone</th><th>Bid</th><th>Address</th><th>Action</th><th>Date</th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
   }).join('');
 }
 
@@ -1780,7 +1835,7 @@ async function chargeCard(bidId){
   if(!confirm(`Charge ${bid.name}'s card $${chargedAmt.toFixed(2)}?${discountNote}\n\nThis cannot be undone.`))return;
   showToast('Charging card…');
   try{
-    const res=await fetch('/api/charge',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({paymentMethodId:bid.paymentMethodId,amount:bid.amount,email:bid.email,name:bid.name,adminPw:pw,promoCode:bid.promoCode||null,promoDiscount:bid.promoDiscount||0})});
+    const res=await fetch('/api/charge',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({paymentMethodId:bid.paymentMethodId,amount:bid.amount,email:bid.email,name:bid.name,dropName:(_drops.find(d=>d.id===bid.dropId)||{}).name||'',adminPw:pw,promoCode:bid.promoCode||null,promoDiscount:bid.promoDiscount||0,dropId:bid.dropId,winnerBidId:bidId})});
     const data=await res.json();
     if(data.success){try{await fetch('/api/bids',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:bidId,adminPw:pw})});}catch(e){}await fetchBids();renderAdminDrops();renderAllBids();showToast('✅ Card charged!');}
     else showToast('❌ '+(data.error||'Charge failed'),true);
@@ -1789,6 +1844,17 @@ async function chargeCard(bidId){
 async function toggleStatus(id){
   if(!_adminPw){showToast('Admin session expired',true);return}
   try{const res=await fetch('/api/drops',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,adminPw:_adminPw})});const data=await res.json().catch(()=>({}));if(!res.ok){showToast('❌ '+(data.error||'Could not update'),true);return}await fetchDrops();renderAdminDrops();}catch(e){showToast('❌ Network error',true)}
+}
+async function setDropTimer(id,ms){
+  if(!_adminPw){showToast('Admin session expired',true);return}
+  const endTime=ms>0?new Date(Date.now()+ms).toISOString():null;
+  try{
+    const res=await fetch('/api/drops',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,adminPw:_adminPw,action:'setTimer',endTime})});
+    const data=await res.json().catch(()=>({}));
+    if(!res.ok){showToast('❌ '+(data.error||'Could not set timer'),true);return}
+    await fetchDrops();renderAdminDrops();
+    showToast(ms>0?`⏱ Timer set — drop archives automatically`:'Timer cleared');
+  }catch(e){showToast('❌ Network error',true)}
 }
 async function deleteDrop(id){
   if(!confirm('Delete this item and all bids?'))return;
@@ -1933,7 +1999,13 @@ async function renderAdminEmailList(){
 }
 
 // ── LISTING TYPE & ACCESS ──
-let _listingType='bid',_accessType='public';
+let _listingType='bid',_accessType='public',_dropDuration=0;
+function setDropDuration(ms){
+  _dropDuration=ms;
+  ['none','24','48','72','7d'].forEach(k=>document.getElementById('dur-btn-'+k).className='');
+  const active=ms===0?'none':ms===86400000?'24':ms===172800000?'48':ms===259200000?'72':'7d';
+  document.getElementById('dur-btn-'+active).className='active-bid';
+}
 function setListingType(type){_listingType=type;document.getElementById('type-btn-bid').className=type==='bid'?'active-bid':'';document.getElementById('type-btn-buy').className=type==='buynow'?'active-buy':'';document.getElementById('type-btn-flash').className=type==='flash'?'active-flash':'';document.getElementById('price-field').style.display=(type==='buynow'||type==='flash')?'':'none';document.getElementById('original-price-field').style.display=type==='flash'?'':'none';const pl=document.getElementById('price-label');if(pl)pl.textContent=type==='flash'?'Flash Sale Price (USD) *':'Fixed Price (USD) *';document.getElementById('publish-btn-text').textContent=type==='flash'?'⚡ Launch Flash Sale':type==='buynow'?'+ Publish to Shop':'+ Publish Drop';}
 function setAccessType(type){_accessType=type;document.getElementById('access-btn-public').className=type==='public'?'active-bid':'';document.getElementById('access-btn-members').className=type==='members'?'active-buy':'';}
 
@@ -2068,6 +2140,7 @@ async function addDrop(status){
     const parsed=new Date(dropTimeEl.value.trim());
     if(!isNaN(parsed.getTime())){drop.dropTime=parsed.toISOString();drop.dropTimeLabel=dropTimeEl.value.trim();}
   }
+  if(_dropDuration>0){drop.endTime=new Date(Date.now()+_dropDuration).toISOString();}
   try{
     const res=await fetch('/api/drops',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({drop,adminPw:_adminPw})});
     const text=await res.text();let data={};try{data=JSON.parse(text)}catch{}
@@ -2078,6 +2151,7 @@ async function addDrop(status){
   ['add-name','add-desc','add-size','add-photo-url','add-price','add-original-price','add-drop-time'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   uploadedPhotos=[];renderUploadThumbs();
   _accessType='public';setAccessType('public');
+  _dropDuration=0;setDropDuration(0);
   showToast(status==='published'?(_listingType==='flash'?'⚡ Flash sale launched!':_listingType==='buynow'?'✅ Added to shop!':'✅ Drop published!'):status==='teaser'?'📣 Drop teased — showing as Coming Soon!':'📝 Draft saved!');
   if(status==='published'||status==='teaser')switchTab('tab-drops');
 }
@@ -2108,5 +2182,6 @@ function showToast(msg,err=false,ok=false){
 // ── INIT ──
 renderDrops();renderShop();renderFlash();refreshAll();
 </script>
+<div id="activity-feed"></div>
 </body>
 </html>
