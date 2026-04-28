@@ -144,6 +144,40 @@ async function sendConfirmationEmail(bid, dropName, referralCode) {
   });
 }
 
+async function sendFirstBidEmail(bid, dropName, code) {
+  if (!process.env.GMAIL_USER || !process.env.GMAIL_PASS) return;
+  const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: { user: process.env.GMAIL_USER, pass: process.env.GMAIL_PASS },
+  });
+  let unsubUrl = 'https://volleyball-collective.vercel.app/api/unsubscribe';
+  try {
+    const subRaw = await redis('GET', `emailsub:${bid.email.toLowerCase().trim()}`);
+    if (subRaw) { const sub = JSON.parse(subRaw); if (sub.unsubToken) unsubUrl += `?t=${sub.unsubToken}`; }
+  } catch {}
+  await transporter.sendMail({
+    from: `"Volleyball Collective" <${process.env.GMAIL_USER}>`,
+    to: bid.email,
+    subject: `🥇 You were first — here's your exclusive 5% bid bonus`,
+    html: `
+      <div style="font-family:'DM Sans',Helvetica,Arial,sans-serif;max-width:500px;margin:0 auto;background:#00154F;color:#F5F0E8;padding:36px 32px;border-radius:6px">
+        <div style="font-size:11px;letter-spacing:4px;text-transform:uppercase;color:#ED2939;margin-bottom:8px">Volleyball Collective</div>
+        <h2 style="font-size:24px;margin:0 0 16px;font-weight:700">You were first 🥇</h2>
+        <p style="margin:0 0 12px">Hey <strong>${bid.name}</strong>,</p>
+        <p style="margin:0 0 20px;line-height:1.6">You placed the very first bid on <strong>${dropName}</strong>. That takes guts — so here's a reward.</p>
+        <div style="background:rgba(62,207,142,.08);border:1px solid rgba(62,207,142,.2);border-radius:4px;padding:18px;margin:20px 0;text-align:center">
+          <div style="font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#7b9fd4;margin-bottom:8px">Your Exclusive Code</div>
+          <div style="font-family:monospace;font-size:26px;font-weight:700;letter-spacing:4px;color:#3ecf8e">${code}</div>
+          <div style="font-size:12px;color:#7b9fd4;margin-top:10px;line-height:1.5">Use this code when you rebid on <strong>${dropName}</strong> to lock in <strong style="color:#3ecf8e">5% off</strong> your winning bid. One use only.</div>
+        </div>
+        <a href="https://volleyball-collective.vercel.app" style="display:inline-block;background:#ED2939;color:#fff;padding:14px 32px;font-family:'DM Sans',sans-serif;font-size:.8rem;letter-spacing:3px;text-transform:uppercase;text-decoration:none;border-radius:2px">Go Rebid With Code →</a>
+        <p style="margin:24px 0 0;font-size:11px;color:#7b9fd4">Only the winner gets charged. — Volleyball Collective</p>
+        <p style="margin:12px 0 0;font-size:10px;color:#4a6fa0"><a href="${unsubUrl}" style="color:#4a6fa0">Unsubscribe</a></p>
+      </div>
+    `,
+  });
+}
+
 module.exports = async (req, res) => {
   setCORS(res);
   if (req.method === 'OPTIONS') return res.status(200).end();
@@ -204,10 +238,51 @@ module.exports = async (req, res) => {
         }
       }
 
+      // Check if this is the first bid on this drop (before saving)
+      let isFirstBid = false;
+      try {
+        const allIds = (await redis('SMEMBERS', 'bids:keys')) || [];
+        const existingDropBids = (await Promise.all(
+          allIds.map(async id => {
+            try { const raw = await redis('GET', `bid:${id}`); const b = JSON.parse(raw); return b.dropId === bid.dropId ? b : null; } catch { return null; }
+          })
+        )).filter(Boolean);
+        isFirstBid = existingDropBids.length === 0;
+      } catch (e) {
+        console.warn('First bid check failed:', e.message);
+      }
+
       await redis('SET', `bid:${bid.id}`, JSON.stringify(bid));
       await redis('SADD', 'bids:keys', bid.id);
 
       autoSubscribeEmail(bid.email.toLowerCase().trim()).catch(() => {});
+
+      // First-bid bonus: generate 5% off promo code and email the first bidder
+      if (isFirstBid) {
+        try {
+          const dropRaw = await redis('GET', `drop:${bid.dropId}`);
+          const dropName = dropRaw ? JSON.parse(dropRaw).name : 'this drop';
+          const code = 'FIRST' + crypto.randomBytes(3).toString('hex').toUpperCase();
+          await redis('SET', `promo:${code}`, JSON.stringify({
+            code,
+            label: `First Bid Bonus — ${dropName}`,
+            ownerEmail: bid.email.toLowerCase().trim(),
+            discount: 5,
+            active: true,
+            maxUses: 1,
+            buyNowUses: 0,
+            bidUses: 0,
+            buyNowRevenue: 0,
+            bidRevenue: 0,
+            type: 'first-bid',
+            createdAt: new Date().toISOString(),
+          }));
+          await redis('SADD', 'promos:all', code);
+          sendFirstBidEmail(bid, dropName, code).catch(() => {});
+        } catch (e) {
+          console.warn('First bid bonus failed:', e.message);
+        }
+      }
 
       // Outbid detection — find previous highest bidder and notify them
       try {

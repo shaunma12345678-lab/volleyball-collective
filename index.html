@@ -184,6 +184,9 @@ nav{position:fixed;top:38px;left:0;right:0;z-index:500;display:flex;justify-cont
 .live-viewers-row{display:flex;align-items:center;gap:6px;font-size:.7rem;color:#3ecf8e;margin-top:7px;letter-spacing:.4px}
 .live-dot{width:7px;height:7px;border-radius:50%;background:#3ecf8e;flex-shrink:0;animation:livePulse 1.4s ease-in-out infinite}
 @keyframes livePulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.65)}}
+@keyframes bidFlash{0%{color:inherit;transform:scale(1)}30%{color:#ED2939;transform:scale(1.2)}70%{color:#ED2939;transform:scale(1.1)}100%{color:inherit;transform:scale(1)}}
+.bid-flash{animation:bidFlash .9s ease-out forwards}
+.zero-risk-callout{background:rgba(62,207,142,.07);border:1px solid rgba(62,207,142,.2);border-radius:3px;padding:10px 14px;font-size:.73rem;color:#3ecf8e;text-align:center;margin-bottom:14px;line-height:1.5}
 .notify-waiting-row{font-size:.68rem;color:var(--muted);margin-top:8px;letter-spacing:.4px;display:flex;align-items:center;justify-content:center;gap:5px}
 #bid-alert{position:fixed;bottom:28px;left:28px;z-index:601;pointer-events:none}
 .bid-alert-item{background:rgba(0,18,96,.95);border:1px solid rgba(237,41,57,.35);border-left:3px solid var(--fr-red);padding:10px 14px;border-radius:3px;font-size:.76rem;color:var(--fr-white);max-width:280px;opacity:0;transform:translateX(-12px);transition:opacity .38s ease,transform .38s ease;backdrop-filter:blur(10px);line-height:1.4}
@@ -633,6 +636,7 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
         <span class="section-label">Payment — Secured by Stripe</span>
         <div class="form-row"><div id="stripe-card-element"></div><p class="stripe-note">🔒 Card saved but <strong>NOT charged</strong> until you win</p></div>
         <div class="error-msg" id="bid-error"></div>
+        <div class="zero-risk-callout">✓ Your card is <strong>not charged</strong> unless you win — zero risk to place a bid</div>
         <button class="btn-submit" id="bid-btn" onclick="submitBid()"><span class="btn-text">🔒 Secure My Bid</span><div class="spinner"></div></button>
       </div>
     </div>
@@ -1306,7 +1310,7 @@ document.querySelectorAll('button,a,.drop-card').forEach(el=>{
 })();
 
 // ── DATA ──
-let _drops=[],_bids=[],_adminPw=null,_subData={total:0,spotsLeft:200,isEarlyBird:true,currentPrice:'9.99'},_watchCounts={},_notifyCounts={},_prevBidsByDrop=null;
+let _drops=[],_bids=[],_adminPw=null,_subData={total:0,spotsLeft:200,isEarlyBird:true,currentPrice:'9.99'},_watchCounts={},_notifyCounts={},_prevBidsByDrop=null,_flashDropIds=new Set();
 
 // ── FETCH ──
 async function fetchDrops(){
@@ -1322,10 +1326,14 @@ async function fetchBids(){
       const incomingCounts={};
       incoming.forEach(b=>{incomingCounts[b.dropId]=(incomingCounts[b.dropId]||0)+1;});
       if(_prevBidsByDrop!==null){
+        let alertFired=false;
         for(const [dropId,newCount] of Object.entries(incomingCounts)){
           if(newCount>(_prevBidsByDrop[dropId]||0)){
-            const drop=(_drops||[]).find(d=>d.id===dropId&&d.status==='published');
-            if(drop){showBidAlert(`🏐 Someone just placed a bid on ${drop.name}`);break;}
+            _flashDropIds.add(dropId);
+            if(!alertFired){
+              const drop=(_drops||[]).find(d=>d.id===dropId&&d.status==='published');
+              if(drop){showBidAlert(`🏐 Someone just placed a bid on ${drop.name}`);alertFired=true;}
+            }
           }
         }
       }
@@ -1471,7 +1479,7 @@ function renderDrops(){
     const hotClass=hotLevel?` card-hot-${hotLevel}`:'';
     const hotBadgeText=hotLevel===3?'🔥 On Fire':hotLevel===2?'🔥 Heating Up':hotLevel===1?'🔥 Hot':'';
     const hotBadge=hotLevel?`<span class="hot-badge hot-badge-${hotLevel}">${hotBadgeText}</span>`:'';
-    return`<div class="drop-card${isTeaser?' teaser-card':''}${hotClass}" style="animation-delay:${i*.09}s${isTeaser?';cursor:default':''}"${cardClick?` onclick="${cardClick}"`:''}">
+    return`<div class="drop-card${isTeaser?' teaser-card':''}${hotClass}" data-drop-id="${d.id}" style="animation-delay:${i*.09}s${isTeaser?';cursor:default':''}"${cardClick?` onclick="${cardClick}"`:''}">
       <div class="drop-img-wrap">${img}${teaserOverlay}${lockOverlay}${badgeChipFinal}${memberBadge}${hotBadge}</div>
       <div class="card-stripe"></div>
       <div class="drop-body">
@@ -1483,6 +1491,13 @@ function renderDrops(){
       </div>
     </div>`;
   }).join('');
+  if(_flashDropIds.size>0){
+    _flashDropIds.forEach(dropId=>{
+      const card=g.querySelector(`[data-drop-id="${dropId}"]`);
+      if(card){const bc=card.querySelector('.drop-bid-count');if(bc){bc.classList.add('bid-flash');setTimeout(()=>bc.classList.remove('bid-flash'),1000);}}
+    });
+    _flashDropIds.clear();
+  }
   requestAnimationFrame(observeCards);
 }
 

@@ -120,6 +120,79 @@ async function sendDropNotifications(drop) {
   }
 }
 
+async function sendTwoHourAlerts(drops) {
+  if (!process.env.GMAIL_USER || !process.env.GMAIL_PASS) return;
+  if (!process.env.UPSTASH_REDIS_REST_URL || !process.env.UPSTASH_REDIS_REST_TOKEN) return;
+
+  const now = Date.now();
+  const TWO_HOURS = 2 * 60 * 60 * 1000;
+  const eligible = drops.filter(d =>
+    d.status === 'published' && d.endTime &&
+    (new Date(d.endTime) - now) < TWO_HOURS &&
+    (new Date(d.endTime) - now) > 0
+  );
+  if (!eligible.length) return;
+
+  const t = nodemailer.createTransport({
+    service: 'gmail',
+    auth: { user: process.env.GMAIL_USER, pass: process.env.GMAIL_PASS },
+  });
+
+  for (const drop of eligible) {
+    const alreadySent = await redis('GET', `alert-2h:${drop.id}`).catch(() => null);
+    if (alreadySent) continue;
+    await redis('SET', `alert-2h:${drop.id}`, '1').catch(() => {});
+    const secsLeft = Math.ceil((new Date(drop.endTime) - now) / 1000) + 86400;
+    await redis('EXPIRE', `alert-2h:${drop.id}`, secsLeft).catch(() => {});
+
+    const allBidIds = (await redis('SMEMBERS', 'bids:keys').catch(() => [])) || [];
+    const dropBids = (await Promise.all(
+      allBidIds.map(async id => {
+        try { const raw = await redis('GET', `bid:${id}`); const b = JSON.parse(raw); return b.dropId === drop.id ? b : null; } catch { return null; }
+      })
+    )).filter(Boolean);
+    if (!dropBids.length) continue;
+
+    const byEmail = {};
+    dropBids.forEach(b => {
+      const key = b.email.toLowerCase().trim();
+      if (!byEmail[key] || parseFloat(b.amount) > parseFloat(byEmail[key].amount)) byEmail[key] = b;
+    });
+
+    const msLeft = new Date(drop.endTime) - now;
+    const h = Math.floor(msLeft / 3600000);
+    const m = Math.floor((msLeft % 3600000) / 60000);
+    const timeLeft = h > 0 ? `${h}h ${m}m` : `${m} minutes`;
+
+    for (const bid of Object.values(byEmail)) {
+      let unsubUrl = 'https://volleyball-collective.vercel.app/api/unsubscribe';
+      try {
+        const subRaw = await redis('GET', `emailsub:${bid.email.toLowerCase().trim()}`);
+        if (subRaw) { const sub = JSON.parse(subRaw); if (sub.unsubToken) unsubUrl += `?t=${sub.unsubToken}`; }
+      } catch {}
+      t.sendMail({
+        from: `"Volleyball Collective" <${process.env.GMAIL_USER}>`,
+        to: bid.email,
+        subject: `⏰ ${timeLeft} left — "${drop.name}" is closing soon`,
+        html: `
+          <div style="font-family:'DM Sans',Helvetica,Arial,sans-serif;max-width:500px;margin:0 auto;background:#00154F;color:#F5F0E8;padding:36px 32px;border-radius:6px">
+            <div style="font-size:11px;letter-spacing:4px;text-transform:uppercase;color:#ED2939;margin-bottom:8px">Volleyball Collective</div>
+            <h2 style="font-size:24px;margin:0 0 16px;font-weight:700">⏰ ${timeLeft} left</h2>
+            <p style="margin:0 0 12px">Hey <strong>${bid.name}</strong>,</p>
+            <p style="margin:0 0 20px;line-height:1.6">The auction for <strong>${drop.name}</strong> closes in <strong style="color:#ED2939">${timeLeft}</strong>. Your current bid is <strong>$${parseFloat(bid.amount).toFixed(2)}</strong>.</p>
+            <div style="background:rgba(237,41,57,.08);border-left:3px solid #ED2939;padding:14px 18px;border-radius:3px;margin-bottom:24px">
+              <p style="margin:0;font-size:13px;line-height:1.6">If someone outbids you before it closes, you owe nothing. But if you want it — now is the time to rebid.</p>
+            </div>
+            <a href="https://volleyball-collective.vercel.app" style="display:inline-block;background:#ED2939;color:#fff;padding:14px 32px;font-family:'DM Sans',sans-serif;font-size:.8rem;letter-spacing:3px;text-transform:uppercase;text-decoration:none;border-radius:2px">Rebid Now →</a>
+            <p style="margin:24px 0 0;font-size:11px;color:#7b9fd4">— Volleyball Collective</p>
+            <p style="margin:12px 0 0;font-size:10px;color:#4a6fa0"><a href="${unsubUrl}" style="color:#4a6fa0">Unsubscribe</a> from drop alerts</p>
+          </div>
+        `,
+      }).catch(e => console.warn(`2h alert failed for ${bid.email}:`, e.message));
+    }
+  }
+}
+
 async function redis(...args) {
   const url = process.env.UPSTASH_REDIS_REST_URL;
   const token = process.env.UPSTASH_REDIS_REST_TOKEN;
@@ -175,6 +248,8 @@ module.exports = async (req, res) => {
           await redis('SET', `drop:${drop.id}`, JSON.stringify(drop));
         }
       }));
+
+      sendTwoHourAlerts(allDrops).catch(() => {});
 
       const drops = allDrops.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
