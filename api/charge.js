@@ -22,7 +22,7 @@ function cors(res) {
   res.setHeader('Cache-Control', 'no-store');
 }
 
-async function sendWinnerEmail({ email, name, originalAmount, chargedAmount, dropName, promoDiscount }) {
+async function sendWinnerEmail({ email, name, originalAmount, chargedAmount, dropName, promoDiscount, shippingFee }) {
   if (!process.env.GMAIL_USER || !process.env.GMAIL_PASS) return;
   const t = nodemailer.createTransport({
     service: 'gmail',
@@ -50,8 +50,9 @@ async function sendWinnerEmail({ email, name, originalAmount, chargedAmount, dro
         </div>
         <table style="font-size:13px;width:100%;border-collapse:collapse">
           <tr><td style="padding:6px 0;color:#7b9fd4">Item</td><td style="padding:6px 0;text-align:right">${dropName}</td></tr>
-          ${hasDiscount ? `<tr><td style="padding:6px 0;color:#7b9fd4">Winning Bid</td><td style="padding:6px 0;text-align:right;text-decoration:line-through;color:#7b9fd4">$${parseFloat(originalAmount).toFixed(2)}</td></tr><tr><td style="padding:6px 0;color:#7b9fd4">Ambassador Discount</td><td style="padding:6px 0;text-align:right;color:#3ecf8e">−${promoDiscount}%</td></tr>` : ''}
-          <tr><td style="padding:6px 0;color:#7b9fd4">Amount Charged</td><td style="padding:6px 0;text-align:right;color:#3ecf8e;font-weight:700">$${parseFloat(chargedAmount).toFixed(2)}</td></tr>
+          ${hasDiscount ? `<tr><td style="padding:6px 0;color:#7b9fd4">Winning Bid</td><td style="padding:6px 0;text-align:right;text-decoration:line-through;color:#7b9fd4">$${parseFloat(originalAmount).toFixed(2)}</td></tr><tr><td style="padding:6px 0;color:#7b9fd4">Ambassador Discount</td><td style="padding:6px 0;text-align:right;color:#3ecf8e">−${promoDiscount}%</td></tr>` : `<tr><td style="padding:6px 0;color:#7b9fd4">Winning Bid</td><td style="padding:6px 0;text-align:right">$${parseFloat(originalAmount).toFixed(2)}</td></tr>`}
+          ${shippingFee > 0 ? `<tr><td style="padding:6px 0;color:#7b9fd4">International Shipping</td><td style="padding:6px 0;text-align:right">$${parseFloat(shippingFee).toFixed(2)}</td></tr>` : ''}
+          <tr style="border-top:1px solid rgba(123,159,212,.2)"><td style="padding:8px 0 0;color:#7b9fd4;font-weight:700">Total Charged</td><td style="padding:8px 0 0;text-align:right;color:#3ecf8e;font-weight:700">$${parseFloat(chargedAmount).toFixed(2)}</td></tr>
         </table>
         <p style="margin:24px 0 0;font-size:11px;color:#7b9fd4">— Volleyball Collective</p>
       </div>
@@ -125,14 +126,16 @@ module.exports = async (req, res) => {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   const PW = process.env.ADMIN_PASSWORD || 'vb2024';
-  const { paymentMethodId, amount, email, name, dropName, adminPw, promoCode, promoDiscount, dropId, winnerBidId } = req.body || {};
+  const { paymentMethodId, amount, email, name, dropName, adminPw, promoCode, promoDiscount, shippingFee, dropId, winnerBidId } = req.body || {};
 
   if (adminPw !== PW) return res.status(403).json({ error: 'Unauthorized' });
   if (!paymentMethodId || !amount) return res.status(400).json({ error: 'Missing fields' });
 
   const originalAmount = parseFloat(amount);
   const discount = promoDiscount || 0;
-  const chargedAmount = discount > 0 ? originalAmount * (1 - discount / 100) : originalAmount;
+  const shipping = parseFloat(shippingFee) || 0;
+  const bidAfterDiscount = discount > 0 ? originalAmount * (1 - discount / 100) : originalAmount;
+  const chargedAmount = bidAfterDiscount + shipping;
   const amountCents = Math.round(chargedAmount * 100);
 
   try {
@@ -168,6 +171,7 @@ module.exports = async (req, res) => {
         chargedAmount,
         dropName: dropName || 'your item',
         promoDiscount: discount,
+        shippingFee: shipping,
       });
     } catch (e) {
       console.warn('Winner email failed:', e.message);
