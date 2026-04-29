@@ -302,6 +302,10 @@ module.exports = async (req, res) => {
       } else if (body.action === 'setBadges') {
         if (Array.isArray(body.badges) && body.badges.length > 0) drop.badges = body.badges;
         else delete drop.badges;
+      } else if (body.action === 'setPhotos') {
+        const photos = Array.isArray(body.photos) ? body.photos.filter(Boolean) : [];
+        drop.photos = photos;
+        drop.photo = photos[0] || drop.photo || '';
       } else {
         drop.status = drop.status === 'published' ? 'archived' : 'published';
       }

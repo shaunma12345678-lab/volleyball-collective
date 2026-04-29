@@ -323,6 +323,9 @@ input:focus,textarea:focus,select:focus{border-color:var(--fr-red);background:rg
 .upload-thumb-del{position:absolute;top:3px;right:3px;background:rgba(0,21,79,.88);border:none;color:#fff;width:18px;height:18px;border-radius:50%;font-size:.6rem;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;padding:0}
 .upload-thumb-add{width:76px;height:76px;border:2px dashed rgba(0,35,149,.4);border-radius:3px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:1.6rem;cursor:pointer;flex-shrink:0;transition:border-color .2s}
 .upload-thumb-add:hover{border-color:var(--fr-red);color:var(--fr-red)}
+.upload-thumb-rmbg{position:absolute;bottom:3px;left:3px;background:rgba(0,21,79,.88);border:none;color:#fff;width:18px;height:18px;border-radius:50%;font-size:.55rem;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;padding:0;z-index:2}
+.upload-thumb-rmbg:disabled{opacity:.45;cursor:not-allowed}
+.upload-thumb-proc{position:absolute;inset:0;background:rgba(0,21,79,.6);display:flex;align-items:center;justify-content:center;font-size:.65rem;color:var(--fr-white);letter-spacing:1px;z-index:1}
 .photo-arrow{position:absolute;top:50%;transform:translateY(-50%);z-index:5;background:rgba(0,21,79,.78);border:1px solid rgba(255,255,255,.28);color:#fff;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:1.1rem;backdrop-filter:blur(4px);transition:all .2s;padding:0;line-height:1}
 .photo-arrow:hover{background:rgba(0,21,79,.96);border-color:rgba(255,255,255,.7)}
 .photo-arrow-l{left:8px}
@@ -1335,7 +1338,7 @@ document.querySelectorAll('button,a,.drop-card').forEach(el=>{
 })();
 
 // ── DATA ──
-let _drops=[],_bids=[],_adminPw=null,_subData={total:0,spotsLeft:200,isEarlyBird:true,currentPrice:'9.99'},_watchCounts={},_notifyCounts={},_prevBidsByDrop=null,_flashDropIds=new Set();
+let _drops=[],_bids=[],_adminPw=null,_subData={total:0,spotsLeft:200,isEarlyBird:true,currentPrice:'9.99'},_watchCounts={},_notifyCounts={},_prevBidsByDrop=null,_flashDropIds=new Set(),_bgProcessing=new Set();
 
 // ── FETCH ──
 async function fetchDrops(){
@@ -2001,10 +2004,14 @@ function renderAdminDrops(){
     const curBadges=drop.badges||[];
     const badgeBtns=BADGE_DEFS.map(([bid,lbl,col,ico])=>{const on=curBadges.find(b=>b.id===bid);return`<button onclick="setDropBadge('${drop.id}','${bid}','${lbl}','${col}')" style="${btnS};border:1px solid ${on?'rgba(237,41,57,.5)':'rgba(123,159,212,.22)'};background:${on?'rgba(237,41,57,.13)':'transparent'};color:${on?'var(--fr-white)':'var(--muted)'}">${ico} ${lbl}</button>`;}).join('');
     const badgesRow=`<div style="padding:8px 18px;border-top:1px solid rgba(0,35,149,.18);display:flex;align-items:center;gap:6px;flex-wrap:wrap"><span style="font-size:.6rem;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-right:2px">Badges:</span>${badgeBtns}</div>`;
-    if(isBuyNow||isFlash){const typeLabel=isFlash?`⚡ FLASH — $${parseFloat(drop.price||0).toFixed(2)}${drop.originalPrice?' (was $'+parseFloat(drop.originalPrice).toFixed(2)+')':''}`:`BUY NOW — $${parseFloat(drop.price||0).toFixed(2)}`;return`<div class="drop-group"><div class="drop-group-hd"><div><div class="drop-group-name" style="color:${isFlash?'#fbbf24':'var(--success)'}">${drop.name} <span style="font-size:.7rem;font-family:'DM Sans',sans-serif">[${typeLabel}]</span></div><div style="font-size:.7rem;color:var(--muted);margin-top:2px">${drop.status}${drop.sold?' · SOLD':''}</div></div><div style="display:flex;gap:8px"><button class="btn-tog" onclick="toggleStatus('${drop.id}')">${drop.status==='published'?'Archive':'Publish'}</button><button class="btn-del" onclick="deleteDrop('${drop.id}')">Delete</button></div></div>${timerRow}${badgesRow}${drop.sold&&drop.soldTo?`<div style="padding:14px 18px;font-size:.78rem;color:var(--muted)">Sold to: <strong style="color:var(--fr-white)">${drop.soldTo.name}</strong> (${drop.soldTo.email}) on ${new Date(drop.soldTo.purchasedAt).toLocaleDateString()}</div>`:'<div style="padding:14px 18px;font-size:.78rem;color:var(--muted)">No purchase yet.</div>'}</div>`;}
+    const dropPhotos=drop.photos&&drop.photos.length?drop.photos:[drop.photo].filter(Boolean);
+    const photosThumbsHtml=dropPhotos.map((url,pi)=>{const isProc=_bgProcessing.has(`${drop.id}-${pi}`);return`<div class="upload-thumb" style="width:54px;height:54px">${isProc?`<img src="${url}" style="width:100%;height:100%;object-fit:cover;opacity:.35"><div class="upload-thumb-proc" style="font-size:.5rem">✂</div>`:`<img src="${url}" style="width:100%;height:100%;object-fit:cover"><button class="upload-thumb-del" onclick="removeDropPhoto('${drop.id}',${pi})" title="Remove">✕</button><button class="upload-thumb-rmbg" onclick="removeBgFromDropPhoto('${drop.id}',${pi})" title="Remove BG">✂</button>`}</div>`;}).join('');
+    const photosAddBtn=dropPhotos.length<3?`<div class="upload-thumb-add" style="width:54px;height:54px;font-size:1.2rem" onclick="handleDropPhotoAdd('${drop.id}')" title="Add photo">+</div>`:'';
+    const photosRow=`<div style="padding:8px 18px;border-top:1px solid rgba(0,35,149,.18);display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span style="font-size:.6rem;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-right:2px;flex-shrink:0">Photos:</span>${photosThumbsHtml||`<span style="font-size:.72rem;color:var(--muted)">No photos</span>`}${photosAddBtn}</div>`;
+    if(isBuyNow||isFlash){const typeLabel=isFlash?`⚡ FLASH — $${parseFloat(drop.price||0).toFixed(2)}${drop.originalPrice?' (was $'+parseFloat(drop.originalPrice).toFixed(2)+')':''}`:`BUY NOW — $${parseFloat(drop.price||0).toFixed(2)}`;return`<div class="drop-group"><div class="drop-group-hd"><div><div class="drop-group-name" style="color:${isFlash?'#fbbf24':'var(--success)'}">${drop.name} <span style="font-size:.7rem;font-family:'DM Sans',sans-serif">[${typeLabel}]</span></div><div style="font-size:.7rem;color:var(--muted);margin-top:2px">${drop.status}${drop.sold?' · SOLD':''}</div></div><div style="display:flex;gap:8px"><button class="btn-tog" onclick="toggleStatus('${drop.id}')">${drop.status==='published'?'Archive':'Publish'}</button><button class="btn-del" onclick="deleteDrop('${drop.id}')">Delete</button></div></div>${timerRow}${badgesRow}${photosRow}${drop.sold&&drop.soldTo?`<div style="padding:14px 18px;font-size:.78rem;color:var(--muted)">Sold to: <strong style="color:var(--fr-white)">${drop.soldTo.name}</strong> (${drop.soldTo.email}) on ${new Date(drop.soldTo.purchasedAt).toLocaleDateString()}</div>`:'<div style="padding:14px 18px;font-size:.78rem;color:var(--muted)">No purchase yet.</div>'}</div>`;}
     const db=bids.filter(b=>b.dropId===drop.id).sort((a,b)=>b.amount-a.amount);
     const rows=db.length?db.map(bid=>`<tr><td><strong>${bid.name}</strong><br><span style="color:var(--muted);font-size:.7rem">${bid.email}</span></td><td style="font-size:.73rem;color:var(--muted)">${bid.phone||'—'}</td><td class="bid-amt">$${parseFloat(bid.amount).toFixed(2)}</td><td style="font-size:.7rem;color:var(--muted)">${bid.address?`${bid.address.street}, ${bid.address.city} ${bid.address.state} ${bid.address.zip}`:'—'}</td><td>${bid.charged?`<span class="badge-charged">✅ Charged</span>`:bid.paymentMethodId&&bid.paymentMethodId!=='[no-stripe]'?`<button class="btn-charge" onclick="chargeCard('${bid.id}')">Charge Card</button>`:`<span class="badge-nocard">No card</span>`}</td><td style="font-size:.68rem;color:var(--muted)">${new Date(bid.createdAt).toLocaleDateString()}</td></tr>`).join(''):`<tr><td colspan="6" class="no-bids">No bids yet.</td></tr>`;
-    return`<div class="drop-group"><div class="drop-group-hd"><div><div class="drop-group-name">${drop.name}</div><div style="font-size:.7rem;color:var(--muted);margin-top:2px">${drop.status} · ${db.length} bid(s)</div></div><div style="display:flex;gap:8px"><button class="btn-tog" onclick="toggleStatus('${drop.id}')">${drop.status==='published'?'Archive':'Publish'}</button><button class="btn-del" onclick="deleteDrop('${drop.id}')">Delete</button></div></div>${timerRow}${badgesRow}<div style="overflow-x:auto"><table class="bids-table"><thead><tr><th>Name/Email</th><th>Phone</th><th>Bid</th><th>Address</th><th>Action</th><th>Date</th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
+    return`<div class="drop-group"><div class="drop-group-hd"><div><div class="drop-group-name">${drop.name}</div><div style="font-size:.7rem;color:var(--muted);margin-top:2px">${drop.status} · ${db.length} bid(s)</div></div><div style="display:flex;gap:8px"><button class="btn-tog" onclick="toggleStatus('${drop.id}')">${drop.status==='published'?'Archive':'Publish'}</button><button class="btn-del" onclick="deleteDrop('${drop.id}')">Delete</button></div></div>${timerRow}${badgesRow}${photosRow}<div style="overflow-x:auto"><table class="bids-table"><thead><tr><th>Name/Email</th><th>Phone</th><th>Bid</th><th>Address</th><th>Action</th><th>Date</th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
   }).join('');
 }
 
@@ -2312,15 +2319,116 @@ function renderUploadThumbs(){
   if(!wrap)return;
   if(!uploadedPhotos.length){if(placeholder)placeholder.style.display='';wrap.innerHTML='';return;}
   if(placeholder)placeholder.style.display='none';
-  wrap.innerHTML=uploadedPhotos.map((p,i)=>
-    `<div class="upload-thumb">${p.loading
+  wrap.innerHTML=uploadedPhotos.map((p,i)=>{
+    const isProc=_bgProcessing.has('new-'+i);
+    return`<div class="upload-thumb">${p.loading
       ?'<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:.7rem;color:var(--muted)">…</div>'
-      :`<img src="${p.url}" alt="Photo ${i+1}"><button class="upload-thumb-del" onclick="removeUploadedPhoto(${i})" title="Remove">✕</button>`
-    }</div>`
-  ).join('')+(uploadedPhotos.length<3&&!uploadedPhotos.some(p=>p.loading)?`<div class="upload-thumb-add" onclick="document.getElementById('add-photo-file').click()" title="Add another photo">+</div>`:'');
+      :isProc
+        ?`<img src="${p.url}" alt="Photo ${i+1}" style="opacity:.35"><div class="upload-thumb-proc">✂</div>`
+        :`<img src="${p.url}" alt="Photo ${i+1}"><button class="upload-thumb-del" onclick="removeUploadedPhoto(${i})" title="Remove">✕</button><button class="upload-thumb-rmbg" onclick="removeBgFromPhoto(${i})" title="Remove background">✂</button>`
+    }</div>`;
+  }).join('')+(uploadedPhotos.length<3&&!uploadedPhotos.some(p=>p.loading||_bgProcessing.has('new-'+uploadedPhotos.indexOf(p)))?`<div class="upload-thumb-add" onclick="document.getElementById('add-photo-file').click()" title="Add another photo">+</div>`:'');
 }
 
 function removeUploadedPhoto(idx){uploadedPhotos.splice(idx,1);renderUploadThumbs();}
+
+async function imageUrlToBlob(url){
+  if(url.startsWith('data:')){
+    const [header,b64]=url.split(',');
+    const mime=header.match(/:(.*?);/)[1];
+    const bytes=atob(b64);
+    const arr=new Uint8Array(bytes.length);
+    for(let i=0;i<bytes.length;i++)arr[i]=bytes.charCodeAt(i);
+    return new Blob([arr],{type:mime});
+  }
+  const r=await fetch(url);
+  return r.blob();
+}
+
+let _bgLib=null;
+async function doRemoveBg(sourceUrl){
+  if(!_bgLib){
+    showToast('Loading background removal (first run takes ~10s)…');
+    _bgLib=await import('https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.4.5/dist/browser/index.js');
+  }
+  const blob=await imageUrlToBlob(sourceUrl);
+  const result=await _bgLib.removeBackground(blob,{output:{format:'image/png'},publicPath:'https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.4.5/dist/browser/'});
+  return new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=reject;reader.readAsDataURL(result);});
+}
+
+async function removeBgFromPhoto(idx){
+  if(_bgProcessing.has('new-'+idx))return;
+  _bgProcessing.add('new-'+idx);
+  renderUploadThumbs();
+  try{
+    const result=await doRemoveBg(uploadedPhotos[idx].url);
+    uploadedPhotos[idx]={url:result,loading:false};
+    showToast('Background removed!');
+  }catch(e){
+    showToast('❌ Background removal failed — '+(e.message||'try a different image'),true);
+  }
+  _bgProcessing.delete('new-'+idx);
+  renderUploadThumbs();
+}
+
+async function setDropPhotos(id,photos){
+  const res=await fetch('/api/drops',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,adminPw:_adminPw,action:'setPhotos',photos})});
+  const data=await res.json().catch(()=>({}));
+  if(!res.ok)throw new Error(data.error||'Could not update photos');
+  const d=_drops.find(x=>x.id===id);
+  if(d){d.photos=photos;d.photo=photos[0]||'';}
+}
+
+async function removeDropPhoto(dropId,idx){
+  const drop=_drops.find(d=>d.id===dropId);
+  if(!drop)return;
+  const photos=[...(drop.photos&&drop.photos.length?drop.photos:[drop.photo].filter(Boolean))];
+  photos.splice(idx,1);
+  try{await setDropPhotos(dropId,photos);showToast('Photo removed');renderAdminDrops();}catch(e){showToast('❌ '+(e.message),true);}
+}
+
+async function removeBgFromDropPhoto(dropId,idx){
+  const key=dropId+'-'+idx;
+  if(_bgProcessing.has(key))return;
+  const drop=_drops.find(d=>d.id===dropId);
+  if(!drop)return;
+  const photos=[...(drop.photos&&drop.photos.length?drop.photos:[drop.photo].filter(Boolean))];
+  if(!photos[idx])return;
+  _bgProcessing.add(key);
+  renderAdminDrops();
+  try{
+    const result=await doRemoveBg(photos[idx]);
+    photos[idx]=result;
+    await setDropPhotos(dropId,photos);
+    showToast('Background removed!');
+  }catch(e){
+    showToast('❌ Background removal failed — '+(e.message||'try a different image'),true);
+  }
+  _bgProcessing.delete(key);
+  renderAdminDrops();
+}
+
+async function handleDropPhotoAdd(dropId){
+  const drop=_drops.find(d=>d.id===dropId);
+  if(!drop)return;
+  const existing=drop.photos&&drop.photos.length?drop.photos:[drop.photo].filter(Boolean);
+  if(existing.length>=3){showToast('Max 3 photos per listing',true);return;}
+  const input=document.createElement('input');
+  input.type='file';input.accept='image/*';input.multiple=true;
+  input.onchange=async()=>{
+    const photos=[...existing];
+    const available=3-photos.length;
+    const files=[...input.files].slice(0,available);
+    showToast('Uploading…');
+    try{
+      for(const f of files){const url=await uploadOneFile(f);photos.push(url);}
+      await setDropPhotos(dropId,photos);
+      showToast('Photo(s) added!');
+      renderAdminDrops();
+    }catch(e){showToast('❌ '+(e.message||'Upload failed'),true);}
+  };
+  input.click();
+}
 
 async function handleUpload(input){
   const newFiles=[...input.files].slice(0,3-uploadedPhotos.filter(p=>!p.loading).length);
