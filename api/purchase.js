@@ -115,15 +115,19 @@ async function rewardReferrer(usedCode) {
   });
 }
 
-async function sendPurchaseEmail(buyer, drop, charged, referralCode) {
+const INTL_SHIPPING_FEE = 20;
+const USA_VARIANTS = new Set(['usa', 'us', 'u.s.', 'u.s.a.', 'united states', 'united states of america']);
+function isUSACountry(c) { return USA_VARIANTS.has((c || '').toLowerCase().trim()); }
+
+async function sendPurchaseEmail(buyer, drop, baseCharged, shippingFee, discountPercent, referralCode) {
   if (!process.env.GMAIL_USER || !process.env.GMAIL_PASS) return;
   const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: { user: process.env.GMAIL_USER, pass: process.env.GMAIL_PASS },
   });
   const originalPrice = parseFloat(drop.price).toFixed(2);
-  const chargedPrice = charged.toFixed(2);
-  const hasDiscount = charged < parseFloat(drop.price);
+  const totalCharged = (baseCharged + shippingFee).toFixed(2);
+  const hasDiscount = discountPercent > 0;
 
   let unsubUrl = 'https://volleyball-collective.vercel.app/api/unsubscribe';
   try {
@@ -143,12 +147,13 @@ async function sendPurchaseEmail(buyer, drop, charged, referralCode) {
         <div style="font-size:11px;letter-spacing:4px;text-transform:uppercase;color:#ED2939;margin-bottom:8px">Volleyball Collective</div>
         <h2 style="font-size:24px;margin:0 0 20px;font-weight:700">Purchase Confirmed!</h2>
         <p style="margin:0 0 12px">Hey <strong>${buyer.name}</strong>,</p>
-        <p style="margin:0 0 20px;line-height:1.6">Your purchase of <strong>${drop.name}</strong> for <strong style="color:#ED2939;font-size:18px">$${chargedPrice}</strong> has been confirmed and your card has been charged.</p>
+        <p style="margin:0 0 20px;line-height:1.6">Your purchase of <strong>${drop.name}</strong> for <strong style="color:#ED2939;font-size:18px">$${totalCharged}</strong> has been confirmed and your card has been charged.</p>
         <table style="font-size:13px;width:100%;border-collapse:collapse">
           <tr><td style="padding:6px 0;color:#7b9fd4">Item</td><td style="padding:6px 0;text-align:right">${drop.name}</td></tr>
-          ${hasDiscount ? `<tr><td style="padding:6px 0;color:#7b9fd4">Original Price</td><td style="padding:6px 0;text-align:right;text-decoration:line-through;color:#7b9fd4">$${originalPrice}</td></tr><tr><td style="padding:6px 0;color:#7b9fd4">Ambassador Discount</td><td style="padding:6px 0;text-align:right;color:#3ecf8e">−10%</td></tr>` : ''}
-          <tr><td style="padding:6px 0;color:#7b9fd4">Amount Charged</td><td style="padding:6px 0;text-align:right;color:#ED2939;font-weight:700">$${chargedPrice}</td></tr>
-          ${buyer.address ? `<tr><td style="padding:6px 0;color:#7b9fd4">Ship To</td><td style="padding:6px 0;text-align:right">${buyer.address.city}, ${buyer.address.state}</td></tr>` : ''}
+          ${hasDiscount ? `<tr><td style="padding:6px 0;color:#7b9fd4">Original Price</td><td style="padding:6px 0;text-align:right;text-decoration:line-through;color:#7b9fd4">$${originalPrice}</td></tr><tr><td style="padding:6px 0;color:#7b9fd4">Ambassador Discount</td><td style="padding:6px 0;text-align:right;color:#3ecf8e">−${discountPercent}%</td></tr><tr><td style="padding:6px 0;color:#7b9fd4">Price After Discount</td><td style="padding:6px 0;text-align:right">$${baseCharged.toFixed(2)}</td></tr>` : ''}
+          ${shippingFee > 0 ? `<tr><td style="padding:6px 0;color:#7b9fd4">International Shipping</td><td style="padding:6px 0;text-align:right">$${shippingFee.toFixed(2)}</td></tr>` : ''}
+          <tr style="border-top:1px solid rgba(123,159,212,.2)"><td style="padding:8px 0 0;color:#7b9fd4;font-weight:700">Total Charged</td><td style="padding:8px 0 0;text-align:right;color:#ED2939;font-weight:700">$${totalCharged}</td></tr>
+          ${buyer.address ? `<tr><td style="padding:6px 0;color:#7b9fd4">Ship To</td><td style="padding:6px 0;text-align:right">${buyer.address.street}, ${buyer.address.city} ${buyer.address.state} ${buyer.address.zip}${buyer.address.country && !isUSACountry(buyer.address.country) ? `, ${buyer.address.country}` : ''}</td></tr>` : ''}
         </table>
         ${referralCode ? `
         <div style="background:rgba(62,207,142,.08);border:1px solid rgba(62,207,142,.2);border-radius:4px;padding:18px;margin:20px 0">
@@ -168,7 +173,7 @@ module.exports = async (req, res) => {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const { paymentMethodId, dropId, name, email, address, promoCode } = req.body || {};
+  const { paymentMethodId, dropId, name, email, phone, address, promoCode } = req.body || {};
   if (!paymentMethodId || !dropId || !name || !email)
     return res.status(400).json({ error: 'Missing required fields' });
 
@@ -198,10 +203,12 @@ module.exports = async (req, res) => {
     }
 
     const originalPrice = parseFloat(drop.price);
-    const chargedPrice = discountPercent > 0
+    const baseCharged = discountPercent > 0
       ? originalPrice * (1 - discountPercent / 100)
       : originalPrice;
-    const amountCents = Math.round(chargedPrice * 100);
+    const shippingFee = address && !isUSACountry(address.country) ? INTL_SHIPPING_FEE : 0;
+    const totalCharged = baseCharged + shippingFee;
+    const amountCents = Math.round(totalCharged * 100);
 
     const paymentIntent = await stripe.paymentIntents.create({
       amount: amountCents,
@@ -209,7 +216,7 @@ module.exports = async (req, res) => {
       payment_method: paymentMethodId,
       confirm: true,
       receipt_email: email,
-      description: `Volleyball Collective — Buy Now: ${drop.name}${appliedCode ? ` (${appliedCode})` : ''}`,
+      description: `Volleyball Collective — Buy Now: ${drop.name}${appliedCode ? ` (${appliedCode})` : ''}${shippingFee > 0 ? ' + intl shipping' : ''}`,
       automatic_payment_methods: { enabled: true, allow_redirects: 'never' },
     });
 
@@ -219,7 +226,7 @@ module.exports = async (req, res) => {
       if (promoRaw) {
         const promo = JSON.parse(promoRaw);
         promo.buyNowUses = (promo.buyNowUses || 0) + 1;
-        promo.buyNowRevenue = Math.round(((promo.buyNowRevenue || 0) + chargedPrice) * 100) / 100;
+        promo.buyNowRevenue = Math.round(((promo.buyNowRevenue || 0) + totalCharged) * 100) / 100;
         const totalUsesNow = promo.buyNowUses + (promo.bidUses || 0);
         if (promo.maxUses && totalUsesNow >= promo.maxUses) promo.active = false;
         await redis('SET', `promo:${appliedCode}`, JSON.stringify(promo));
@@ -228,11 +235,13 @@ module.exports = async (req, res) => {
 
     drop.sold = true;
     drop.soldTo = {
-      name, email, address,
+      name, email, phone: phone || null, address,
       purchasedAt: new Date().toISOString(),
       paymentIntentId: paymentIntent.id,
       promoCode: appliedCode || null,
-      chargedPrice: chargedPrice.toFixed(2),
+      discountPercent: appliedCode ? discountPercent : 0,
+      shippingFee: shippingFee,
+      chargedPrice: totalCharged.toFixed(2),
     };
     await redis('SET', `drop:${dropId}`, JSON.stringify(drop));
 
@@ -240,7 +249,7 @@ module.exports = async (req, res) => {
     if (appliedCode) rewardReferrer(appliedCode).catch(() => {});
     try {
       const referralCode = await getOrCreateReferralCode(email.toLowerCase().trim(), name);
-      await sendPurchaseEmail({ name, email, address }, drop, chargedPrice, referralCode);
+      await sendPurchaseEmail({ name, email, address }, drop, baseCharged, shippingFee, discountPercent, referralCode);
     } catch (e) { console.warn('Email failed:', e.message); }
 
     return res.status(200).json({ success: true, paymentIntentId: paymentIntent.id });

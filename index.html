@@ -702,7 +702,10 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
         </div>
         <div class="form-row-2">
           <div class="form-row" style="margin:0"><label>ZIP Code</label><input type="text" id="bn-zip" placeholder="90001"></div>
-          <div class="form-row" style="margin:0"><label>Country</label><input type="text" id="bn-country" placeholder="USA" value="USA"></div>
+          <div class="form-row" style="margin:0"><label>Country</label><input type="text" id="bn-country" placeholder="USA" value="USA" oninput="checkBnIntlShipping()"></div>
+        </div>
+        <div id="bn-shipping-notice" style="display:none;background:rgba(0,35,149,.13);border:1px solid rgba(123,159,212,.28);border-radius:3px;padding:11px 14px;margin-top:8px;font-size:.79rem;color:var(--muted);line-height:1.5">
+          🌎 <strong style="color:var(--fr-white)">International shipping: $20.00 USD</strong> will be added to your total. We ship via Pirate Ship (USPS / DHL).
         </div>
         <span class="section-label section-label-green">Payment — Secured by Stripe</span>
         <div class="form-row"><div id="buynow-card-element"></div><p class="stripe-note">🔒 Your card is <strong>charged immediately</strong> upon purchase</p></div>
@@ -1713,6 +1716,25 @@ function openBidModal(dropId){
   const btn=document.getElementById('bid-btn');btn.disabled=false;btn.classList.remove('loading');
   document.getElementById('bid-overlay').classList.add('active');
 }
+function updateBnButtonPrice(){
+  const drop=_drops.find(d=>d.id===activeBuyNow);
+  if(!drop)return;
+  const base=parseFloat(drop.price||0);
+  const country=document.getElementById('bn-country').value;
+  const sf=isUSACountry(country)?0:INTL_SHIPPING_FEE;
+  const discount=_activePromo?_activePromo.discount:0;
+  const total=(base*(1-discount/100))+sf;
+  const label=sf>0?`Buy Now — $${(base*(1-discount/100)).toFixed(2)} + $${sf.toFixed(2)} shipping = $${total.toFixed(2)}`:`Buy Now — $${total.toFixed(2)}`;
+  document.getElementById('bn-btn-text').textContent=label;
+}
+function checkBnIntlShipping(){
+  const country=document.getElementById('bn-country').value;
+  const isIntl=country.trim().length>0&&!isUSACountry(country);
+  const notice=document.getElementById('bn-shipping-notice');
+  if(notice)notice.style.display=isIntl?'':'none';
+  updateBnButtonPrice();
+}
+
 function openBuyNowModal(dropId){
   const drop=_drops.find(d=>d.id===dropId);
   if(!drop||drop.sold)return;
@@ -1723,6 +1745,7 @@ function openBuyNowModal(dropId){
   document.getElementById('buynow-modal-title').textContent=drop.name;
   const price='$'+parseFloat(drop.price||0).toFixed(2);
   document.getElementById('buynow-price-display').textContent=price;
+  document.getElementById('bn-shipping-notice').style.display='none';
   document.getElementById('bn-btn-text').textContent='Buy Now — '+price;
   document.getElementById('bn-promo').value='';
   document.getElementById('bn-promo-ok').style.display='none';
@@ -1808,6 +1831,7 @@ async function submitBuyNow(){
   const state=document.getElementById('bn-state').value.trim();
   const zip=document.getElementById('bn-zip').value.trim();
   const country=document.getElementById('bn-country').value.trim();
+  const shippingFee=isUSACountry(country)?0:INTL_SHIPPING_FEE;
   const errEl=document.getElementById('bn-error');errEl.style.display='none';
   if(!name||!email){showErr(errEl,'Please fill in your name and email.');return}
   if(!street||!city||!zip){showErr(errEl,'Please enter your shipping address.');return}
@@ -1816,7 +1840,7 @@ async function submitBuyNow(){
   const{paymentMethod,error}=await stripe.createPaymentMethod({type:'card',card:bnCardEl,billing_details:{name,email,phone:phone||undefined}});
   if(error){showErr(errEl,error.message);btn.disabled=false;btn.classList.remove('loading');return}
   try{
-    const res=await fetch('/api/purchase',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({paymentMethodId:paymentMethod.id,dropId:activeBuyNow,name,email,address:{street,city,state,zip,country},promoCode:_activePromo?_activePromo.code:null})});
+    const res=await fetch('/api/purchase',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({paymentMethodId:paymentMethod.id,dropId:activeBuyNow,name,email,phone,address:{street,city,state,zip,country},promoCode:_activePromo?_activePromo.code:null,shippingFee})});
     const data=await res.json().catch(()=>({}));
     if(!res.ok){showErr(errEl,data.error||'Purchase failed. Please try again.');btn.disabled=false;btn.classList.remove('loading');return}
   }catch(e){showErr(errEl,'Network error — please try again.');btn.disabled=false;btn.classList.remove('loading');return}
@@ -1864,15 +1888,15 @@ async function applyPromoCode(){
       _activePromo=null;
       const orig='$'+parseFloat(drop.price||0).toFixed(2);
       document.getElementById('buynow-price-display').textContent=orig;
-      document.getElementById('bn-btn-text').textContent='Buy Now — '+orig;
       errEl.textContent=data.error||'Invalid or expired code.';errEl.style.display='block';
+      updateBnButtonPrice();
       return;
     }
     _activePromo={code,discount:data.discount};
     const orig=parseFloat(drop.price||0);
     const discounted=orig*(1-data.discount/100);
     document.getElementById('buynow-price-display').textContent='$'+discounted.toFixed(2);
-    document.getElementById('bn-btn-text').textContent='Buy Now — $'+discounted.toFixed(2);
+    updateBnButtonPrice();
     okEl.textContent=(data.label||'Ambassador')+' code applied — '+data.discount+'% off!';okEl.style.display='block';
   }catch(e){
     _activePromo=null;
@@ -2027,7 +2051,9 @@ function renderAdminDrops(){
     const photosThumbsHtml=dropPhotos.map((url,pi)=>{const isProc=_bgProcessing.has(`${drop.id}-${pi}`);return`<div class="upload-thumb" style="width:54px;height:54px">${isProc?`<img src="${url}" style="width:100%;height:100%;object-fit:cover;opacity:.35"><div class="upload-thumb-proc" style="font-size:.5rem">✂</div>`:`<img src="${url}" style="width:100%;height:100%;object-fit:cover"><button class="upload-thumb-del" onclick="removeDropPhoto('${drop.id}',${pi})" title="Remove">✕</button><button class="upload-thumb-rmbg" onclick="removeBgFromDropPhoto('${drop.id}',${pi})" title="Remove BG">✂</button>`}</div>`;}).join('');
     const photosAddBtn=dropPhotos.length<3?`<div class="upload-thumb-add" style="width:54px;height:54px;font-size:1.2rem" onclick="handleDropPhotoAdd('${drop.id}')" title="Add photo">+</div>`:'';
     const photosRow=`<div style="padding:8px 18px;border-top:1px solid rgba(0,35,149,.18);display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span style="font-size:.6rem;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-right:2px;flex-shrink:0">Photos:</span>${photosThumbsHtml||`<span style="font-size:.72rem;color:var(--muted)">No photos</span>`}${photosAddBtn}</div>`;
-    if(isBuyNow||isFlash){const typeLabel=isFlash?`⚡ FLASH — $${parseFloat(drop.price||0).toFixed(2)}${drop.originalPrice?' (was $'+parseFloat(drop.originalPrice).toFixed(2)+')':''}`:`BUY NOW — $${parseFloat(drop.price||0).toFixed(2)}`;return`<div class="drop-group"><div class="drop-group-hd"><div><div class="drop-group-name" style="color:${isFlash?'#fbbf24':'var(--success)'}">${drop.name} <span style="font-size:.7rem;font-family:'DM Sans',sans-serif">[${typeLabel}]</span></div><div style="font-size:.7rem;color:var(--muted);margin-top:2px">${drop.status}${drop.sold?' · SOLD':''}</div></div><div style="display:flex;gap:8px"><button class="btn-tog" onclick="toggleStatus('${drop.id}')">${drop.status==='published'?'Archive':'Publish'}</button><button class="btn-del" onclick="deleteDrop('${drop.id}')">Delete</button></div></div>${timerRow}${badgesRow}${photosRow}${drop.sold&&drop.soldTo?`<div style="padding:14px 18px;font-size:.78rem;color:var(--muted)">Sold to: <strong style="color:var(--fr-white)">${drop.soldTo.name}</strong> (${drop.soldTo.email}) on ${new Date(drop.soldTo.purchasedAt).toLocaleDateString()}</div>`:'<div style="padding:14px 18px;font-size:.78rem;color:var(--muted)">No purchase yet.</div>'}</div>`;}
+    if(isBuyNow||isFlash){const typeLabel=isFlash?`⚡ FLASH — $${parseFloat(drop.price||0).toFixed(2)}${drop.originalPrice?' (was $'+parseFloat(drop.originalPrice).toFixed(2)+')':''}`:`BUY NOW — $${parseFloat(drop.price||0).toFixed(2)}`;
+    const soldBlock=drop.sold&&drop.soldTo?`<div style="padding:14px 18px;border-top:1px solid rgba(0,35,149,.18)"><div style="font-size:.6rem;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:10px">Purchase Details</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:5px 20px;font-size:.73rem;line-height:1.6"><span style="color:var(--muted)">Name</span><span><strong style="color:var(--fr-white)">${drop.soldTo.name}</strong></span><span style="color:var(--muted)">Email</span><span>${drop.soldTo.email}</span>${drop.soldTo.phone?`<span style="color:var(--muted)">Phone</span><span>${drop.soldTo.phone}</span>`:''}<span style="color:var(--muted)">Address</span><span>${drop.soldTo.address?`${drop.soldTo.address.street}, ${drop.soldTo.address.city} ${drop.soldTo.address.state} ${drop.soldTo.address.zip} — ${drop.soldTo.address.country||''}`.trim().replace(/—\s*$/,''):'—'}</span><span style="color:var(--muted)">Charged</span><span style="color:var(--success)"><strong>$${parseFloat(drop.soldTo.chargedPrice||0).toFixed(2)}</strong>${parseFloat(drop.soldTo.shippingFee||0)>0?` <span style="color:#fbbf24;font-size:.65rem">(incl. $${parseFloat(drop.soldTo.shippingFee).toFixed(2)} intl shipping)</span>`:''}</span>${drop.soldTo.promoCode?`<span style="color:var(--muted)">Promo</span><span style="color:#3ecf8e">${drop.soldTo.promoCode}</span>`:''}<span style="color:var(--muted)">Date</span><span>${new Date(drop.soldTo.purchasedAt).toLocaleString()}</span></div><div style="margin-top:12px"><button onclick="refundPurchase('${drop.id}')" style="background:rgba(255,107,107,.1);border:1px solid rgba(255,107,107,.35);color:#ff6b6b;padding:6px 16px;font-size:.7rem;letter-spacing:1.5px;text-transform:uppercase;border-radius:2px;cursor:pointer;font-family:'DM Sans',sans-serif">↩ Issue Refund</button></div></div>`:`<div style="padding:14px 18px;font-size:.78rem;color:var(--muted)">No purchase yet.</div>`;
+    return`<div class="drop-group"><div class="drop-group-hd"><div><div class="drop-group-name" style="color:${isFlash?'#fbbf24':'var(--success)'}">${drop.name} <span style="font-size:.7rem;font-family:'DM Sans',sans-serif">[${typeLabel}]</span></div><div style="font-size:.7rem;color:var(--muted);margin-top:2px">${drop.status}${drop.sold?' · SOLD':''}</div></div><div style="display:flex;gap:8px"><button class="btn-tog" onclick="toggleStatus('${drop.id}')">${drop.status==='published'?'Archive':'Publish'}</button><button class="btn-del" onclick="deleteDrop('${drop.id}')">Delete</button></div></div>${timerRow}${badgesRow}${photosRow}${soldBlock}</div>`;}
     const db=bids.filter(b=>b.dropId===drop.id).sort((a,b)=>b.amount-a.amount);
     const rows=db.length?db.map(bid=>{const sf=parseFloat(bid.shippingFee)||0;const bidTotal=sf>0?`$${parseFloat(bid.amount).toFixed(2)}<br><span style="color:#fbbf24;font-size:.65rem">+$${sf.toFixed(2)} intl shipping</span>`:(`$${parseFloat(bid.amount).toFixed(2)}`);return`<tr><td><strong>${bid.name}</strong><br><span style="color:var(--muted);font-size:.7rem">${bid.email}</span></td><td style="font-size:.73rem;color:var(--muted)">${bid.phone||'—'}</td><td class="bid-amt">${bidTotal}</td><td style="font-size:.7rem;color:var(--muted)">${bid.address?`${bid.address.street}, ${bid.address.city} ${bid.address.state} ${bid.address.zip} — ${bid.address.country||''}`.trim().replace(/—\s*$/,''):'—'}</td><td>${bid.charged?`<span class="badge-charged">✅ Charged</span>`:bid.paymentMethodId&&bid.paymentMethodId!=='[no-stripe]'?`<button class="btn-charge" onclick="chargeCard('${bid.id}')">Charge Card</button>`:`<span class="badge-nocard">No card</span>`}</td><td style="font-size:.68rem;color:var(--muted)">${new Date(bid.createdAt).toLocaleDateString()}</td></tr>`;}).join(''):`<tr><td colspan="6" class="no-bids">No bids yet.</td></tr>`;
     return`<div class="drop-group"><div class="drop-group-hd"><div><div class="drop-group-name">${drop.name}</div><div style="font-size:.7rem;color:var(--muted);margin-top:2px">${drop.status} · ${db.length} bid(s)</div></div><div style="display:flex;gap:8px"><button class="btn-tog" onclick="toggleStatus('${drop.id}')">${drop.status==='published'?'Archive':'Publish'}</button><button class="btn-del" onclick="deleteDrop('${drop.id}')">Delete</button></div></div>${timerRow}${badgesRow}${photosRow}<div style="overflow-x:auto"><table class="bids-table"><thead><tr><th>Name/Email</th><th>Phone</th><th>Bid</th><th>Address</th><th>Action</th><th>Date</th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
@@ -2104,6 +2130,22 @@ async function deleteDrop(id){
   if(!confirm('Delete this item and all bids?'))return;
   if(!_adminPw){showToast('Admin session expired',true);return}
   try{const res=await fetch('/api/drops',{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,adminPw:_adminPw})});if(!res.ok){showToast('❌ Could not delete',true);return}try{await fetch('/api/bids',{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({dropId:id,adminPw:_adminPw})});}catch(e){}await refreshAll();renderAdminDrops();}catch(e){showToast('❌ Network error',true)}
+}
+
+// ── REFUND ──
+async function refundPurchase(dropId){
+  if(!_adminPw){showToast('Admin session expired',true);return;}
+  const drop=_drops.find(d=>d.id===dropId);
+  const buyerName=drop&&drop.soldTo?drop.soldTo.name:'this buyer';
+  const charged=drop&&drop.soldTo?`$${parseFloat(drop.soldTo.chargedPrice||0).toFixed(2)}`:'';
+  if(!confirm(`Issue a full refund of ${charged} to ${buyerName}? This will refund the Stripe charge and re-publish the item.`))return;
+  try{
+    const res=await fetch('/api/refund',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({dropId,adminPw:_adminPw})});
+    const data=await res.json();
+    if(!res.ok){showToast('❌ '+(data.error||'Refund failed'),true);return;}
+    showToast('✅ Refund issued — item re-published',false,true);
+    await refreshAll();renderAdminDrops();
+  }catch(e){showToast('❌ Network error',true);}
 }
 
 // ── DROP OFFER ──
