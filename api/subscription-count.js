@@ -24,7 +24,7 @@ module.exports = async (req, res) => {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
 
-  const ADMIN_PW = process.env.ADMIN_PASSWORD || 'vb2024';
+  const ADMIN_PW = process.env.ADMIN_PASSWORD;
 
   try {
     const total = parseInt((await redis('GET', 'subscribers:total')) || '0', 10);

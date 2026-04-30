@@ -224,7 +224,7 @@ module.exports = async (req, res) => {
   setCORS(res, req.method);
   if (req.method === 'OPTIONS') return res.status(200).end();
 
-  const ADMIN_PW = process.env.ADMIN_PASSWORD || 'vb2024';
+  const ADMIN_PW = process.env.ADMIN_PASSWORD;
 
   try {
     if (req.method === 'GET') {

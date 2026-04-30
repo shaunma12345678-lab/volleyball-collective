@@ -2447,7 +2447,6 @@ async function deletePromoCode(code){
 }
 
 // ── ADMIN ──
-const ADMIN_PW='vb2024';
 function openAdmin(){
   document.getElementById('admin-pw-gate').style.display='';
   document.getElementById('admin-dashboard').style.display='none';
@@ -2459,7 +2458,25 @@ function openAdmin(){
 async function adminLogin(){
   const pw=document.getElementById('admin-pw-input').value;
   const err=document.getElementById('admin-pw-err');
-  if(pw!==ADMIN_PW){err.textContent='Incorrect password.';err.style.display='block';document.getElementById('admin-pw-input').value='';document.getElementById('admin-pw-input').focus();return;}
+  if(!pw){err.textContent='Enter your password.';err.style.display='block';return;}
+  const btn=document.querySelector('#admin-pw-gate button');
+  if(btn){btn.disabled=true;btn.textContent='Checking…';}
+  try{
+    const res=await fetch('/api/email-subscribe?adminPw='+encodeURIComponent(pw));
+    if(res.status===403){
+      err.textContent='Incorrect password.';err.style.display='block';
+      document.getElementById('admin-pw-input').value='';
+      document.getElementById('admin-pw-input').focus();
+      return;
+    }
+    if(!res.ok&&res.status!==200){
+      err.textContent='Server error — try again.';err.style.display='block';return;
+    }
+  }catch(e){
+    err.textContent='Network error — try again.';err.style.display='block';return;
+  }finally{
+    if(btn){btn.disabled=false;btn.textContent='Enter →';}
+  }
   _adminPw=pw;
   document.getElementById('admin-pw-gate').style.display='none';
   document.getElementById('admin-dashboard').style.display='block';

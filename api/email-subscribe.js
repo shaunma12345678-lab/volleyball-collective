@@ -1,7 +1,7 @@
 const nodemailer = require('nodemailer');
 const crypto = require('crypto');
 
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'vb2024';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
 
 async function redis(...args) {
   const url = process.env.UPSTASH_REDIS_REST_URL;
