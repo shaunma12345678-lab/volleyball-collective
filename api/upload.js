@@ -22,8 +22,8 @@ module.exports = async (req, res) => {
     const buffer = Buffer.from(base64, 'base64');
     const filename = `drops/photo-${Date.now()}-${Math.random().toString(36).slice(2)}.jpg`;
 
-    const token = process.env.BLOB1_READ_WRITE_TOKEN || process.env.BLOB_READ_WRITE_TOKEN;
-    if (!token) return res.status(500).json({ error: 'Blob storage not configured — add BLOB1_READ_WRITE_TOKEN in Vercel environment variables' });
+    const token = process.env.BLOB2_READ_WRITE_TOKEN || process.env.BLOB1_READ_WRITE_TOKEN || process.env.BLOB_READ_WRITE_TOKEN;
+    if (!token) return res.status(500).json({ error: 'Blob storage not configured — add BLOB2_READ_WRITE_TOKEN in Vercel environment variables' });
 
     const blob = await put(filename, buffer, {
       access: 'public',
