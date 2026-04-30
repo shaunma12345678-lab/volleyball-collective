@@ -470,11 +470,16 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
     <span class="ht-small">Volleyball</span>
     <span class="ht-big">Collective</span>
   </h1>
-  <p class="hero-sub">Rare jersey auctions and direct purchases. Bid to win or buy instantly — all payments secured by Stripe.</p>
+  <p class="hero-sub">Bid any amount on rare volleyball jerseys — your card is saved but <strong style="color:var(--fr-white)">never charged unless you win</strong>. Lose? You owe nothing.</p>
   <div class="divider-row"><span>Bid · Win · Buy · Wear</span></div>
   <div class="hero-cta">
     <a href="#drops" class="btn-primary">View Auctions</a>
     <a href="#membership" class="btn-ghost">Join Members</a>
+  </div>
+  <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:22px;animation:fadeUp .9s ease .5s both">
+    <span style="background:rgba(62,207,142,.1);border:1px solid rgba(62,207,142,.25);color:#3ecf8e;padding:7px 16px;border-radius:20px;font-size:.7rem;letter-spacing:2px;text-transform:uppercase">✓ Bid any amount</span>
+    <span style="background:rgba(62,207,142,.1);border:1px solid rgba(62,207,142,.25);color:#3ecf8e;padding:7px 16px;border-radius:20px;font-size:.7rem;letter-spacing:2px;text-transform:uppercase">✓ Card saved — not charged</span>
+    <span style="background:rgba(62,207,142,.1);border:1px solid rgba(62,207,142,.25);color:#3ecf8e;padding:7px 16px;border-radius:20px;font-size:.7rem;letter-spacing:2px;text-transform:uppercase">✓ Only the winner pays</span>
   </div>
   <div class="hero-stats">
     <div class="stat"><span class="stat-num" id="stat-drops">0</span><span class="stat-label">Active Auctions</span></div>
@@ -577,8 +582,8 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
     </div>
     <div class="how-grid">
       <div class="how-step"><span class="how-num">01</span><span class="how-icon">👀</span><div class="how-title">Browse Drops</div><p class="how-text">View auctions and shop items. Bid to compete or buy instantly at the listed price.</p></div>
-      <div class="how-step"><span class="how-num">02</span><span class="how-icon">💳</span><div class="how-title">Bid or Buy</div><p class="how-text">Place a bid with your card saved but not charged, or hit Buy Now to pay the fixed price instantly.</p></div>
-      <div class="how-step"><span class="how-num">03</span><span class="how-icon">🏆</span><div class="how-title">Win or Confirm</div><p class="how-text">Auction winners are chosen and charged. Buy Now orders are confirmed immediately.</p></div>
+      <div class="how-step"><span class="how-num">02</span><span class="how-icon">💳</span><div class="how-title">Bid Any Amount</div><p class="how-text">Enter any bid — your card is saved securely via Stripe but <strong>never charged</strong>. If someone outbids you, you owe absolutely nothing.</p></div>
+      <div class="how-step"><span class="how-num">03</span><span class="how-icon">🏆</span><div class="how-title">Only the Winner Pays</div><p class="how-text">When the auction closes, only the highest bidder's card is charged. Everyone else walks away owing zero.</p></div>
       <div class="how-step"><span class="how-num">04</span><span class="how-icon">🚚</span><div class="how-title">Delivered</div><p class="how-text">We coordinate shipping directly. You'll get a confirmation email with all the details.</p></div>
     </div>
   </div>
@@ -613,7 +618,7 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
   <div class="modal">
     <div id="bid-form-view">
       <div class="modal-header">
-        <div><div class="modal-title" id="bid-modal-title">Place Your Bid</div><div class="modal-sub">Card saved · NOT charged until you win</div></div>
+        <div><div class="modal-title" id="bid-modal-title">Place Your Bid</div><div class="modal-sub">Enter any amount · Card saved, <strong>never charged</strong> unless you win · Lose? You owe nothing</div></div>
         <button class="btn-close" onclick="closeModal('bid-overlay')">✕</button>
       </div>
       <div class="modal-body">
@@ -1491,7 +1496,7 @@ function renderDrops(){
       ?`<button class="btn-bid-card" style="background:rgba(123,159,212,.15);border:1px solid rgba(123,159,212,.4);color:var(--muted)" onclick="event.stopPropagation();openNotifyModal('${d.id}','${d.name.replace(/'/g,"\\'").replace(/"/g,'&quot;')}','teaser')">Notify Me →</button>`
       :isLocked
         ?`<button class="btn-bid-card btn-member-lock" onclick="event.stopPropagation();openMemberVerify(()=>openBidModal('${d.id}'))">🔒 Members Only</button>`
-        :`<button class="btn-bid-card" onclick="event.stopPropagation();openBidModal('${d.id}')">Place Bid →</button>`;
+        :`<div onclick="event.stopPropagation()"><button class="btn-bid-card" onclick="openBidModal('${d.id}')">Place Bid →</button><div style="font-size:.62rem;color:var(--muted);text-align:center;margin-top:5px;letter-spacing:.5px">✓ No charge unless you win</div></div>`;
     const offerRow=isTeaser?'':`<div class="drop-offer-row"><button class="drop-offer-link" onclick="event.stopPropagation();openDropOfferModal('${d.id}','${d.name.replace(/'/g,"\\'").replace(/"/g,'&quot;')}')"><span class="bell-icon">🔔</span> Get 5% off this drop — click here</button><button class="drop-offer-link" style="color:var(--muted);margin-top:2px" onclick="event.stopPropagation();openNotifyModal('${d.id}','${d.name.replace(/'/g,"\\'").replace(/"/g,'&quot;')}','similar')"><span class="bell-icon">🔔</span> Notify me for drops like this</button></div>`;
     const watchCount=_watchCounts[d.id]||0;
     const notifyCount=isTeaser?((_notifyCounts&&_notifyCounts[d.id])||0):0;
