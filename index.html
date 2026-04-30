@@ -458,6 +458,10 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
 .btn-add-cart:hover{transform:translateY(-1px);box-shadow:0 6px 22px rgba(237,41,57,.5)}
 .btn-add-cart.in-cart{background:rgba(62,207,142,.15);border:1px solid rgba(62,207,142,.5);color:#3ecf8e}
 .btn-add-cart.in-cart:hover{background:rgba(62,207,142,.25)}
+.shop-btn-row{display:flex;gap:8px}
+.shop-btn-row .btn-add-cart{flex:1;font-size:.82rem;padding:10px 8px;letter-spacing:2px}
+.shop-btn-row .btn-buynow-instant{flex:1;font-size:.82rem;padding:10px 8px;background:var(--success);color:#021a0e;border:none;font-family:'Bebas Neue',sans-serif;letter-spacing:2px;cursor:pointer;border-radius:2px;transition:all .2s;white-space:nowrap;font-weight:700}
+.shop-btn-row .btn-buynow-instant:hover{background:#5de3a8;transform:translateY(-1px);box-shadow:0 6px 20px rgba(62,207,142,.35)}
 /* Free shipping chip */
 .free-ship-chip{display:inline-flex;align-items:center;gap:4px;background:rgba(62,207,142,.08);border:1px solid rgba(62,207,142,.22);color:#3ecf8e;font-size:.58rem;letter-spacing:1.5px;text-transform:uppercase;padding:3px 8px;border-radius:10px;margin-left:6px;vertical-align:middle}
 /* Bundle */
@@ -475,6 +479,44 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
 #urgency-bar a:hover,#urgency-bar button.urgency-cta:hover{background:rgba(255,255,255,.32)}
 .urgency-dot{width:7px;height:7px;border-radius:50%;background:#fff;display:inline-block;animation:urgencyPulse 1.4s ease-in-out infinite;flex-shrink:0}
 @keyframes urgencyPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.6)}}
+/* Trust bar */
+.trust-bar{position:relative;z-index:2;background:rgba(0,21,79,.55);border-top:1px solid rgba(0,35,149,.3);border-bottom:1px solid rgba(0,35,149,.3);padding:14px 24px;display:flex;justify-content:center;align-items:center;gap:32px;flex-wrap:wrap}
+.trust-item{display:flex;align-items:center;gap:8px;font-size:.68rem;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);white-space:nowrap}
+.trust-item svg{flex-shrink:0;opacity:.75}
+.trust-item strong{color:var(--fr-white);font-weight:500}
+.trust-divider{width:1px;height:18px;background:rgba(123,159,212,.2);flex-shrink:0}
+@media(max-width:640px){.trust-divider{display:none}.trust-bar{gap:14px 20px;padding:12px 16px}.trust-item{font-size:.62rem}}
+/* One-of-one badge */
+.one-of-one-badge{position:absolute;bottom:10px;left:10px;background:linear-gradient(135deg,#7c3aed,#a855f7);color:#fff;font-family:'Bebas Neue',sans-serif;font-size:.82rem;letter-spacing:3px;padding:4px 10px;border-radius:2px;z-index:5;box-shadow:0 2px 8px rgba(124,58,237,.45)}
+.one-of-one-strip{background:linear-gradient(90deg,rgba(124,58,237,.12),rgba(168,85,247,.08));border:1px solid rgba(168,85,247,.25);border-radius:3px;padding:9px 14px;margin:8px 0;font-size:.74rem;color:#c4b5fd;line-height:1.5;display:flex;align-items:center;gap:8px}
+/* FAQ section */
+#faq{position:relative;z-index:2;padding:90px 48px;border-top:1px solid rgba(0,35,149,.25)}
+.faq-inner{max-width:780px;margin:0 auto}
+.faq-list{margin-top:44px;display:flex;flex-direction:column;gap:2px}
+.faq-item{border:1px solid rgba(0,35,149,.3);border-radius:4px;overflow:hidden;background:rgba(0,18,96,.3);transition:border-color .2s}
+.faq-item.open{border-color:rgba(0,35,149,.55)}
+.faq-q{width:100%;background:none;border:none;padding:18px 22px;text-align:left;color:var(--fr-white);font-family:'DM Sans',sans-serif;font-size:.88rem;font-weight:500;letter-spacing:.3px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:16px;transition:background .2s}
+.faq-q:hover{background:rgba(0,35,149,.18)}
+.faq-arrow{color:var(--muted);font-size:.88rem;transition:transform .25s;flex-shrink:0}
+.faq-item.open .faq-arrow{transform:rotate(180deg);color:var(--fr-red)}
+.faq-a{display:none;padding:0 22px 18px;font-size:.84rem;color:var(--muted);line-height:1.75}
+.faq-item.open .faq-a{display:block}
+.faq-a strong{color:var(--fr-white)}
+@media(max-width:640px){#faq{padding:70px 20px}.faq-q{font-size:.82rem;padding:14px 16px}.faq-a{padding:0 16px 14px}}
+/* Guarantee section */
+#guarantee{position:relative;z-index:2;padding:90px 48px;border-top:1px solid rgba(0,35,149,.25);background:linear-gradient(180deg,rgba(62,207,142,.04) 0%,transparent 100%)}
+.guarantee-inner{max-width:1000px;margin:0 auto}
+.guarantee-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:22px;margin-top:44px}
+.guarantee-card{background:rgba(0,18,96,.35);border:1px solid rgba(62,207,142,.18);border-radius:6px;padding:26px 22px;text-align:center;transition:border-color .2s,transform .2s}
+.guarantee-card:hover{border-color:rgba(62,207,142,.4);transform:translateY(-3px)}
+.guarantee-icon{font-size:2rem;margin-bottom:12px}
+.guarantee-title{font-family:'Bebas Neue',sans-serif;font-size:1.1rem;letter-spacing:3px;color:var(--success);margin-bottom:8px}
+.guarantee-text{font-size:.8rem;color:var(--muted);line-height:1.7}
+/* Admin one-of-one toggle */
+.admin-toggle-row{display:flex;align-items:center;gap:10px;padding:14px 0;border-top:1px solid rgba(0,35,149,.2);margin-top:6px;cursor:pointer}
+.admin-toggle-row input[type=checkbox]{width:18px;height:18px;accent-color:var(--fr-red);cursor:pointer;flex-shrink:0}
+.admin-toggle-label{font-size:.8rem;color:var(--fr-white);line-height:1.4;user-select:none}
+.admin-toggle-sub{font-size:.71rem;color:var(--muted);display:block;margin-top:2px}
 /* Exit intent popup */
 #exit-overlay{position:fixed;inset:0;background:rgba(0,5,20,.9);z-index:3000;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s;backdrop-filter:blur(6px)}
 #exit-overlay.active{opacity:1;pointer-events:all}
@@ -509,6 +551,7 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
     <a href="#flash" style="color:#fbbf24!important;font-weight:600">⚡ Flash Sale</a>
     <a href="#membership">Members</a>
     <a href="#how">How It Works</a>
+    <a href="#faq">FAQ</a>
     <a href="#newsletter" style="color:#3ecf8e!important;font-weight:600">Get 10% Off</a>
     <a href="https://www.instagram.com/volleyballcollective/" target="_blank" rel="noopener" aria-label="Instagram" style="display:flex;align-items:center;color:var(--muted);transition:color .2s" onmouseover="this.style.color='#E1306C'" onmouseout="this.style.color=''"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg></a>
     <button class="cart-icon-btn" onclick="openCartDrawer()" aria-label="Cart">
@@ -528,6 +571,7 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
   <a href="#flash" onclick="closeMobileMenu()" style="color:#fbbf24!important;font-weight:600">⚡ Flash Sale</a>
   <a href="#membership" onclick="closeMobileMenu()">Members</a>
   <a href="#how" onclick="closeMobileMenu()">How It Works</a>
+  <a href="#faq" onclick="closeMobileMenu()">FAQ</a>
   <a href="#newsletter" onclick="closeMobileMenu()" style="color:#3ecf8e!important">Get 10% Off 🎁</a>
   <a href="#" onclick="closeMobileMenu();openCartDrawer();return false" style="color:var(--fr-white)!important">🛒 Cart <span id="cart-badge-mobile" style="display:none;background:var(--fr-red);color:#fff;border-radius:50%;padding:1px 6px;font-size:.65rem;margin-left:4px">0</span></a>
   <div class="mobile-menu-divider"></div>
@@ -584,6 +628,19 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
   <span class="urgency-dot"></span>
   <span id="urgency-text">🏐 Auctions are live — place your bid now</span>
   <a href="#drops" class="urgency-cta">Bid Now →</a>
+</div>
+
+<!-- TRUST BAR -->
+<div class="trust-bar">
+  <div class="trust-item"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3ecf8e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><span><strong>Stripe Secured</strong> · 256-bit SSL</span></div>
+  <div class="trust-divider"></div>
+  <div class="trust-item"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3ecf8e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span><strong>Only Winner Pays</strong> · Lose? You owe nothing</span></div>
+  <div class="trust-divider"></div>
+  <div class="trust-item"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3ecf8e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg><span><strong>Free US Shipping</strong> · On every order</span></div>
+  <div class="trust-divider"></div>
+  <div class="trust-item"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3ecf8e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><span><strong>No Surprises</strong> · Bid, win, done</span></div>
+  <div class="trust-divider"></div>
+  <div class="trust-item"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3ecf8e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span><strong>100% Authentic</strong> · Every jersey verified</span></div>
 </div>
 
 <!-- AUCTIONS -->
@@ -664,6 +721,100 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
       <div class="how-step"><span class="how-num">02</span><span class="how-icon">💳</span><div class="how-title">Bid Any Amount</div><p class="how-text">Enter any bid — your card is saved securely via Stripe but <strong>never charged</strong>. If someone outbids you, you owe absolutely nothing.</p></div>
       <div class="how-step"><span class="how-num">03</span><span class="how-icon">🏆</span><div class="how-title">Only the Winner Pays</div><p class="how-text">When the auction closes, only the highest bidder's card is charged. Everyone else walks away owing zero.</p></div>
       <div class="how-step"><span class="how-num">04</span><span class="how-icon">🚚</span><div class="how-title">Delivered</div><p class="how-text">We coordinate shipping directly. You'll get a confirmation email with all the details.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- GUARANTEE SECTION -->
+<section id="guarantee">
+  <div class="guarantee-inner">
+    <div style="text-align:center">
+      <span class="section-eyebrow">Our Promise</span>
+      <h2 class="section-title">The VC Guarantee</h2>
+      <p style="font-family:'Playfair Display',serif;font-style:italic;color:var(--muted);font-size:.95rem;max-width:520px;margin:14px auto 0;line-height:1.7">Every drop is built on one principle: you only pay if you win. No games, no fine print.</p>
+    </div>
+    <div class="guarantee-grid">
+      <div class="guarantee-card">
+        <div class="guarantee-icon">🔒</div>
+        <div class="guarantee-title">Zero Bid Risk</div>
+        <p class="guarantee-text">Your card is saved via Stripe but <strong style="color:var(--fr-white)">never charged unless you win</strong>. Lose? Walk away owing absolutely nothing.</p>
+      </div>
+      <div class="guarantee-card">
+        <div class="guarantee-icon">🏆</div>
+        <div class="guarantee-title">Authentic Items Only</div>
+        <p class="guarantee-text">Every jersey and piece of kit is <strong style="color:var(--fr-white)">personally verified</strong> before it hits the platform. What you see is exactly what you get.</p>
+      </div>
+      <div class="guarantee-card">
+        <div class="guarantee-icon">📦</div>
+        <div class="guarantee-title">Fast Shipping</div>
+        <p class="guarantee-text">Winners receive a shipping confirmation within 48 hours. <strong style="color:var(--fr-white)">Free for all US orders.</strong> International ships via DHL.</p>
+      </div>
+      <div class="guarantee-card">
+        <div class="guarantee-icon">💬</div>
+        <div class="guarantee-title">Real Support</div>
+        <p class="guarantee-text">Questions after winning? We respond directly — no bots. Reach us via <strong style="color:var(--fr-white)">Instagram @volleyballcollective</strong> or email.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ SECTION -->
+<section id="faq">
+  <div class="faq-inner">
+    <div style="text-align:center">
+      <span class="section-eyebrow">Questions</span>
+      <h2 class="section-title">FAQ</h2>
+    </div>
+    <div class="faq-list">
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          <span>Do I get charged just for placing a bid?</span>
+          <span class="faq-arrow">▾</span>
+        </button>
+        <div class="faq-a"><strong>No — never.</strong> Your card is saved securely via Stripe when you bid, but it is <strong>not charged at that point</strong>. The only person charged is the highest bidder when the auction closes. If someone outbids you, or the auction ends and you didn't win, you owe nothing and your card is never touched.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          <span>What happens when I lose an auction?</span>
+          <span class="faq-arrow">▾</span>
+        </button>
+        <div class="faq-a">You receive an email letting you know the auction closed. <strong>Your card is never charged.</strong> You owe nothing. We'll let you know when the next drop goes live so you can be ready.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          <span>When exactly does my card get charged?</span>
+          <span class="faq-arrow">▾</span>
+        </button>
+        <div class="faq-a">Only when the admin closes the auction and manually confirms you as the winner. You'll receive a confirmation email the moment your card is charged, with a full receipt showing the item name, amount, and any discounts applied.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          <span>How does shipping work?</span>
+          <span class="faq-arrow">▾</span>
+        </button>
+        <div class="faq-a"><strong>US orders ship free</strong> — no hidden fees. International orders have a flat $20 shipping fee added at checkout. We ship via USPS / DHL through Pirate Ship. You'll receive tracking information once your order ships, typically within 48 hours of winning.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          <span>Are the jerseys authentic?</span>
+          <span class="faq-arrow">▾</span>
+        </button>
+        <div class="faq-a">Yes — 100%. Every item listed on Volleyball Collective is personally verified before being published. Item condition (New, Like New, Excellent, etc.) is noted on every card. What you see is exactly what you receive.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          <span>Can I get a refund if something is wrong?</span>
+          <span class="faq-arrow">▾</span>
+        </button>
+        <div class="faq-a">If there's a genuine problem with your order — wrong item, significant condition discrepancy — reach out to us immediately via Instagram or email. We handle issues directly and fairly. Our goal is for every buyer to be thrilled with their purchase.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          <span>What does "1 of 1" mean?</span>
+          <span class="faq-arrow">▾</span>
+        </button>
+        <div class="faq-a">It means there is <strong>exactly one</strong> of that item in existence on this platform. Once it sells, it's gone — we don't restock it. If you see a 1 of 1 tag, treat it as a rare opportunity.</div>
+      </div>
     </div>
   </div>
 </section>
@@ -1005,6 +1156,13 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
             <button type="button" class="badge-toggle" data-badge="mint" data-label="Mint" data-color="green" onclick="toggleBadge(this)">💎 Mint</button>
           </div>
         </div>
+        <label class="admin-toggle-row" for="add-one-of-one">
+          <input type="checkbox" id="add-one-of-one">
+          <span class="admin-toggle-label">
+            1 of 1 — if it's gone, it's gone
+            <span class="admin-toggle-sub">Shows a purple "1 OF 1" badge on the card and a scarcity message to buyers</span>
+          </span>
+        </label>
         <div style="display:flex;gap:12px;flex-wrap:wrap">
           <button class="btn-submit" style="flex:1;min-width:140px" id="publish-btn" onclick="addDrop('published')"><span class="btn-text" id="publish-btn-text">+ Publish Drop</span><div class="spinner"></div></button>
           <button class="btn-secondary" style="flex:1;min-width:120px;border-color:rgba(245,240,232,.35);color:var(--fr-white)" onclick="addDrop('teaser')">📣 Tease It</button>
@@ -1790,13 +1948,16 @@ function renderDrops(){
     const hotBadgeText=hotLevel===3?'🔥 On Fire':hotLevel===2?'🔥 Heating Up':hotLevel===1?'🔥 Hot':'';
     const hotBadge=hotLevel?`<span class="hot-badge hot-badge-${hotLevel}">${hotBadgeText}</span>`:'';
     const customBadges=d.badges&&d.badges.length?`<div class="drop-img-badges">${d.badges.map(b=>`<span class="item-badge item-badge-${b.color}">${b.label}</span>`).join('')}</div>`:'';
-    return`<div class="drop-card${isTeaser?' teaser-card':''}${hotClass}" data-drop-id="${d.id}" style="animation-delay:${i*.09}s${isTeaser?';cursor:default':''}"${cardClick?` onclick="${cardClick}"`:''}">
-      <div class="drop-img-wrap">${img}${teaserOverlay}${lockOverlay}${badgeChipFinal}${memberBadge}${hotBadge}${customBadges}</div>
+    const oneOfOneBadge=d.oneOfOne?`<span class="one-of-one-badge">1 OF 1</span>`:'';
+    const oneOfOneStrip=d.oneOfOne&&!isTeaser?`<div class="one-of-one-strip">💎 <span>There is <strong style="color:#e9d5ff">exactly one</strong> of this item — once it's gone, it's gone forever.</span></div>`:'';
+    return`<div class="drop-card${isTeaser?' teaser-card':''}${hotClass}" data-drop-id="${d.id}" style="animation-delay:${i*.09}s${isTeaser?';cursor:default':''}"${cardClick?` onclick="${cardClick}"`:''}}>
+      <div class="drop-img-wrap">${img}${teaserOverlay}${lockOverlay}${badgeChipFinal}${memberBadge}${hotBadge}${customBadges}${oneOfOneBadge}</div>
       <div class="card-stripe"></div>
       <div class="drop-body">
         <div class="drop-name">${d.name}</div>
         <div class="drop-meta">${d.size?`<span>Size: ${d.size}</span>`:''}${d.condition?`<span>${d.condition}</span>`:''}</div>
         ${d.desc?`<p class="drop-desc">${d.desc}</p>`:''}
+        ${oneOfOneStrip}
         <div class="drop-footer">${footerLeft}${actionBtn}</div>
         ${offerRow}${viewersRow}${notifyWaitingRow}
       </div>
@@ -1831,13 +1992,14 @@ function renderShop(){
     const savingsPct=isBundle&&d.bundleRetail&&parseFloat(d.bundleRetail)>0?Math.round((1-parseFloat(d.price)/parseFloat(d.bundleRetail))*100):0;
     const badgeChip=isTeaser?`<span class="teaser-badge-chip">Coming Soon</span>`:isBundle?`<span class="bundle-badge-chip">📦 Bundle Deal</span>`:`<span class="buynow-badge-chip">Buy Now</span>`;
     const inCart=cartIncludes(d.id);
+    const safeName=d.name.replace(/'/g,"\\'").replace(/"/g,'&quot;');
     const buyBtn=isTeaser
-      ?`<button class="btn-buynow-card" style="background:rgba(123,159,212,.15);border:1px solid rgba(123,159,212,.4);color:var(--muted);font-weight:400" onclick="event.stopPropagation();openNotifyModal('${d.id}','${d.name.replace(/'/g,"\\'").replace(/"/g,'&quot;')}','teaser')">Notify Me →</button>`
+      ?`<button class="btn-buynow-card" style="background:rgba(123,159,212,.15);border:1px solid rgba(123,159,212,.4);color:var(--muted);font-weight:400" onclick="event.stopPropagation();openNotifyModal('${d.id}','${safeName}','teaser')">Notify Me →</button>`
       :d.sold
-        ?`<button class="btn-notify-card" onclick="event.stopPropagation();openNotifyModal('${d.id}','${d.name.replace(/'/g,"\\'").replace(/"/g,'&quot;')}')">Notify Me →</button>`
+        ?`<button class="btn-notify-card" onclick="event.stopPropagation();openNotifyModal('${d.id}','${safeName}')">Notify Me →</button>`
         :isLocked
           ?`<button class="btn-buynow-card btn-member-lock" onclick="openMemberVerify(()=>addToCart('${d.id}'))">🔒 Members Only</button>`
-          :`<button class="btn-add-cart${inCart?' in-cart':''}" onclick="event.stopPropagation();addToCart('${d.id}')">${inCart?'✓ In Cart':'🛒 Add to Cart'}</button>`;
+          :`<div class="shop-btn-row"><button class="btn-add-cart${inCart?' in-cart':''}" onclick="event.stopPropagation();addToCart('${d.id}')">${inCart?'✓ In Cart':'🛒 Cart'}</button><button class="btn-buynow-instant" onclick="event.stopPropagation();openBuyNowModal('${d.id}')">Buy Now</button></div>`;
     const shopWatchCount=_watchCounts[d.id]||0;
     const shopNotifyCount=isTeaser?((_notifyCounts&&_notifyCounts[d.id])||0):0;
     const shopViewersRow=!isTeaser&&shopWatchCount>0?`<div class="live-viewers-row"><span class="live-dot"></span>${shopWatchCount} viewing right now</div>`:'';
@@ -1851,16 +2013,19 @@ function renderShop(){
       :`<div><span class="price-tag">$${parseFloat(d.price||0).toFixed(2)}</span>${freeShip}${shopEndStr}</div>`;
     const offerRow=isTeaser||d.sold?'':`<div class="drop-offer-row"><button class="drop-offer-link" onclick="event.stopPropagation();openDropOfferModal('${d.id}','${d.name.replace(/'/g,"\\'").replace(/"/g,'&quot;')}')"><span class="bell-icon">🔔</span> Get 5% off this item — click here</button><button class="drop-offer-link" style="color:var(--muted);margin-top:2px" onclick="event.stopPropagation();openNotifyModal('${d.id}','${d.name.replace(/'/g,"\\'").replace(/"/g,'&quot;')}','similar')"><span class="bell-icon">🔔</span> Notify me for items like this</button></div>`;
     const shopCustomBadges=d.badges&&d.badges.length?`<div class="drop-img-badges">${d.badges.map(b=>`<span class="item-badge item-badge-${b.color}">${b.label}</span>`).join('')}</div>`:'';
+    const shopOneOfOneBadge=d.oneOfOne?`<span class="one-of-one-badge">1 OF 1</span>`:'';
+    const shopOneOfOneStrip=d.oneOfOne&&!isTeaser&&!d.sold?`<div class="one-of-one-strip">💎 <span>There is <strong style="color:#e9d5ff">exactly one</strong> of this item — once it's gone, it's gone forever.</span></div>`:'';
     const cardStripe=isBundle?`<div class="card-stripe-bundle"></div>`:`<div class="card-stripe-green"></div>`;
     return`<div class="drop-card buynow-card${isBundle?' bundle-card':''}${isTeaser?' teaser-card':''}" style="animation-delay:${i*.09}s${isTeaser?';cursor:default':''}"${!isTeaser&&isLocked?` onclick="openMemberVerify(()=>addToCart('${d.id}'))"`:''}>
-      <div class="drop-img-wrap">${img}${soldOverlay}${teaserOverlay}${lockOverlay}${badgeChip}${memberBadge}${shopCustomBadges}</div>
+      <div class="drop-img-wrap">${img}${soldOverlay}${teaserOverlay}${lockOverlay}${badgeChip}${memberBadge}${shopCustomBadges}${shopOneOfOneBadge}</div>
       ${cardStripe}
       <div class="drop-body">
         <div class="drop-name">${d.name}</div>
         <div class="drop-meta">${d.size?`<span>Size: ${d.size}</span>`:''}${d.condition?`<span>${d.condition}</span>`:''}</div>
         ${d.desc?`<p class="drop-desc">${d.desc}</p>`:''}
         ${bundleItemsHtml}${bundleSaveHtml}
-        <div class="drop-footer">${priceOrLabel}${buyBtn}</div>
+        ${shopOneOfOneStrip}
+        <div class="drop-footer" style="flex-direction:column;align-items:stretch;gap:10px">${priceOrLabel}${buyBtn}</div>
         ${offerRow}${shopViewersRow}${shopNotifyWaitingRow}
       </div>
     </div>`;
@@ -1893,13 +2058,16 @@ function renderFlash(){
         :`<button class="btn-add-cart${inCartF?' in-cart':''}" onclick="event.stopPropagation();addToCart('${d.id}')">${inCartF?'✓ In Cart':'🛒 Add to Cart'}</button>`;
     const flashFreeShip=!d.sold?`<span class="free-ship-chip">🇺🇸 Free US Shipping</span>`:'';
     const flashCustomBadges=d.badges&&d.badges.length?`<div class="drop-img-badges">${d.badges.map(b=>`<span class="item-badge item-badge-${b.color}">${b.label}</span>`).join('')}</div>`:'';
+    const flashOneOfOneBadge=d.oneOfOne?`<span class="one-of-one-badge">1 OF 1</span>`:'';
+    const flashOneOfOneStrip=d.oneOfOne&&!d.sold?`<div class="one-of-one-strip">💎 <span>There is <strong style="color:#e9d5ff">exactly one</strong> of this item — once it's gone, it's gone forever.</span></div>`:'';
     return`<div class="drop-card flash-card" style="animation-delay:${i*.09}s">
-      <div class="drop-img-wrap">${img}${soldOverlay}${lockOverlay}<span class="flash-badge-chip">⚡ Flash Sale</span>${memberBadge}${flashCustomBadges}</div>
+      <div class="drop-img-wrap">${img}${soldOverlay}${lockOverlay}<span class="flash-badge-chip">⚡ Flash Sale</span>${memberBadge}${flashCustomBadges}${flashOneOfOneBadge}</div>
       <div class="card-stripe-flash"></div>
       <div class="drop-body">
         <div class="drop-name">${d.name}</div>
         <div class="drop-meta">${d.size?`<span>Size: ${d.size}</span>`:''}${d.condition?`<span>${d.condition}</span>`:''}</div>
         ${d.desc?`<p class="drop-desc">${d.desc}</p>`:''}
+        ${flashOneOfOneStrip}
         <div class="drop-footer"><div>${priceDisplay}${flashFreeShip}</div>${btn}</div>
         <div class="drop-offer-row" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px">${watchStr}<button class="drop-offer-link" style="color:var(--muted)" onclick="event.stopPropagation();openNotifyModal('${d.id}','${d.name.replace(/'/g,"\\'").replace(/"/g,'&quot;')}','similar')"><span class="bell-icon">🔔</span> Notify me for flash sales</button></div>
       </div>
@@ -2828,7 +2996,8 @@ async function addDrop(status){
     photos=uploadedPhotos.filter(p=>p.url).map(p=>p.url);
     photo=photos[0]||'';
   }else if(photoMode==='url'){photo=document.getElementById('add-photo-url').value.trim();if(photo)photos=[photo];}
-  const drop={id:'drop_'+Date.now(),name,desc,size,condition,photo,photos,status,type:_listingType,memberOnly:_accessType==='members',badges:_dropBadges.length>0?[..._dropBadges]:undefined,createdAt:new Date().toISOString()};
+  const oneOfOneEl=document.getElementById('add-one-of-one');
+  const drop={id:'drop_'+Date.now(),name,desc,size,condition,photo,photos,status,type:_listingType,memberOnly:_accessType==='members',oneOfOne:oneOfOneEl&&oneOfOneEl.checked?true:undefined,badges:_dropBadges.length>0?[..._dropBadges]:undefined,createdAt:new Date().toISOString()};
   if(_listingType==='buynow'||_listingType==='flash'||_listingType==='bundle')drop.price=price;
   if(_listingType==='flash'){const op=document.getElementById('add-original-price').value.trim();if(op&&parseFloat(op)>0)drop.originalPrice=op;}
   if(_listingType==='bundle'){const bi=document.getElementById('add-bundle-items').value.trim();if(bi)drop.bundleItems=bi;const br=document.getElementById('add-bundle-retail').value.trim();if(br&&parseFloat(br)>0)drop.bundleRetail=br;}
@@ -2850,8 +3019,16 @@ async function addDrop(status){
   _accessType='public';setAccessType('public');
   _dropDuration=0;setDropDuration(0);
   _dropBadges=[];document.querySelectorAll('.badge-toggle.active-badge').forEach(b=>b.classList.remove('active-badge'));
+  const _ooEl=document.getElementById('add-one-of-one');if(_ooEl)_ooEl.checked=false;
   showToast(status==='published'?(_listingType==='flash'?'⚡ Flash sale launched!':_listingType==='buynow'?'✅ Added to shop!':'✅ Drop published!'):status==='teaser'?'📣 Drop teased — showing as Coming Soon!':'📝 Draft saved!');
   if(status==='published'||status==='teaser')switchTab('tab-drops');
+}
+
+function toggleFaq(btn){
+  const item=btn.closest('.faq-item');
+  const isOpen=item.classList.contains('open');
+  document.querySelectorAll('.faq-item.open').forEach(el=>{if(el!==item)el.classList.remove('open');});
+  item.classList.toggle('open',!isOpen);
 }
 
 function showToast(msg,err=false,ok=false){
