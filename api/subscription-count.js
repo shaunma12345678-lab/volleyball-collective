@@ -49,6 +49,7 @@ module.exports = async (req, res) => {
       return res.status(200).json({ total, spotsLeft, isEarlyBird, currentPrice, subscribers });
     }
 
+    res.setHeader('Cache-Control', 'public, s-maxage=30, stale-while-revalidate=120');
     return res.status(200).json({ total, spotsLeft, isEarlyBird, currentPrice });
   } catch (err) {
     console.error('subscription-count error:', err);

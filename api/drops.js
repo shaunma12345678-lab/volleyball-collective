@@ -210,15 +210,17 @@ async function redis(...args) {
   return data.result;
 }
 
-function setCORS(res) {
+function setCORS(res, method) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   res.setHeader('Content-Type', 'application/json');
-  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
+  res.setHeader('Cache-Control', method === 'GET'
+    ? 'public, s-maxage=15, stale-while-revalidate=60'
+    : 'no-store');
 }
 
 module.exports = async (req, res) => {
-  setCORS(res);
+  setCORS(res, req.method);
   if (req.method === 'OPTIONS') return res.status(200).end();
 
   const ADMIN_PW = process.env.ADMIN_PASSWORD || 'vb2024';
@@ -267,7 +269,16 @@ module.exports = async (req, res) => {
         if (count) notifyCounts[d.id] = parseInt(count);
       }));
 
-      return res.status(200).json({ drops, watchCounts, notifyCounts });
+      // Strip base64 data URLs — they bloat every response by hundreds of KB.
+      // Photos should live in Vercel Blob (short URLs). If any slipped in as base64, omit them.
+      const safeDrops = drops.map(d => {
+        const clean = { ...d };
+        if (clean.photo && clean.photo.startsWith('data:')) clean.photo = '';
+        if (Array.isArray(clean.photos)) clean.photos = clean.photos.map(p => (p && p.startsWith('data:') ? '' : p)).filter(Boolean);
+        return clean;
+      });
+
+      return res.status(200).json({ drops: safeDrops, watchCounts, notifyCounts });
     }
 
     const body = req.body || {};

@@ -200,6 +200,8 @@ module.exports = async (req, res) => {
         .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
       if (isAdmin) return res.status(200).json({ bids });
+      // Public response: minimal fields only + allow CDN caching
+      res.setHeader('Cache-Control', 'public, s-maxage=10, stale-while-revalidate=30');
       return res.status(200).json({
         bids: bids.map(b => ({ id: b.id, dropId: b.dropId, amount: b.amount, createdAt: b.createdAt })),
       });

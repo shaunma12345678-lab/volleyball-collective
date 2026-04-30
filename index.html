@@ -1352,12 +1352,12 @@ document.querySelectorAll('button,a,.drop-card').forEach(el=>{
 let _drops=[],_bids=[],_adminPw=null,_subData={total:0,spotsLeft:200,isEarlyBird:true,currentPrice:'9.99'},_watchCounts={},_notifyCounts={},_prevBidsByDrop=null,_flashDropIds=new Set(),_bgProcessing=new Set();
 
 // ── FETCH ──
-async function fetchDrops(){
-  try{const r=await fetch('/api/drops?_t='+Date.now(),{cache:'no-store'});if(!r.ok)return;const data=await r.json();if(Array.isArray(data.drops))_drops=data.drops;if(data.watchCounts)_watchCounts=data.watchCounts;if(data.notifyCounts)_notifyCounts=data.notifyCounts;renderDrops();renderShop();renderFlash();const dash=document.getElementById('admin-dashboard');if(dash&&dash.style.display==='block')renderAdminDrops();}catch(e){console.warn('fetchDrops failed',e);}
+async function fetchDrops(bust=false){
+  try{const url='/api/drops'+(bust?'?_t='+Date.now():'');const r=await fetch(url);if(!r.ok)return;const data=await r.json();if(Array.isArray(data.drops))_drops=data.drops;if(data.watchCounts)_watchCounts=data.watchCounts;if(data.notifyCounts)_notifyCounts=data.notifyCounts;renderDrops();renderShop();renderFlash();const dash=document.getElementById('admin-dashboard');if(dash&&dash.style.display==='block')renderAdminDrops();}catch(e){console.warn('fetchDrops failed',e);}
 }
-async function fetchBids(){
+async function fetchBids(bust=false){
   try{
-    const url=_adminPw?'/api/bids?adminPw='+encodeURIComponent(_adminPw)+'&_t='+Date.now():'/api/bids?_t='+Date.now();
+    const url=_adminPw?'/api/bids?adminPw='+encodeURIComponent(_adminPw)+'&_t='+Date.now():'/api/bids'+(bust?'?_t='+Date.now():'');
     const r=await fetch(url,{cache:'no-store'});if(!r.ok)return;
     const data=await r.json();
     if(Array.isArray(data.bids)){
@@ -1384,9 +1384,9 @@ async function fetchBids(){
     if(dash&&dash.style.display==='block'){renderAdminDrops();renderAllBids();}
   }catch(e){console.warn('fetchBids failed',e);}
 }
-async function fetchSubscriptionCount(){
+async function fetchSubscriptionCount(bust=false){
   try{
-    const url=_adminPw?'/api/subscription-count?adminPw='+encodeURIComponent(_adminPw)+'&_t='+Date.now():'/api/subscription-count?_t='+Date.now();
+    const url=_adminPw?'/api/subscription-count?adminPw='+encodeURIComponent(_adminPw)+'&_t='+Date.now():'/api/subscription-count'+(bust?'?_t='+Date.now():'');
     const r=await fetch(url,{cache:'no-store'});
     if(!r.ok)return;
     const data=await r.json();
@@ -1396,9 +1396,12 @@ async function fetchSubscriptionCount(){
     if(_adminPw&&data.subscribers)renderAdminMembers(data.subscribers);
   }catch(e){console.warn('fetchSubscriptionCount failed',e);}
 }
-async function refreshAll(){await Promise.all([fetchDrops(),fetchBids(),fetchSubscriptionCount()]);}
-setInterval(refreshAll,5000);
-document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')refreshAll();});
+async function refreshAll(bust=false){await Promise.all([fetchDrops(bust),fetchBids(bust),fetchSubscriptionCount(bust)]);}
+let _pollTimer=setInterval(refreshAll,30000);
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState==='visible'){refreshAll();if(!_pollTimer)_pollTimer=setInterval(refreshAll,30000);}
+  else{clearInterval(_pollTimer);_pollTimer=null;}
+});
 
 // ── STRIPE ──
 let stripe=null,cardEl=null,bnCardEl=null;
@@ -1813,7 +1816,7 @@ async function submitBid(){
       ?`You're now competing with <strong>1 other bidder</strong>. Only the winner gets charged.`
       :`You're now competing with <strong>${otherBidCount} other bidders</strong>. Only the winner gets charged.`;
   document.getElementById('bid-compete-text').innerHTML=`Your bid is recorded and your card is saved securely via Stripe. You'll get a confirmation email.<br><br>${competeMsg}`;
-  renderDrops();await refreshAll();
+  renderDrops();await refreshAll(true);
   btn.disabled=false;btn.classList.remove('loading');
   document.getElementById('bid-form-view').style.display='none';
   document.getElementById('bid-success').style.display='block';
@@ -1844,7 +1847,7 @@ async function submitBuyNow(){
     const data=await res.json().catch(()=>({}));
     if(!res.ok){showErr(errEl,data.error||'Purchase failed. Please try again.');btn.disabled=false;btn.classList.remove('loading');return}
   }catch(e){showErr(errEl,'Network error — please try again.');btn.disabled=false;btn.classList.remove('loading');return}
-  await refreshAll();
+  await refreshAll(true);
   btn.disabled=false;btn.classList.remove('loading');
   document.getElementById('buynow-form-view').style.display='none';
   document.getElementById('buynow-success').style.display='block';
@@ -2015,7 +2018,7 @@ async function adminLogin(){
   _adminPw=pw;
   document.getElementById('admin-pw-gate').style.display='none';
   document.getElementById('admin-dashboard').style.display='block';
-  await Promise.all([fetchBids(),fetchSubscriptionCount()]);
+  await Promise.all([fetchBids(true),fetchSubscriptionCount(true)]);
   renderAdminDrops();renderAllBids();
 }
 function switchTab(id){
@@ -2024,7 +2027,7 @@ function switchTab(id){
   document.querySelectorAll('.tab-content').forEach(tc=>tc.classList.toggle('active',tc.id===id));
   if(id==='tab-drops')renderAdminDrops();
   if(id==='tab-all-bids')renderAllBids();
-  if(id==='tab-members')fetchSubscriptionCount();
+  if(id==='tab-members')fetchSubscriptionCount(true);
   if(id==='tab-promos')renderAdminCodes();
   if(id==='tab-emaillist')renderAdminEmailList();
 }
@@ -2093,13 +2096,13 @@ async function chargeCard(bidId){
   try{
     const res=await fetch('/api/charge',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({paymentMethodId:bid.paymentMethodId,amount:bid.amount,email:bid.email,name:bid.name,dropName:(_drops.find(d=>d.id===bid.dropId)||{}).name||'',adminPw:pw,promoCode:bid.promoCode||null,promoDiscount:bid.promoDiscount||0,shippingFee,dropId:bid.dropId,winnerBidId:bidId})});
     const data=await res.json();
-    if(data.success){try{await fetch('/api/bids',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:bidId,adminPw:pw})});}catch(e){}await fetchBids();renderAdminDrops();renderAllBids();showToast('✅ Card charged!');}
+    if(data.success){try{await fetch('/api/bids',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:bidId,adminPw:pw})});}catch(e){}await fetchBids(true);renderAdminDrops();renderAllBids();showToast('✅ Card charged!');}
     else showToast('❌ '+(data.error||'Charge failed'),true);
   }catch(e){showToast('❌ Network error',true)}
 }
 async function toggleStatus(id){
   if(!_adminPw){showToast('Admin session expired',true);return}
-  try{const res=await fetch('/api/drops',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,adminPw:_adminPw})});const data=await res.json().catch(()=>({}));if(!res.ok){showToast('❌ '+(data.error||'Could not update'),true);return}await fetchDrops();renderAdminDrops();}catch(e){showToast('❌ Network error',true)}
+  try{const res=await fetch('/api/drops',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,adminPw:_adminPw})});const data=await res.json().catch(()=>({}));if(!res.ok){showToast('❌ '+(data.error||'Could not update'),true);return}await fetchDrops(true);renderAdminDrops();}catch(e){showToast('❌ Network error',true)}
 }
 async function setDropTimer(id,ms){
   if(!_adminPw){showToast('Admin session expired',true);return}
@@ -2108,7 +2111,7 @@ async function setDropTimer(id,ms){
     const res=await fetch('/api/drops',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,adminPw:_adminPw,action:'setTimer',endTime})});
     const data=await res.json().catch(()=>({}));
     if(!res.ok){showToast('❌ '+(data.error||'Could not set timer'),true);return}
-    await fetchDrops();renderAdminDrops();
+    await fetchDrops(true);renderAdminDrops();
     showToast(ms>0?`⏱ Timer set — drop archives automatically`:'Timer cleared');
   }catch(e){showToast('❌ Network error',true)}
 }
@@ -2123,13 +2126,13 @@ async function setDropBadge(id,badgeId,label,color){
     const res=await fetch('/api/drops',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,adminPw:_adminPw,action:'setBadges',badges:newBadges})});
     const data=await res.json().catch(()=>({}));
     if(!res.ok){showToast('❌ '+(data.error||'Could not update badges'),true);return}
-    await fetchDrops();renderAdminDrops();
+    await fetchDrops(true);renderAdminDrops();
   }catch(e){showToast('❌ Network error',true)}
 }
 async function deleteDrop(id){
   if(!confirm('Delete this item and all bids?'))return;
   if(!_adminPw){showToast('Admin session expired',true);return}
-  try{const res=await fetch('/api/drops',{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,adminPw:_adminPw})});if(!res.ok){showToast('❌ Could not delete',true);return}try{await fetch('/api/bids',{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({dropId:id,adminPw:_adminPw})});}catch(e){}await refreshAll();renderAdminDrops();}catch(e){showToast('❌ Network error',true)}
+  try{const res=await fetch('/api/drops',{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,adminPw:_adminPw})});if(!res.ok){showToast('❌ Could not delete',true);return}try{await fetch('/api/bids',{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({dropId:id,adminPw:_adminPw})});}catch(e){}await refreshAll(true);renderAdminDrops();}catch(e){showToast('❌ Network error',true)}
 }
 
 // ── REFUND ──
@@ -2144,7 +2147,7 @@ async function refundPurchase(dropId){
     const data=await res.json();
     if(!res.ok){showToast('❌ '+(data.error||'Refund failed'),true);return;}
     showToast('✅ Refund issued — item re-published',false,true);
-    await refreshAll();renderAdminDrops();
+    await refreshAll(true);renderAdminDrops();
   }catch(e){showToast('❌ Network error',true);}
 }
 
@@ -2366,15 +2369,10 @@ async function uploadOneFile(file){
   if(dataUrl.length>1_400_000)dataUrl=await compressImage(file,900,0.72);
   if(dataUrl.length>1_400_000)dataUrl=await compressImage(file,700,0.62);
   if(dataUrl.length>1_400_000)dataUrl=await compressImage(file,500,0.55);
-  // Try Vercel Blob first
-  try{
-    const res=await fetch('/api/upload',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({dataUrl,adminPw:_adminPw})});
-    const data=await res.json().catch(()=>({}));
-    if(res.ok&&data.url)return data.url;
-  }catch{}
-  // Fallback: store compressed data URL directly if small enough
-  if(dataUrl.length<=900_000)return dataUrl;
-  throw new Error('Image too large — try a smaller or lower-resolution photo');
+  const res=await fetch('/api/upload',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({dataUrl,adminPw:_adminPw})});
+  const data=await res.json().catch(()=>({}));
+  if(res.ok&&data.url)return data.url;
+  throw new Error(data.error||'Upload failed — check that BLOB_READ_WRITE_TOKEN is set in Vercel environment variables');
 }
 
 function renderUploadThumbs(){
@@ -2568,7 +2566,7 @@ async function addDrop(status){
     if(!res.ok){errEl.textContent=`Could not save (${res.status}): ${data.error||text}`;errEl.style.display='block';return}
   }catch(e){errEl.textContent='Network error: '+(e&&e.message?e.message:'request failed');errEl.style.display='block';return}
   if(status==='published'||status==='teaser'){_drops=[..._drops,drop];if(_listingType==='flash')renderFlash();else if(_listingType==='buynow')renderShop();else renderDrops();}
-  await refreshAll();renderAdminDrops();errEl.style.display='none';
+  await refreshAll(true);renderAdminDrops();errEl.style.display='none';
   ['add-name','add-desc','add-size','add-photo-url','add-price','add-original-price','add-drop-time'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   uploadedPhotos=[];renderUploadThumbs();
   _accessType='public';setAccessType('public');
@@ -2593,7 +2591,7 @@ function showToast(msg,err=false,ok=false){
   if(params.get('subscribed')==='true'){
     window.history.replaceState({},'',window.location.pathname);
     setTimeout(()=>showToast('🎉 Welcome to Volleyball Collective! You\'re now a founding member.',false,true),400);
-    fetchSubscriptionCount();
+    fetchSubscriptionCount(true);
   }
   if(params.get('subscribe')==='cancelled'){
     window.history.replaceState({},'',window.location.pathname);
