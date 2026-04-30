@@ -1,5 +1,6 @@
 const nodemailer = require('nodemailer');
 const webpush = require('web-push');
+const { checkAdminAuth } = require('./_adminAuth');
 
 async function sendPushNotifications(drop) {
   const vapidPublic = process.env.VAPID_PUBLIC_KEY;
@@ -284,8 +285,8 @@ module.exports = async (req, res) => {
     const body = req.body || {};
 
     if (req.method === 'POST') {
-      if (body.adminPw !== ADMIN_PW)
-        return res.status(403).json({ error: 'Unauthorized' });
+      const authErr = await checkAdminAuth(req, body.adminPw);
+      if (authErr) return res.status(authErr.status).json(authErr.json);
       if (!body.drop || !body.drop.id || !body.drop.name)
         return res.status(400).json({ error: 'drop.id and drop.name are required' });
       const existing = await redis('GET', `drop:${body.drop.id}`);
@@ -301,8 +302,8 @@ module.exports = async (req, res) => {
     }
 
     if (req.method === 'PUT') {
-      if (body.adminPw !== ADMIN_PW)
-        return res.status(403).json({ error: 'Unauthorized' });
+      const authErr = await checkAdminAuth(req, body.adminPw);
+      if (authErr) return res.status(authErr.status).json(authErr.json);
       const raw = await redis('GET', `drop:${body.id}`);
       if (!raw)
         return res.status(404).json({ error: 'Drop not found' });
@@ -325,8 +326,8 @@ module.exports = async (req, res) => {
     }
 
     if (req.method === 'DELETE') {
-      if (body.adminPw !== ADMIN_PW)
-        return res.status(403).json({ error: 'Unauthorized' });
+      const authErr = await checkAdminAuth(req, body.adminPw);
+      if (authErr) return res.status(authErr.status).json(authErr.json);
       await redis('DEL', `drop:${body.id}`);
       await redis('SREM', 'drops:keys', body.id);
       return res.status(200).json({ success: true });

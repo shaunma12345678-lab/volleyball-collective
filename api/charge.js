@@ -1,5 +1,6 @@
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const nodemailer = require('nodemailer');
+const { checkAdminAuth } = require('./_adminAuth');
 
 async function redis(...args) {
   const url = process.env.UPSTASH_REDIS_REST_URL;
@@ -125,10 +126,10 @@ module.exports = async (req, res) => {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const PW = process.env.ADMIN_PASSWORD || 'vb2024';
   const { paymentMethodId, amount, email, name, dropName, adminPw, promoCode, promoDiscount, shippingFee, dropId, winnerBidId } = req.body || {};
 
-  if (adminPw !== PW) return res.status(403).json({ error: 'Unauthorized' });
+  const authErr = await checkAdminAuth(req, adminPw);
+  if (authErr) return res.status(authErr.status).json(authErr.json);
   if (!paymentMethodId || !amount) return res.status(400).json({ error: 'Missing fields' });
 
   const originalAmount = parseFloat(amount);

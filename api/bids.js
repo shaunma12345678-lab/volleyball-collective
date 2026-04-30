@@ -1,5 +1,6 @@
 const nodemailer = require('nodemailer');
 const crypto = require('crypto');
+const { checkAdminAuth } = require('./_adminAuth');
 
 async function redis(...args) {
   const url = process.env.UPSTASH_REDIS_REST_URL;
@@ -343,8 +344,8 @@ module.exports = async (req, res) => {
     }
 
     if (req.method === 'PUT') {
-      if (body.adminPw !== ADMIN_PW)
-        return res.status(403).json({ error: 'Unauthorized' });
+      const authErr = await checkAdminAuth(req, body.adminPw);
+      if (authErr) return res.status(authErr.status).json(authErr.json);
       const raw = await redis('GET', `bid:${body.id}`);
       if (!raw) return res.status(404).json({ error: 'Bid not found' });
       const bid = JSON.parse(raw);
@@ -354,8 +355,8 @@ module.exports = async (req, res) => {
     }
 
     if (req.method === 'DELETE') {
-      if (body.adminPw !== ADMIN_PW)
-        return res.status(403).json({ error: 'Unauthorized' });
+      const authErr = await checkAdminAuth(req, body.adminPw);
+      if (authErr) return res.status(authErr.status).json(authErr.json);
       const ids = (await redis('SMEMBERS', 'bids:keys')) || [];
       await Promise.all(
         ids.map(async (id) => {
