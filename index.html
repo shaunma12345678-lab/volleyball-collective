@@ -423,6 +423,74 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
 .btn-member-lock:hover{background:rgba(123,159,212,.2)!important;color:var(--fr-white)!important}
 .member-drop-overlay{position:absolute;inset:0;background:rgba(0,21,79,.55);display:flex;align-items:center;justify-content:center;backdrop-filter:blur(2px);border-radius:4px 4px 0 0}
 .member-lock-icon{font-size:2rem;opacity:.7}
+/* ── CART ── */
+.cart-icon-btn{position:relative;background:none;border:none;cursor:pointer;color:var(--fr-white);display:flex;align-items:center;gap:5px;font-family:'DM Sans',sans-serif;font-size:.72rem;letter-spacing:1px;padding:6px 10px;border-radius:3px;transition:background .2s}
+.cart-icon-btn:hover{background:rgba(255,255,255,.08)}
+.cart-badge{position:absolute;top:-3px;right:-3px;background:var(--fr-red);color:#fff;border-radius:50%;width:17px;height:17px;font-size:.58rem;display:flex;align-items:center;justify-content:center;font-weight:700;opacity:0;transition:opacity .2s,transform .2s;transform:scale(.5)}
+.cart-badge.has-items{opacity:1;transform:scale(1)}
+.cart-overlay-bg{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:999;opacity:0;pointer-events:none;transition:opacity .3s}
+.cart-overlay-bg.open{opacity:1;pointer-events:all}
+.cart-drawer{position:fixed;top:0;right:-420px;width:400px;max-width:96vw;height:100vh;background:#00154F;border-left:1px solid rgba(0,35,149,.5);z-index:1000;transition:right .3s cubic-bezier(.22,1,.36,1);display:flex;flex-direction:column;overflow:hidden;box-shadow:-8px 0 40px rgba(0,0,0,.5)}
+.cart-drawer.open{right:0}
+.cart-drawer-hd{padding:22px 22px 14px;border-bottom:1px solid rgba(0,35,149,.3);display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
+.cart-drawer-title{font-family:'Bebas Neue',sans-serif;font-size:1.5rem;letter-spacing:3px;color:var(--fr-white)}
+.cart-items{flex:1;overflow-y:auto;padding:14px 20px;display:flex;flex-direction:column;gap:10px}
+.cart-item{display:flex;gap:12px;align-items:flex-start;padding:12px;background:rgba(0,21,79,.6);border:1px solid rgba(0,35,149,.35);border-radius:4px}
+.cart-item-img{width:60px;height:60px;object-fit:cover;border-radius:3px;flex-shrink:0;background:rgba(0,35,149,.3)}
+.cart-item-info{flex:1;min-width:0}
+.cart-item-type{font-size:.58rem;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:2px}
+.cart-item-name{font-size:.82rem;font-weight:600;color:var(--fr-white);margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cart-item-price{font-size:.82rem;color:#3ecf8e;font-weight:700}
+.cart-item-del{background:none;border:none;color:var(--muted);cursor:pointer;font-size:.8rem;padding:2px 4px;flex-shrink:0;transition:color .2s;line-height:1}
+.cart-item-del:hover{color:#ff6b6b}
+.cart-foot{padding:18px 20px;border-top:1px solid rgba(0,35,149,.3);flex-shrink:0}
+.cart-total-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.cart-total-lbl{font-size:.68rem;letter-spacing:2px;text-transform:uppercase;color:var(--muted)}
+.cart-total-amt{font-family:'Bebas Neue',sans-serif;font-size:1.9rem;color:#3ecf8e}
+.cart-ship-note{font-size:.67rem;color:var(--muted);margin-bottom:14px}
+.btn-cart-checkout{width:100%;background:linear-gradient(135deg,#3ecf8e,#2ab87a);color:#021a0e;border:none;padding:15px;font-family:'Bebas Neue',sans-serif;font-size:1.1rem;letter-spacing:4px;cursor:pointer;border-radius:3px;transition:all .2s;font-weight:700}
+.btn-cart-checkout:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(62,207,142,.45)}
+.btn-cart-checkout:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.cart-empty-msg{text-align:center;padding:52px 20px;color:var(--muted);font-size:.85rem}
+.cart-empty-msg span{font-size:2.2rem;display:block;margin-bottom:10px}
+/* Add-to-cart button */
+.btn-add-cart{background:linear-gradient(135deg,#ED2939 0%,#ff6b35 100%);color:#fff;border:none;padding:11px 20px;font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:3px;cursor:pointer;border-radius:2px;transition:all .2s;white-space:nowrap}
+.btn-add-cart:hover{transform:translateY(-1px);box-shadow:0 6px 22px rgba(237,41,57,.5)}
+.btn-add-cart.in-cart{background:rgba(62,207,142,.15);border:1px solid rgba(62,207,142,.5);color:#3ecf8e}
+.btn-add-cart.in-cart:hover{background:rgba(62,207,142,.25)}
+/* Free shipping chip */
+.free-ship-chip{display:inline-flex;align-items:center;gap:4px;background:rgba(62,207,142,.08);border:1px solid rgba(62,207,142,.22);color:#3ecf8e;font-size:.58rem;letter-spacing:1.5px;text-transform:uppercase;padding:3px 8px;border-radius:10px;margin-left:6px;vertical-align:middle}
+/* Bundle */
+.bundle-badge-chip{position:absolute;top:14px;left:14px;z-index:2;background:rgba(30,15,0,.9);border:1px solid rgba(251,191,36,.65);color:#fbbf24;font-size:.62rem;letter-spacing:3px;text-transform:uppercase;padding:5px 12px;border-radius:2px;backdrop-filter:blur(6px)}
+.card-stripe-bundle{height:3px;background:linear-gradient(90deg,#f59e0b,#fbbf24,#f59e0b)}
+.bundle-items-list{font-size:.7rem;color:var(--muted);line-height:1.9;margin:4px 0 4px}
+.bundle-items-list li{list-style:none;padding-left:0}
+.bundle-items-list li::before{content:'✓ ';color:#fbbf24;font-weight:700}
+.bundle-save-chip{display:inline-block;background:rgba(251,191,36,.12);border:1px solid rgba(251,191,36,.35);color:#fbbf24;font-size:.63rem;letter-spacing:2px;text-transform:uppercase;padding:3px 10px;border-radius:2px;font-weight:700;margin-top:4px}
+/* Cart checkout modal (reuses overlay/modal-box styles) */
+.cart-checkout-box{max-width:520px;width:96%}
+/* Urgency bar */
+#urgency-bar{background:linear-gradient(90deg,#c7202d,#ED2939,#c7202d);padding:9px 20px;text-align:center;font-size:.68rem;letter-spacing:2px;text-transform:uppercase;color:#fff;position:sticky;top:0;z-index:150;display:flex;align-items:center;justify-content:center;gap:14px;border-bottom:1px solid rgba(255,255,255,.1)}
+#urgency-bar a,#urgency-bar button.urgency-cta{background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.35);color:#fff;padding:4px 14px;border-radius:2px;font-family:'DM Sans',sans-serif;font-size:.63rem;letter-spacing:2px;text-transform:uppercase;cursor:pointer;text-decoration:none;font-weight:600;transition:background .2s;white-space:nowrap}
+#urgency-bar a:hover,#urgency-bar button.urgency-cta:hover{background:rgba(255,255,255,.32)}
+.urgency-dot{width:7px;height:7px;border-radius:50%;background:#fff;display:inline-block;animation:urgencyPulse 1.4s ease-in-out infinite;flex-shrink:0}
+@keyframes urgencyPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.6)}}
+/* Exit intent popup */
+#exit-overlay{position:fixed;inset:0;background:rgba(0,5,20,.9);z-index:3000;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s;backdrop-filter:blur(6px)}
+#exit-overlay.active{opacity:1;pointer-events:all}
+.exit-box{background:#00154F;border:1px solid rgba(237,41,57,.5);border-radius:6px;max-width:460px;width:92%;padding:42px 38px;text-align:center;position:relative;box-shadow:0 32px 80px rgba(0,0,0,.7)}
+.exit-eyebrow{font-size:.6rem;letter-spacing:4px;text-transform:uppercase;color:var(--fr-red);margin-bottom:10px}
+.exit-title{font-family:'Bebas Neue',sans-serif;font-size:2.5rem;letter-spacing:3px;color:var(--fr-white);margin:0 0 10px;line-height:1}
+.exit-sub{font-size:.84rem;color:var(--muted);line-height:1.65;margin-bottom:26px}
+.exit-actions{display:flex;flex-direction:column;gap:10px}
+.exit-btn-bid{background:var(--fr-red);color:#fff;border:none;padding:15px;font-family:'Bebas Neue',sans-serif;font-size:1.1rem;letter-spacing:4px;cursor:pointer;border-radius:2px;text-decoration:none;display:block;transition:background .2s}
+.exit-btn-bid:hover{background:#c7202d}
+.exit-btn-shop{background:rgba(62,207,142,.1);border:1px solid rgba(62,207,142,.3);color:#3ecf8e;padding:13px;font-family:'Bebas Neue',sans-serif;font-size:.95rem;letter-spacing:3px;cursor:pointer;border-radius:2px;text-decoration:none;display:block;transition:all .2s}
+.exit-btn-shop:hover{background:rgba(62,207,142,.2)}
+.exit-dismiss{background:none;border:none;color:var(--muted);font-size:.7rem;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;margin-top:14px;padding:4px;font-family:'DM Sans',sans-serif;transition:color .2s}
+.exit-dismiss:hover{color:var(--fr-white)}
+.exit-close-x{position:absolute;top:12px;right:14px;background:none;border:none;color:var(--muted);font-size:1.1rem;cursor:pointer;line-height:1;transition:color .2s}
+.exit-close-x:hover{color:var(--fr-white)}
 </style>
 </head>
 <body>
@@ -443,6 +511,9 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
     <a href="#how">How It Works</a>
     <a href="#newsletter" style="color:#3ecf8e!important;font-weight:600">Get 10% Off</a>
     <a href="https://www.instagram.com/volleyballcollective/" target="_blank" rel="noopener" aria-label="Instagram" style="display:flex;align-items:center;color:var(--muted);transition:color .2s" onmouseover="this.style.color='#E1306C'" onmouseout="this.style.color=''"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg></a>
+    <button class="cart-icon-btn" onclick="openCartDrawer()" aria-label="Cart">
+      🛒 Cart<span class="cart-badge" id="cart-badge">0</span>
+    </button>
     <button class="btn-nav-admin" onclick="openAdmin()">Admin ↗</button>
   </div>
   <button class="hamburger" id="hamburger" onclick="toggleMobileMenu()" aria-label="Open menu">
@@ -458,6 +529,7 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
   <a href="#membership" onclick="closeMobileMenu()">Members</a>
   <a href="#how" onclick="closeMobileMenu()">How It Works</a>
   <a href="#newsletter" onclick="closeMobileMenu()" style="color:#3ecf8e!important">Get 10% Off 🎁</a>
+  <a href="#" onclick="closeMobileMenu();openCartDrawer();return false" style="color:var(--fr-white)!important">🛒 Cart <span id="cart-badge-mobile" style="display:none;background:var(--fr-red);color:#fff;border-radius:50%;padding:1px 6px;font-size:.65rem;margin-left:4px">0</span></a>
   <div class="mobile-menu-divider"></div>
   <a href="https://www.instagram.com/volleyballcollective/" target="_blank" rel="noopener" onclick="closeMobileMenu()" style="display:inline-flex;align-items:center;gap:10px;font-size:1.2rem!important;letter-spacing:3px!important;color:var(--muted)!important"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>Instagram</a>
   <button class="btn-mobile-admin" onclick="closeMobileMenu();openAdmin()">Admin ↗</button>
@@ -505,6 +577,13 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
     <span class="mt">LIMITED JERSEYS</span><span class="ms"> ✦ </span>
     <span class="mt">STRIPE SECURED</span><span class="ms"> ✦ </span>
   </div>
+</div>
+
+<!-- URGENCY BAR -->
+<div id="urgency-bar">
+  <span class="urgency-dot"></span>
+  <span id="urgency-text">🏐 Auctions are live — place your bid now</span>
+  <a href="#drops" class="urgency-cta">Bid Now →</a>
 </div>
 
 <!-- AUCTIONS -->
@@ -856,6 +935,7 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
             <button class="active-bid" id="type-btn-bid" onclick="setListingType('bid')">🏆 Auction — Bid to Win</button>
             <button id="type-btn-buy" onclick="setListingType('buynow')">🛒 Shop — Buy Now</button>
             <button id="type-btn-flash" onclick="setListingType('flash')">⚡ Flash Sale</button>
+            <button id="type-btn-bundle" onclick="setListingType('bundle')">📦 Bundle Deal</button>
           </div>
         </div>
         <div class="form-row">
@@ -867,6 +947,14 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
         </div>
         <div class="form-row" id="price-field" style="display:none"><label id="price-label">Fixed Price (USD) *</label><div class="amount-wrap"><span>$</span><input type="number" id="add-price" placeholder="0.00" min="1" step="0.01"></div></div>
         <div class="form-row" id="original-price-field" style="display:none"><label>Original / Retail Price (USD) <span style="font-weight:400;opacity:.5">(shows as crossed-out)</span></label><div class="amount-wrap"><span>$</span><input type="number" id="add-original-price" placeholder="0.00" min="0" step="0.01"></div></div>
+        <div class="form-row" id="bundle-fields" style="display:none">
+          <label>Bundle Items <span style="font-weight:400;opacity:.5">(one per line — e.g. "France Jersey · Size L")</span></label>
+          <textarea id="add-bundle-items" rows="4" placeholder="France National Jersey · Size L&#10;Matching Shorts · Size L&#10;Training Socks"></textarea>
+        </div>
+        <div class="form-row" id="bundle-retail-field" style="display:none">
+          <label>Total Retail Value (USD) <span style="font-weight:400;opacity:.5">(used to calculate % savings shown to buyer)</span></label>
+          <div class="amount-wrap"><span>$</span><input type="number" id="add-bundle-retail" placeholder="0.00" min="0" step="0.01"></div>
+        </div>
         <div class="form-row"><label>Jersey / Item Name *</label><input type="text" id="add-name" placeholder="e.g. 2024 France National Jersey"></div>
         <div class="form-row"><label>Description</label><textarea id="add-desc" rows="3" placeholder="Team, player, season, details…"></textarea></div>
         <div class="form-row-2">
@@ -1349,7 +1437,187 @@ document.querySelectorAll('button,a,.drop-card').forEach(el=>{
 })();
 
 // ── DATA ──
-let _drops=[],_bids=[],_adminPw=null,_subData={total:0,spotsLeft:200,isEarlyBird:true,currentPrice:'9.99'},_watchCounts={},_notifyCounts={},_prevBidsByDrop=null,_flashDropIds=new Set(),_bgProcessing=new Set();
+let _drops=[],_bids=[],_adminPw=null,_subData={total:0,spotsLeft:200,isEarlyBird:true,currentPrice:'9.99'},_watchCounts={},_notifyCounts={},_prevBidsByDrop=null,_flashDropIds=new Set(),_bgProcessing=new Set(),_cart=[];
+
+// ── CART ──
+function cartIncludes(dropId){return _cart.some(i=>i.dropId===dropId);}
+function addToCart(dropId){
+  const drop=_drops.find(d=>d.id===dropId);
+  if(!drop||drop.sold)return;
+  if(cartIncludes(dropId)){openCartDrawer();return;}
+  _cart.push({dropId,name:drop.name,price:parseFloat(drop.price||0),photo:(drop.photos&&drop.photos[0])||drop.photo||'',type:drop.type});
+  updateCartUI();
+  renderShop();renderFlash();
+  openCartDrawer();
+}
+function removeFromCart(dropId){
+  _cart=_cart.filter(i=>i.dropId!==dropId);
+  updateCartUI();
+  renderShop();renderFlash();
+  renderCartDrawer();
+}
+function cartTotal(country){
+  const sub=_cart.reduce((s,i)=>s+i.price,0);
+  const shipping=(_cart.length>0&&country&&!isUSACountry(country))?20:0;
+  return{sub,shipping,total:sub+shipping};
+}
+function updateCartUI(){
+  const n=_cart.length;
+  const badge=document.getElementById('cart-badge');
+  const badgeMobile=document.getElementById('cart-badge-mobile');
+  if(badge){badge.textContent=n;badge.className='cart-badge'+(n>0?' has-items':'');}
+  if(badgeMobile){badgeMobile.textContent=n;badgeMobile.style.display=n>0?'':'none';}
+  renderCartDrawer();
+}
+function renderCartDrawer(){
+  const list=document.getElementById('cart-items-list');
+  const foot=document.getElementById('cart-foot');
+  const totalEl=document.getElementById('cart-total-display');
+  if(!list)return;
+  if(!_cart.length){
+    list.innerHTML='<div class="cart-empty-msg"><span>🛒</span>Your cart is empty.<br><br><small>Add Buy Now or Flash Sale items above.</small></div>';
+    if(foot)foot.style.display='none';
+    return;
+  }
+  if(foot)foot.style.display='';
+  const country=(document.getElementById('cc-country')||{}).value||'USA';
+  const{sub,shipping,total}=cartTotal(country);
+  if(totalEl)totalEl.textContent='$'+total.toFixed(2);
+  list.innerHTML=_cart.map(item=>`
+    <div class="cart-item">
+      ${item.photo?`<img class="cart-item-img" src="${item.photo}" alt="">`:'<div class="cart-item-img"></div>'}
+      <div class="cart-item-info">
+        <div class="cart-item-type">${item.type==='bundle'?'Bundle Deal':item.type==='flash'?'Flash Sale':'Buy Now'}</div>
+        <div class="cart-item-name">${item.name}</div>
+        <div class="cart-item-price">$${item.price.toFixed(2)} <span class="free-ship-chip">🇺🇸 Free US Ship</span></div>
+      </div>
+      <button class="cart-item-del" onclick="removeFromCart('${item.dropId}')" title="Remove">✕</button>
+    </div>`).join('');
+}
+function openCartDrawer(){
+  document.getElementById('cart-drawer').classList.add('open');
+  document.getElementById('cart-overlay-bg').classList.add('open');
+  renderCartDrawer();
+}
+function closeCartDrawer(){
+  document.getElementById('cart-drawer').classList.remove('open');
+  document.getElementById('cart-overlay-bg').classList.remove('open');
+}
+function updateCartTotal(){
+  const country=(document.getElementById('cc-country')||{}).value||'USA';
+  const isIntl=country.trim().length>0&&!isUSACountry(country);
+  const notice=document.getElementById('cc-shipping-notice');
+  if(notice)notice.style.display=isIntl?'':'none';
+  const{total}=cartTotal(country);
+  const btn=document.getElementById('cc-btn-text');
+  if(btn)btn.textContent='Pay $'+total.toFixed(2)+'  →';
+  const sumEl=document.getElementById('cart-total-display');
+  if(sumEl)sumEl.textContent='$'+total.toFixed(2);
+}
+let _cartCardEl=null;
+function openCartCheckout(){
+  if(!_cart.length)return;
+  closeCartDrawer();
+  if(!stripe)initStripe();
+  const overlay=document.getElementById('cart-checkout-overlay');
+  overlay.classList.add('active');
+  document.getElementById('cart-checkout-form-view').style.display='';
+  document.getElementById('cart-checkout-success').style.display='none';
+  const errEl=document.getElementById('cc-err');if(errEl)errEl.style.display='none';
+  const btn=document.getElementById('cc-btn');if(btn){btn.disabled=false;btn.classList.remove('loading');}
+  // Summary of items
+  const country=(document.getElementById('cc-country')||{}).value||'USA';
+  const{sub,shipping,total}=cartTotal(country);
+  document.getElementById('cart-checkout-summary').innerHTML=
+    _cart.map(i=>`<div style="display:flex;justify-content:space-between;margin-bottom:4px"><span>${i.name}</span><span style="color:var(--fr-white)">$${i.price.toFixed(2)}</span></div>`).join('')+
+    (shipping>0?`<div style="display:flex;justify-content:space-between;margin-bottom:4px;color:#fbbf24"><span>Intl Shipping</span><span>$${shipping.toFixed(2)}</span></div>`:'')+
+    `<div style="display:flex;justify-content:space-between;border-top:1px solid rgba(0,35,149,.3);margin-top:8px;padding-top:8px;font-weight:700;color:var(--fr-white)"><span>Total</span><span style="color:#3ecf8e">$${total.toFixed(2)}</span></div>`;
+  updateCartTotal();
+  // Mount Stripe card
+  if(!_cartCardEl){
+    _cartCardEl=stripe.elements().create('card',{style:{base:{color:'#F5F0E8',fontFamily:'DM Sans,sans-serif',fontSize:'15px','::placeholder':{color:'#7b9fd4'}},invalid:{color:'#ED2939'}}});
+  }
+  setTimeout(()=>{
+    const el=document.getElementById('cart-card-element');
+    if(el&&!el.children.length)_cartCardEl.mount('#cart-card-element');
+    _cartCardEl.on('focus',()=>el.classList.add('focused'));
+    _cartCardEl.on('blur',()=>el.classList.remove('focused'));
+  },100);
+}
+async function submitCartCheckout(){
+  const name=document.getElementById('cc-name').value.trim();
+  const email=document.getElementById('cc-email').value.trim();
+  const phone=document.getElementById('cc-phone').value.trim();
+  const street=document.getElementById('cc-street').value.trim();
+  const city=document.getElementById('cc-city').value.trim();
+  const state=document.getElementById('cc-state').value.trim();
+  const zip=document.getElementById('cc-zip').value.trim();
+  const country=document.getElementById('cc-country').value.trim();
+  const errEl=document.getElementById('cc-err');
+  function showErr(msg){errEl.textContent=msg;errEl.style.display='block';}
+  if(!name||!email||!street||!city){showErr('Please fill in all required fields.');return;}
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){showErr('Please enter a valid email.');return;}
+  const btn=document.getElementById('cc-btn');btn.disabled=true;btn.classList.add('loading');errEl.style.display='none';
+  const{paymentMethod,error}=await stripe.createPaymentMethod({type:'card',card:_cartCardEl,billing_details:{name,email}});
+  if(error){showErr(error.message);btn.disabled=false;btn.classList.remove('loading');return;}
+  try{
+    const res=await fetch('/api/purchase-cart',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+      paymentMethodId:paymentMethod.id,
+      dropIds:_cart.map(i=>i.dropId),
+      name,email,phone,
+      address:{street,city,state,zip,country},
+    })});
+    const data=await res.json().catch(()=>({}));
+    if(!res.ok){showErr(data.error||'Payment failed. Please try again.');btn.disabled=false;btn.classList.remove('loading');return;}
+    _cart=[];updateCartUI();renderShop();renderFlash();
+    document.getElementById('cart-checkout-form-view').style.display='none';
+    document.getElementById('cart-checkout-success').style.display='';
+    await refreshAll(true);
+  }catch(e){showErr('Network error — please try again.');btn.disabled=false;btn.classList.remove('loading');}
+}
+
+// ── URGENCY BAR ──
+(function(){
+  const msgs=[
+    '🏐 Auctions are live — place your bid now',
+    '🔥 Only the highest bidder gets charged — zero risk to bid',
+    '⚡ Limited jerseys — once sold they\'re gone forever',
+    '🏆 Bids open now — your card is saved, not charged until you win',
+    '🛒 Free US shipping on all shop items',
+  ];
+  let idx=0;
+  setInterval(()=>{
+    idx=(idx+1)%msgs.length;
+    const el=document.getElementById('urgency-text');
+    if(el){
+      // Also check if there are active auctions with end times
+      const withTimer=_drops.filter(d=>d.status==='published'&&d.type==='bid'&&d.endTime);
+      if(withTimer.length>0){
+        const soonest=withTimer.sort((a,b)=>new Date(a.endTime)-new Date(b.endTime))[0];
+        const diff=new Date(soonest.endTime)-Date.now();
+        if(diff>0&&diff<86400000){
+          const h=Math.floor(diff/3600000),m=Math.floor((diff%3600000)/60000);
+          el.textContent=`⏰ "${soonest.name}" closes in ${h>0?h+'h ':''} ${m}m — bid now`;
+          return;
+        }
+      }
+      el.textContent=msgs[idx];
+    }
+  },6000);
+})();
+
+// ── EXIT INTENT ──
+(function(){
+  let shown=false;
+  document.addEventListener('mouseleave',e=>{
+    if(shown||e.clientY>10)return;
+    if(sessionStorage.getItem('vc_exit_shown'))return;
+    shown=true;
+    sessionStorage.setItem('vc_exit_shown','1');
+    setTimeout(()=>document.getElementById('exit-overlay').classList.add('active'),200);
+  });
+})();
+function closeExitPopup(){document.getElementById('exit-overlay').classList.remove('active');}
 
 // ── FETCH ──
 async function fetchDrops(bust=false){
@@ -1547,7 +1815,7 @@ function renderDrops(){
 // ── RENDER SHOP ──
 let activeBuyNow=null;
 function renderShop(){
-  const items=_drops.filter(d=>d.type==='buynow'&&(d.status==='published'||d.status==='teaser'));
+  const items=_drops.filter(d=>(d.type==='buynow'||d.type==='bundle')&&(d.status==='published'||d.status==='teaser'));
   document.getElementById('stat-shop').textContent=items.length;
   const g=document.getElementById('shop-grid');
   if(!items.length){g.innerHTML=`<div class="empty-drops"><span class="ei">🛒</span><p>No items in the shop right now — check back soon!</p></div>`;return}
@@ -1559,31 +1827,39 @@ function renderShop(){
     const isLocked=!isTeaser&&d.memberOnly&&!isMemberVerified();
     const memberBadge=d.memberOnly?`<span class="member-badge-chip">🔒 Members</span>`:'';
     const lockOverlay=isLocked?`<div class="member-drop-overlay"><span class="member-lock-icon">🔒</span></div>`:'';
-    const badgeChip=isTeaser?`<span class="teaser-badge-chip">Coming Soon</span>`:`<span class="buynow-badge-chip">Buy Now</span>`;
+    const isBundle=d.type==='bundle';
+    const savingsPct=isBundle&&d.bundleRetail&&parseFloat(d.bundleRetail)>0?Math.round((1-parseFloat(d.price)/parseFloat(d.bundleRetail))*100):0;
+    const badgeChip=isTeaser?`<span class="teaser-badge-chip">Coming Soon</span>`:isBundle?`<span class="bundle-badge-chip">📦 Bundle Deal</span>`:`<span class="buynow-badge-chip">Buy Now</span>`;
+    const inCart=cartIncludes(d.id);
     const buyBtn=isTeaser
       ?`<button class="btn-buynow-card" style="background:rgba(123,159,212,.15);border:1px solid rgba(123,159,212,.4);color:var(--muted);font-weight:400" onclick="event.stopPropagation();openNotifyModal('${d.id}','${d.name.replace(/'/g,"\\'").replace(/"/g,'&quot;')}','teaser')">Notify Me →</button>`
       :d.sold
         ?`<button class="btn-notify-card" onclick="event.stopPropagation();openNotifyModal('${d.id}','${d.name.replace(/'/g,"\\'").replace(/"/g,'&quot;')}')">Notify Me →</button>`
         :isLocked
-          ?`<button class="btn-buynow-card btn-member-lock" onclick="openMemberVerify(()=>openBuyNowModal('${d.id}'))">🔒 Members Only</button>`
-          :`<button class="btn-buynow-card" onclick="openBuyNowModal('${d.id}')">Buy Now →</button>`;
+          ?`<button class="btn-buynow-card btn-member-lock" onclick="openMemberVerify(()=>addToCart('${d.id}'))">🔒 Members Only</button>`
+          :`<button class="btn-add-cart${inCart?' in-cart':''}" onclick="event.stopPropagation();addToCart('${d.id}')">${inCart?'✓ In Cart':'🛒 Add to Cart'}</button>`;
     const shopWatchCount=_watchCounts[d.id]||0;
     const shopNotifyCount=isTeaser?((_notifyCounts&&_notifyCounts[d.id])||0):0;
     const shopViewersRow=!isTeaser&&shopWatchCount>0?`<div class="live-viewers-row"><span class="live-dot"></span>${shopWatchCount} viewing right now</div>`:'';
     const shopNotifyWaitingRow=isTeaser&&shopNotifyCount>0?`<div class="notify-waiting-row">🔔 ${shopNotifyCount} ${shopNotifyCount===1?'person':'people'} already waiting</div>`:'';
     const shopEndStr=!isTeaser&&d.endTime?`<span class="end-countdown-tag" data-endtime="${d.endTime}">—</span>`:'';
+    const freeShip=!isTeaser&&!d.sold?`<span class="free-ship-chip">🇺🇸 Free US Shipping</span>`:'';
+    const bundleItemsHtml=isBundle&&d.bundleItems?`<ul class="bundle-items-list">${d.bundleItems.split('\n').filter(Boolean).map(l=>`<li>${l.trim()}</li>`).join('')}</ul>`:'';
+    const bundleSaveHtml=isBundle&&savingsPct>0?`<span class="bundle-save-chip">Save ${savingsPct}% vs buying separately</span>`:'';
     const priceOrLabel=isTeaser
       ?(d.dropTime?`<span class="countdown-tag" data-countdown="${d.dropTime}">—</span>`:`<span class="drop-bid-count" style="color:var(--muted)">Price reveal soon</span>`)
-      :`<div><span class="price-tag">$${parseFloat(d.price||0).toFixed(2)}</span>${shopEndStr}</div>`;
+      :`<div><span class="price-tag">$${parseFloat(d.price||0).toFixed(2)}</span>${freeShip}${shopEndStr}</div>`;
     const offerRow=isTeaser||d.sold?'':`<div class="drop-offer-row"><button class="drop-offer-link" onclick="event.stopPropagation();openDropOfferModal('${d.id}','${d.name.replace(/'/g,"\\'").replace(/"/g,'&quot;')}')"><span class="bell-icon">🔔</span> Get 5% off this item — click here</button><button class="drop-offer-link" style="color:var(--muted);margin-top:2px" onclick="event.stopPropagation();openNotifyModal('${d.id}','${d.name.replace(/'/g,"\\'").replace(/"/g,'&quot;')}','similar')"><span class="bell-icon">🔔</span> Notify me for items like this</button></div>`;
     const shopCustomBadges=d.badges&&d.badges.length?`<div class="drop-img-badges">${d.badges.map(b=>`<span class="item-badge item-badge-${b.color}">${b.label}</span>`).join('')}</div>`:'';
-    return`<div class="drop-card buynow-card${isTeaser?' teaser-card':''}" style="animation-delay:${i*.09}s${isTeaser?';cursor:default':''}"${!isTeaser&&isLocked?` onclick="openMemberVerify(()=>openBuyNowModal('${d.id}'))"`:''}>
+    const cardStripe=isBundle?`<div class="card-stripe-bundle"></div>`:`<div class="card-stripe-green"></div>`;
+    return`<div class="drop-card buynow-card${isBundle?' bundle-card':''}${isTeaser?' teaser-card':''}" style="animation-delay:${i*.09}s${isTeaser?';cursor:default':''}"${!isTeaser&&isLocked?` onclick="openMemberVerify(()=>addToCart('${d.id}'))"`:''}>
       <div class="drop-img-wrap">${img}${soldOverlay}${teaserOverlay}${lockOverlay}${badgeChip}${memberBadge}${shopCustomBadges}</div>
-      <div class="card-stripe-green"></div>
+      ${cardStripe}
       <div class="drop-body">
         <div class="drop-name">${d.name}</div>
         <div class="drop-meta">${d.size?`<span>Size: ${d.size}</span>`:''}${d.condition?`<span>${d.condition}</span>`:''}</div>
         ${d.desc?`<p class="drop-desc">${d.desc}</p>`:''}
+        ${bundleItemsHtml}${bundleSaveHtml}
         <div class="drop-footer">${priceOrLabel}${buyBtn}</div>
         ${offerRow}${shopViewersRow}${shopNotifyWaitingRow}
       </div>
@@ -1609,21 +1885,22 @@ function renderFlash(){
     const watchStr=wc>0?`<span class="watcher-count">👁 ${wc} watching</span>`:'';
     const flashEndStr=d.endTime?`<span class="end-countdown-tag" data-endtime="${d.endTime}">—</span>`:'';
     const priceDisplay=`<div class="flash-price-wrap">${d.originalPrice?`<span class="flash-original-price">$${parseFloat(d.originalPrice).toFixed(2)}</span>`:''}<span class="flash-sale-price">$${parseFloat(d.price||0).toFixed(2)}</span>${flashEndStr}</div>`;
+    const inCartF=cartIncludes(d.id);
     const btn=d.sold
       ?`<button class="btn-notify-card" onclick="event.stopPropagation();openNotifyModal('${d.id}','${d.name.replace(/'/g,"\\'").replace(/"/g,'&quot;')}')">Notify Me →</button>`
       :isLocked
-        ?`<button class="btn-flash-card" style="background:rgba(251,191,36,.15);border:1px solid rgba(251,191,36,.3);color:#fbbf24;font-weight:400" onclick="event.stopPropagation();openMemberVerify(()=>openBuyNowModal('${d.id}'))">🔒 Members Only</button>`
-        :`<button class="btn-flash-card" onclick="event.stopPropagation();openBuyNowModal('${d.id}')">⚡ Buy Now →</button>`;
-    const cardClick=!d.sold&&!isLocked?`openBuyNowModal('${d.id}')`:isLocked?`openMemberVerify(()=>openBuyNowModal('${d.id}'))`:'';
+        ?`<button class="btn-flash-card" style="background:rgba(251,191,36,.15);border:1px solid rgba(251,191,36,.3);color:#fbbf24;font-weight:400" onclick="event.stopPropagation();openMemberVerify(()=>addToCart('${d.id}'))">🔒 Members Only</button>`
+        :`<button class="btn-add-cart${inCartF?' in-cart':''}" onclick="event.stopPropagation();addToCart('${d.id}')">${inCartF?'✓ In Cart':'🛒 Add to Cart'}</button>`;
+    const flashFreeShip=!d.sold?`<span class="free-ship-chip">🇺🇸 Free US Shipping</span>`:'';
     const flashCustomBadges=d.badges&&d.badges.length?`<div class="drop-img-badges">${d.badges.map(b=>`<span class="item-badge item-badge-${b.color}">${b.label}</span>`).join('')}</div>`:'';
-    return`<div class="drop-card flash-card" style="animation-delay:${i*.09}s"${cardClick?` onclick="${cardClick}"`:''}>
+    return`<div class="drop-card flash-card" style="animation-delay:${i*.09}s">
       <div class="drop-img-wrap">${img}${soldOverlay}${lockOverlay}<span class="flash-badge-chip">⚡ Flash Sale</span>${memberBadge}${flashCustomBadges}</div>
       <div class="card-stripe-flash"></div>
       <div class="drop-body">
         <div class="drop-name">${d.name}</div>
         <div class="drop-meta">${d.size?`<span>Size: ${d.size}</span>`:''}${d.condition?`<span>${d.condition}</span>`:''}</div>
         ${d.desc?`<p class="drop-desc">${d.desc}</p>`:''}
-        <div class="drop-footer">${priceDisplay}${btn}</div>
+        <div class="drop-footer"><div>${priceDisplay}${flashFreeShip}</div>${btn}</div>
         <div class="drop-offer-row" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px">${watchStr}<button class="drop-offer-link" style="color:var(--muted)" onclick="event.stopPropagation();openNotifyModal('${d.id}','${d.name.replace(/'/g,"\\'").replace(/"/g,'&quot;')}','similar')"><span class="bell-icon">🔔</span> Notify me for flash sales</button></div>
       </div>
     </div>`;
@@ -2305,7 +2582,7 @@ function setDropDuration(ms){
   const active=ms===0?'none':ms===86400000?'24':ms===172800000?'48':ms===259200000?'72':'7d';
   document.getElementById('dur-btn-'+active).className='active-bid';
 }
-function setListingType(type){_listingType=type;document.getElementById('type-btn-bid').className=type==='bid'?'active-bid':'';document.getElementById('type-btn-buy').className=type==='buynow'?'active-buy':'';document.getElementById('type-btn-flash').className=type==='flash'?'active-flash':'';document.getElementById('price-field').style.display=(type==='buynow'||type==='flash')?'':'none';document.getElementById('original-price-field').style.display=type==='flash'?'':'none';const pl=document.getElementById('price-label');if(pl)pl.textContent=type==='flash'?'Flash Sale Price (USD) *':'Fixed Price (USD) *';document.getElementById('publish-btn-text').textContent=type==='flash'?'⚡ Launch Flash Sale':type==='buynow'?'+ Publish to Shop':'+ Publish Drop';}
+function setListingType(type){_listingType=type;document.getElementById('type-btn-bid').className=type==='bid'?'active-bid':'';document.getElementById('type-btn-buy').className=type==='buynow'?'active-buy':'';document.getElementById('type-btn-flash').className=type==='flash'?'active-flash':'';document.getElementById('type-btn-bundle').className=type==='bundle'?'active-buy':'';const isPriced=type==='buynow'||type==='flash'||type==='bundle';document.getElementById('price-field').style.display=isPriced?'':'none';document.getElementById('original-price-field').style.display=type==='flash'?'':'none';document.getElementById('bundle-fields').style.display=type==='bundle'?'':'none';document.getElementById('bundle-retail-field').style.display=type==='bundle'?'':'none';const pl=document.getElementById('price-label');if(pl)pl.textContent=type==='flash'?'Flash Sale Price (USD) *':type==='bundle'?'Bundle Price (USD) *':'Fixed Price (USD) *';document.getElementById('publish-btn-text').textContent=type==='flash'?'⚡ Launch Flash Sale':type==='buynow'?'+ Publish to Shop':type==='bundle'?'📦 Publish Bundle':'+ Publish Drop';}
 function setAccessType(type){_accessType=type;document.getElementById('access-btn-public').className=type==='public'?'active-bid':'';document.getElementById('access-btn-members').className=type==='members'?'active-buy':'';}
 
 // ── MEMBER VERIFICATION ──
@@ -2539,12 +2816,12 @@ async function addDrop(status){
   const name=document.getElementById('add-name').value.trim();
   const errEl=document.getElementById('add-err');
   if(!name){errEl.textContent='Name is required.';errEl.style.display='block';return}
-  if(_listingType==='buynow'||_listingType==='flash'){const price=document.getElementById('add-price').value.trim();if(!price||parseFloat(price)<1){errEl.textContent='A valid price is required.';errEl.style.display='block';return}}
+  if(_listingType==='buynow'||_listingType==='flash'||_listingType==='bundle'){const price=document.getElementById('add-price').value.trim();if(!price||parseFloat(price)<1){errEl.textContent='A valid price is required.';errEl.style.display='block';return}}
   if(!_adminPw){errEl.textContent='Admin session expired — re-open admin.';errEl.style.display='block';return}
   const desc=document.getElementById('add-desc').value.trim();
   const size=document.getElementById('add-size').value.trim();
   const condition=document.getElementById('add-condition').value;
-  const price=(_listingType==='buynow'||_listingType==='flash')?document.getElementById('add-price').value.trim():'';
+  const price=(_listingType==='buynow'||_listingType==='flash'||_listingType==='bundle')?document.getElementById('add-price').value.trim():'';
   let photo='',photos=[];
   if(photoMode==='upload'){
     if(uploadedPhotos.some(p=>p.loading)){errEl.textContent='Photos are still uploading — please wait.';errEl.style.display='block';return}
@@ -2552,8 +2829,9 @@ async function addDrop(status){
     photo=photos[0]||'';
   }else if(photoMode==='url'){photo=document.getElementById('add-photo-url').value.trim();if(photo)photos=[photo];}
   const drop={id:'drop_'+Date.now(),name,desc,size,condition,photo,photos,status,type:_listingType,memberOnly:_accessType==='members',badges:_dropBadges.length>0?[..._dropBadges]:undefined,createdAt:new Date().toISOString()};
-  if(_listingType==='buynow'||_listingType==='flash')drop.price=price;
+  if(_listingType==='buynow'||_listingType==='flash'||_listingType==='bundle')drop.price=price;
   if(_listingType==='flash'){const op=document.getElementById('add-original-price').value.trim();if(op&&parseFloat(op)>0)drop.originalPrice=op;}
+  if(_listingType==='bundle'){const bi=document.getElementById('add-bundle-items').value.trim();if(bi)drop.bundleItems=bi;const br=document.getElementById('add-bundle-retail').value.trim();if(br&&parseFloat(br)>0)drop.bundleRetail=br;}
   const dropTimeEl=document.getElementById('add-drop-time');
   if(dropTimeEl&&dropTimeEl.value.trim()){
     const parsed=new Date(dropTimeEl.value.trim());
@@ -2567,7 +2845,7 @@ async function addDrop(status){
   }catch(e){errEl.textContent='Network error: '+(e&&e.message?e.message:'request failed');errEl.style.display='block';return}
   if(status==='published'||status==='teaser'){_drops=[..._drops,drop];if(_listingType==='flash')renderFlash();else if(_listingType==='buynow')renderShop();else renderDrops();}
   await refreshAll(true);renderAdminDrops();errEl.style.display='none';
-  ['add-name','add-desc','add-size','add-photo-url','add-price','add-original-price','add-drop-time'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['add-name','add-desc','add-size','add-photo-url','add-price','add-original-price','add-drop-time','add-bundle-items','add-bundle-retail'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   uploadedPhotos=[];renderUploadThumbs();
   _accessType='public';setAccessType('public');
   _dropDuration=0;setDropDuration(0);
@@ -2604,5 +2882,75 @@ renderDrops();renderShop();renderFlash();refreshAll();
 </script>
 <div id="activity-feed"></div>
 <div id="bid-alert"></div>
+
+<!-- CART DRAWER -->
+<div class="cart-overlay-bg" id="cart-overlay-bg" onclick="closeCartDrawer()"></div>
+<div class="cart-drawer" id="cart-drawer">
+  <div class="cart-drawer-hd">
+    <span class="cart-drawer-title">Your Cart</span>
+    <button class="btn-close" onclick="closeCartDrawer()">✕</button>
+  </div>
+  <div class="cart-items" id="cart-items-list"></div>
+  <div class="cart-foot" id="cart-foot">
+    <div class="cart-total-row">
+      <span class="cart-total-lbl">Total</span>
+      <span class="cart-total-amt" id="cart-total-display">$0.00</span>
+    </div>
+    <p class="cart-ship-note">🇺🇸 Free US shipping · $20 international</p>
+    <button class="btn-cart-checkout" onclick="openCartCheckout()">Checkout →</button>
+  </div>
+</div>
+
+<!-- CART CHECKOUT MODAL -->
+<div class="overlay" id="cart-checkout-overlay" onclick="overlayClick(event,'cart-checkout-overlay')">
+  <div class="modal-box cart-checkout-box" id="cart-checkout-box">
+    <div id="cart-checkout-form-view">
+      <div class="modal-hd">
+        <div><div class="modal-title">Checkout</div><div class="modal-sub">Card charged immediately · Confirmation email sent</div></div>
+        <button class="btn-close" onclick="closeModal('cart-checkout-overlay')">✕</button>
+      </div>
+      <div id="cart-checkout-summary" style="background:rgba(0,35,149,.12);border:1px solid rgba(0,35,149,.3);border-radius:3px;padding:12px 16px;margin-bottom:16px;font-size:.78rem;color:var(--muted)"></div>
+      <div class="form-row-2">
+        <div class="form-row" style="margin:0"><label>Full Name *</label><input type="text" id="cc-name" placeholder="Jane Smith"></div>
+        <div class="form-row" style="margin:0"><label>Email *</label><input type="email" id="cc-email" placeholder="jane@email.com"></div>
+      </div>
+      <div class="form-row"><label>Phone</label><input type="tel" id="cc-phone" placeholder="+1 555 000 0000"></div>
+      <div class="form-row"><label>Street Address *</label><input type="text" id="cc-street" placeholder="123 Main St"></div>
+      <div class="form-row-2">
+        <div class="form-row" style="margin:0"><label>City *</label><input type="text" id="cc-city" placeholder="Los Angeles"></div>
+        <div class="form-row" style="margin:0"><label>State</label><input type="text" id="cc-state" placeholder="CA"></div>
+      </div>
+      <div class="form-row-2">
+        <div class="form-row" style="margin:0"><label>ZIP</label><input type="text" id="cc-zip" placeholder="90001"></div>
+        <div class="form-row" style="margin:0"><label>Country</label><input type="text" id="cc-country" placeholder="USA" value="USA" oninput="updateCartTotal()"></div>
+      </div>
+      <div id="cc-shipping-notice" style="display:none;background:rgba(0,35,149,.13);border:1px solid rgba(123,159,212,.28);border-radius:3px;padding:10px 14px;margin-bottom:12px;font-size:.78rem;color:var(--muted)">🌍 <strong style="color:var(--fr-white)">International shipping: +$20.00</strong> added to your total.</div>
+      <div class="form-row"><div id="cart-card-element"></div><p class="stripe-note">🔒 Secured by Stripe</p></div>
+      <div class="form-err" id="cc-err" style="display:none"></div>
+      <button class="btn-submit btn-submit-green" id="cc-btn" onclick="submitCartCheckout()"><span class="btn-text" id="cc-btn-text">Pay Now</span><div class="spinner"></div></button>
+    </div>
+    <div class="bid-success" id="cart-checkout-success" style="display:none">
+      <span style="font-size:2.5rem">🎉</span>
+      <h3>Order confirmed!</h3>
+      <p style="color:var(--muted);font-size:.84rem">Check your email for a receipt. We'll be in touch with shipping details.</p>
+      <button class="btn-secondary" onclick="closeModal('cart-checkout-overlay')">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- EXIT INTENT POPUP -->
+<div id="exit-overlay">
+  <div class="exit-box">
+    <button class="exit-close-x" onclick="closeExitPopup()">✕</button>
+    <div class="exit-eyebrow">Wait — don't miss out</div>
+    <div class="exit-title">These Drops<br>Won't Wait</div>
+    <p class="exit-sub">Limited jerseys. Real auctions. Only the winner gets charged — everyone else owes nothing. Don't leave empty-handed.</p>
+    <div class="exit-actions">
+      <a href="#drops" class="exit-btn-bid" onclick="closeExitPopup()">🏆 View Auctions Now</a>
+      <a href="#shop" class="exit-btn-shop" onclick="closeExitPopup()">🛒 Browse the Shop</a>
+      <button class="exit-dismiss" onclick="closeExitPopup()">No thanks, I'll pass</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>

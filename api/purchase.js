@@ -182,7 +182,7 @@ module.exports = async (req, res) => {
     if (!raw) return res.status(404).json({ error: 'Item not found' });
     const drop = JSON.parse(raw);
 
-    if (drop.type !== 'buynow') return res.status(400).json({ error: 'This item is not available for Buy Now' });
+    if (drop.type !== 'buynow' && drop.type !== 'bundle' && drop.type !== 'flash') return res.status(400).json({ error: 'This item is not available for purchase' });
     if (drop.status !== 'published') return res.status(400).json({ error: 'This item is no longer available' });
     if (drop.sold) return res.status(409).json({ error: 'This item has already been sold' });
     if (!drop.price || parseFloat(drop.price) < 1) return res.status(400).json({ error: 'Invalid item price' });
