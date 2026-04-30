@@ -647,7 +647,7 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
           <div class="form-row" style="margin:0"><label>Country</label><input type="text" id="bid-country" placeholder="USA" value="USA" oninput="checkIntlShipping()"></div>
         </div>
         <div id="bid-shipping-notice" style="display:none;background:rgba(0,35,149,.13);border:1px solid rgba(123,159,212,.28);border-radius:3px;padding:11px 14px;margin-top:8px;font-size:.79rem;color:var(--muted);line-height:1.5">
-          🌎 <strong style="color:var(--fr-white)">International shipping: $25.00 USD</strong> will be added to your bid total. We ship via Pirate Ship (USPS / DHL).
+          🌎 <strong style="color:var(--fr-white)">International shipping: $20.00 USD</strong> will be added to your bid total. We ship via Pirate Ship (USPS / DHL).
         </div>
         <span class="section-label">Payment — Secured by Stripe</span>
         <div class="form-row"><div id="stripe-card-element"></div><p class="stripe-note">🔒 Card saved but <strong>NOT charged</strong> until you win</p></div>
@@ -1741,7 +1741,7 @@ function closeModal(id){document.getElementById(id).classList.remove('active')}
 function overlayClick(e,id){if(e.target.id===id)closeModal(id)}
 
 // ── SUBMIT BID ──
-const INTL_SHIPPING_FEE=25;
+const INTL_SHIPPING_FEE=20;
 const _usaVariants=new Set(['usa','us','u.s.','u.s.a.','united states','united states of america']);
 function isUSACountry(c){return _usaVariants.has((c||'').toLowerCase().trim());}
 function checkIntlShipping(){
