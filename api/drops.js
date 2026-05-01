@@ -332,6 +332,9 @@ module.exports = async (req, res) => {
           delete drop.compBid;
           delete drop.compBidId;
         }
+      } else if (body.action === 'setCompTemplate') {
+        if (body.compTemplate) drop.compTemplate = body.compTemplate;
+        else delete drop.compTemplate;
       } else {
         drop.status = drop.status === 'published' ? 'archived' : 'published';
       }
