@@ -186,7 +186,20 @@ nav{position:fixed;top:38px;left:0;right:0;z-index:500;display:flex;justify-cont
 @keyframes livePulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.65)}}
 @keyframes bidFlash{0%{color:inherit;transform:scale(1)}30%{color:#ED2939;transform:scale(1.2)}70%{color:#ED2939;transform:scale(1.1)}100%{color:inherit;transform:scale(1)}}
 .bid-flash{animation:bidFlash .9s ease-out forwards}
-.zero-risk-callout{background:rgba(62,207,142,.07);border:1px solid rgba(62,207,142,.2);border-radius:3px;padding:10px 14px;font-size:.73rem;color:#3ecf8e;text-align:center;margin-bottom:14px;line-height:1.5}
+.zero-risk-callout{background:rgba(62,207,142,.09);border:1px solid rgba(62,207,142,.28);border-radius:3px;padding:13px 16px;font-size:.78rem;color:#3ecf8e;text-align:center;margin-bottom:14px;line-height:1.6}
+.zero-risk-callout strong{color:#5de3a8}
+/* Section-level zero-risk banner above auction grid */
+.section-no-risk{display:flex;justify-content:center;gap:0;flex-wrap:wrap;margin-bottom:28px;border:1px solid rgba(62,207,142,.2);border-radius:5px;overflow:hidden;background:rgba(62,207,142,.05)}
+.snr-item{display:flex;align-items:center;gap:9px;padding:13px 22px;flex:1;min-width:180px;border-right:1px solid rgba(62,207,142,.12)}
+.snr-item:last-child{border-right:none}
+.snr-icon{font-size:1.2rem;flex-shrink:0}
+.snr-text{font-size:.75rem;line-height:1.5;color:var(--muted)}
+.snr-text strong{color:#5de3a8;display:block;font-size:.8rem;margin-bottom:1px}
+@media(max-width:640px){.snr-item{min-width:140px;padding:10px 14px}.snr-text{font-size:.68rem}}
+/* Bid modal top banner */
+.bid-modal-risk-bar{background:linear-gradient(90deg,rgba(62,207,142,.1),rgba(62,207,142,.06),rgba(62,207,142,.1));border-bottom:1px solid rgba(62,207,142,.18);padding:11px 22px;display:flex;justify-content:center;gap:24px;flex-wrap:wrap}
+.bmrb-item{display:flex;align-items:center;gap:6px;font-size:.67rem;letter-spacing:1px;color:#5de3a8;white-space:nowrap}
+.bmrb-dot{width:5px;height:5px;border-radius:50%;background:#3ecf8e;flex-shrink:0}
 .drop-img-badges{position:absolute;bottom:10px;right:10px;z-index:3;display:flex;flex-direction:column;gap:4px;align-items:flex-end}
 .item-badge{padding:3px 9px;border-radius:2px;font-size:.58rem;letter-spacing:2px;text-transform:uppercase;backdrop-filter:blur(6px);font-weight:600;white-space:nowrap}
 .item-badge-red{background:rgba(40,0,0,.84);border:1px solid rgba(237,41,57,.6);color:#ED2939}
@@ -586,7 +599,7 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
     <span class="ht-small">Volleyball</span>
     <span class="ht-big">Collective</span>
   </h1>
-  <p class="hero-sub">Bid any amount on rare volleyball jerseys — your card is saved but <strong style="color:var(--fr-white)">never charged unless you win</strong>. Lose? You owe nothing.</p>
+  <p class="hero-sub">Bid any amount on rare volleyball jerseys. Your card is saved but <strong style="color:var(--fr-white)">never charged unless you win</strong> — lose and you owe <strong style="color:#3ecf8e">absolutely nothing</strong>. Zero risk.</p>
   <div class="divider-row"><span>Bid · Win · Buy · Wear</span></div>
   <div class="hero-cta">
     <a href="#drops" class="btn-primary">View Auctions</a>
@@ -648,6 +661,11 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
   <div class="section-header">
     <div><span class="section-eyebrow">Current Auction</span><h2 class="section-title">Active Drops</h2></div>
     <span class="live-badge" id="drops-badge">Live</span>
+  </div>
+  <div class="section-no-risk">
+    <div class="snr-item"><div class="snr-icon">💳</div><div class="snr-text"><strong>Bid any amount — free to enter</strong>Your card is saved but never charged when you bid</div></div>
+    <div class="snr-item"><div class="snr-icon">🏆</div><div class="snr-text"><strong>Only the highest bid pays</strong>Every other bidder walks away owing absolutely nothing</div></div>
+    <div class="snr-item"><div class="snr-icon">🚫</div><div class="snr-text"><strong>Lose? You owe $0</strong>No hidden fees, no cancellation needed — zero risk</div></div>
   </div>
   <div class="drops-grid" id="drops-grid">
     <div class="empty-drops"><span class="ei">🏐</span><p>No active auctions right now — check back soon!</p></div>
@@ -847,8 +865,14 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
 <div class="overlay" id="bid-overlay" onclick="overlayClick(event,'bid-overlay')">
   <div class="modal">
     <div id="bid-form-view">
+      <div class="bid-modal-risk-bar">
+        <div class="bmrb-item"><div class="bmrb-dot"></div>Card saved, not charged</div>
+        <div class="bmrb-item"><div class="bmrb-dot"></div>Only winner pays</div>
+        <div class="bmrb-item"><div class="bmrb-dot"></div>Lose? You owe $0</div>
+        <div class="bmrb-item"><div class="bmrb-dot"></div>Secured by Stripe</div>
+      </div>
       <div class="modal-header">
-        <div><div class="modal-title" id="bid-modal-title">Place Your Bid</div><div class="modal-sub">Enter any amount · Card saved, <strong>never charged</strong> unless you win · Lose? You owe nothing</div></div>
+        <div><div class="modal-title" id="bid-modal-title">Place Your Bid</div><div class="modal-sub">Bid any amount — <strong>no charge unless you win</strong></div></div>
         <button class="btn-close" onclick="closeModal('bid-overlay')">✕</button>
       </div>
       <div class="modal-body">
@@ -887,8 +911,8 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
         <span class="section-label">Payment — Secured by Stripe</span>
         <div class="form-row"><div id="stripe-card-element"></div><p class="stripe-note">🔒 Card saved but <strong>NOT charged</strong> until you win</p></div>
         <div class="error-msg" id="bid-error"></div>
-        <div class="zero-risk-callout">✓ Your card is <strong>not charged</strong> unless you win — zero risk to place a bid</div>
-        <button class="btn-submit" id="bid-btn" onclick="submitBid()"><span class="btn-text">🔒 Secure My Bid</span><div class="spinner"></div></button>
+        <div class="zero-risk-callout">✓ <strong>Your card is saved, not charged.</strong> If you don't win, you owe nothing — no cancellation needed, no fees, no risk. Only the highest bidder ever pays.</div>
+        <button class="btn-submit" id="bid-btn" onclick="submitBid()"><span class="btn-text">🔒 Place My Bid — Free to Enter</span><div class="spinner"></div></button>
       </div>
     </div>
     <div class="bid-success" id="bid-success">
@@ -1928,7 +1952,7 @@ function renderDrops(){
       ?`<button class="btn-bid-card" style="background:rgba(123,159,212,.15);border:1px solid rgba(123,159,212,.4);color:var(--muted)" onclick="event.stopPropagation();openNotifyModal('${d.id}','${d.name.replace(/'/g,"\\'").replace(/"/g,'&quot;')}','teaser')">Notify Me →</button>`
       :isLocked
         ?`<button class="btn-bid-card btn-member-lock" onclick="event.stopPropagation();openMemberVerify(()=>openBidModal('${d.id}'))">🔒 Members Only</button>`
-        :`<div onclick="event.stopPropagation()"><button class="btn-bid-card" onclick="openBidModal('${d.id}')">Place Bid →</button><div style="font-size:.62rem;color:var(--muted);text-align:center;margin-top:5px;letter-spacing:.5px">✓ No charge unless you win</div></div>`;
+        :`<div onclick="event.stopPropagation()"><button class="btn-bid-card" onclick="openBidModal('${d.id}')">Place Bid →</button><div style="font-size:.64rem;color:#3ecf8e;text-align:center;margin-top:6px;letter-spacing:.3px;font-weight:500">✓ Free to bid · Only winner pays</div></div>`;
     const offerRow=isTeaser?'':`<div class="drop-offer-row"><button class="drop-offer-link" onclick="event.stopPropagation();openDropOfferModal('${d.id}','${d.name.replace(/'/g,"\\'").replace(/"/g,'&quot;')}')"><span class="bell-icon">🔔</span> Get 5% off this drop — click here</button><button class="drop-offer-link" style="color:var(--muted);margin-top:2px" onclick="event.stopPropagation();openNotifyModal('${d.id}','${d.name.replace(/'/g,"\\'").replace(/"/g,'&quot;')}','similar')"><span class="bell-icon">🔔</span> Notify me for drops like this</button></div>`;
     const watchCount=_watchCounts[d.id]||0;
     const notifyCount=isTeaser?((_notifyCounts&&_notifyCounts[d.id])||0):0;
@@ -2256,11 +2280,11 @@ async function submitBid(){
   const otherBidCount=_bids.filter(b=>b.dropId===activeDrop).length;
   _bids=[..._bids,{id:bid.id,dropId:bid.dropId,createdAt:bid.createdAt}];
   const competeMsg=otherBidCount===0
-    ?`You were first — you're setting the pace. Your card is only charged if you win.`
+    ?`You're in first — nobody else has bid yet. <strong style="color:#5de3a8">You're currently winning.</strong> Watch the auction and raise your bid if someone catches up.`
     :otherBidCount===1
-      ?`You're now competing with <strong>1 other bidder</strong>. Only the winner gets charged.`
-      :`You're now competing with <strong>${otherBidCount} other bidders</strong>. Only the winner gets charged.`;
-  document.getElementById('bid-compete-text').innerHTML=`Your bid is recorded and your card is saved securely via Stripe. You'll get a confirmation email.<br><br>${competeMsg}`;
+      ?`You're now competing with <strong>1 other bidder</strong>. The highest bid when the auction closes takes it home — the other person owes nothing.`
+      :`You're now in the running with <strong>${otherBidCount} other bidders</strong>. Only the winner gets charged — everyone else walks away owing $0. Raise your bid anytime to stay ahead.`;
+  document.getElementById('bid-compete-text').innerHTML=`Bid locked in. Your card is saved securely via Stripe and you'll get a confirmation email. Remember — <strong>you are not charged unless you win.</strong><br><br>${competeMsg}`;
   renderDrops();await refreshAll(true);
   btn.disabled=false;btn.classList.remove('loading');
   document.getElementById('bid-form-view').style.display='none';
