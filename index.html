@@ -188,14 +188,18 @@ nav{position:fixed;top:38px;left:0;right:0;z-index:500;display:flex;justify-cont
 .bid-flash{animation:bidFlash .9s ease-out forwards}
 .zero-risk-callout{background:rgba(62,207,142,.09);border:1px solid rgba(62,207,142,.28);border-radius:3px;padding:13px 16px;font-size:.78rem;color:#3ecf8e;text-align:center;margin-bottom:14px;line-height:1.6}
 .zero-risk-callout strong{color:#5de3a8}
-/* Section-level zero-risk banner above auction grid */
-.section-no-risk{display:flex;justify-content:center;gap:0;flex-wrap:wrap;margin-bottom:28px;border:1px solid rgba(62,207,142,.2);border-radius:5px;overflow:hidden;background:rgba(62,207,142,.05)}
-.snr-item{display:flex;align-items:center;gap:9px;padding:13px 22px;flex:1;min-width:180px;border-right:1px solid rgba(62,207,142,.12)}
-.snr-item:last-child{border-right:none}
-.snr-icon{font-size:1.2rem;flex-shrink:0}
-.snr-text{font-size:.75rem;line-height:1.5;color:var(--muted)}
-.snr-text strong{color:#5de3a8;display:block;font-size:.8rem;margin-bottom:1px}
-@media(max-width:640px){.snr-item{min-width:140px;padding:10px 14px}.snr-text{font-size:.68rem}}
+/* Bid confidence callout — full width, above auction grid */
+.bid-confidence{position:relative;z-index:2;background:linear-gradient(135deg,rgba(0,35,149,.22) 0%,rgba(62,207,142,.08) 100%);border:1px solid rgba(62,207,142,.3);border-radius:8px;padding:32px 36px;margin-bottom:32px;overflow:hidden}
+.bid-confidence::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 60% 50%,rgba(62,207,142,.07) 0%,transparent 70%);pointer-events:none}
+.bid-confidence-headline{font-family:'Bebas Neue',sans-serif;font-size:clamp(1.6rem,3.5vw,2.4rem);letter-spacing:3px;color:var(--fr-white);margin-bottom:8px;line-height:1.1}
+.bid-confidence-headline span{color:#3ecf8e}
+.bid-confidence-sub{font-size:.88rem;color:var(--muted);line-height:1.7;max-width:560px;margin-bottom:24px}
+.bid-confidence-sub strong{color:var(--fr-white)}
+.bid-confidence-pills{display:flex;flex-wrap:wrap;gap:10px}
+.bcp{display:flex;align-items:center;gap:8px;background:rgba(62,207,142,.1);border:1px solid rgba(62,207,142,.28);border-radius:4px;padding:10px 16px;font-size:.78rem;color:#3ecf8e;font-weight:500}
+.bcp-icon{font-size:1.1rem;flex-shrink:0}
+.bcp strong{color:#5de3a8;font-size:.82rem}
+@media(max-width:640px){.bid-confidence{padding:22px 18px;margin-bottom:20px}.bid-confidence-headline{font-size:1.5rem}.bid-confidence-pills{gap:8px}.bcp{font-size:.72rem;padding:8px 12px}}
 /* Card security strip */
 .bid-security-strip{display:flex;align-items:center;justify-content:center;gap:8px;background:rgba(62,207,142,.08);border:1px solid rgba(62,207,142,.22);border-radius:3px;padding:9px 12px;margin:10px 0 2px;font-size:.74rem;color:#3ecf8e;line-height:1.4;text-align:center}
 .bid-security-strip .bss-icon{font-size:1rem;flex-shrink:0}
@@ -666,10 +670,20 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
     <div><span class="section-eyebrow">Current Auction</span><h2 class="section-title">Active Drops</h2></div>
     <span class="live-badge" id="drops-badge">Live</span>
   </div>
-  <div class="section-no-risk">
-    <div class="snr-item"><div class="snr-icon">💳</div><div class="snr-text"><strong>Bid any amount — free to enter</strong>Your card is saved but never charged when you bid</div></div>
-    <div class="snr-item"><div class="snr-icon">🏆</div><div class="snr-text"><strong>Only the highest bid pays</strong>Every other bidder walks away owing absolutely nothing</div></div>
-    <div class="snr-item"><div class="snr-icon">🚫</div><div class="snr-text"><strong>Lose? You owe $0</strong>No hidden fees, no cancellation needed — zero risk</div></div>
+  <div class="bid-confidence">
+    <div class="bid-confidence-headline">Bid <span>any amount</span> — there is nothing to lose</div>
+    <p class="bid-confidence-sub">
+      No reason to hesitate. Enter any bid amount and your card is saved securely via Stripe —
+      but <strong>it is never charged unless you win.</strong>
+      If someone outbids you or the auction closes and you didn't win, your card is never touched.
+      You owe <strong>absolutely nothing.</strong>
+    </p>
+    <div class="bid-confidence-pills">
+      <div class="bcp"><span class="bcp-icon">💳</span><span>Enter <strong>any amount</strong> to get in the auction</span></div>
+      <div class="bcp"><span class="bcp-icon">🔒</span><span>Card saved by Stripe — <strong>never charged unless you win</strong></span></div>
+      <div class="bcp"><span class="bcp-icon">🏆</span><span><strong>Only the winner</strong> gets charged — one person, one payment</span></div>
+      <div class="bcp"><span class="bcp-icon">🚫</span><span>Lose the auction? You owe <strong>$0</strong> — no cancellation needed</span></div>
+    </div>
   </div>
   <div class="drops-grid" id="drops-grid">
     <div class="empty-drops"><span class="ei">🏐</span><p>No active auctions right now — check back soon!</p></div>
