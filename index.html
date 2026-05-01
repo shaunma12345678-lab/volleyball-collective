@@ -201,8 +201,20 @@ nav{position:fixed;top:38px;left:0;right:0;z-index:500;display:flex;justify-cont
 .bcp strong{color:#5de3a8;font-size:.82rem}
 @media(max-width:640px){.bid-confidence{padding:22px 18px;margin-bottom:20px}.bid-confidence-headline{font-size:1.5rem}.bid-confidence-pills{gap:8px}.bcp{font-size:.72rem;padding:8px 12px}}
 /* Card security strip */
-.value-strip{display:flex;align-items:flex-start;justify-content:flex-start;gap:7px;background:rgba(251,191,36,.06);border:1px solid rgba(251,191,36,.18);border-radius:3px;padding:7px 11px;margin:6px 0 2px;font-size:.72rem;color:#fbbf24;line-height:1.5;text-align:left}
-.value-strip strong{color:#fde68a}
+.value-strip{border-radius:3px;padding:9px 12px;margin:6px 0 2px}
+.vs-fomo{background:rgba(237,41,57,.05);border:1px solid rgba(237,41,57,.2)}
+.vs-challenge{background:rgba(62,207,142,.04);border:1px solid rgba(62,207,142,.18)}
+.vs-top{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.vs-num{font-size:.72rem;color:var(--muted)}
+.vs-big{font-size:.95rem;font-weight:700;font-family:'Bebas Neue',sans-serif;letter-spacing:1px}
+.vs-fomo .vs-big{color:#fbbf24}
+.vs-challenge .vs-big{color:#3ecf8e}
+.vs-dot{color:rgba(255,255,255,.15);font-size:.8rem}
+.vs-save-amt{font-size:.72rem;font-weight:700;color:#3ecf8e}
+.vs-save-pct{font-size:.68rem;font-weight:700;color:#3ecf8e;background:rgba(62,207,142,.1);border:1px solid rgba(62,207,142,.22);padding:1px 7px;border-radius:10px}
+.vs-retail-line{font-size:.67rem;color:var(--muted)}
+.vs-retail-cross{text-decoration:line-through}
+.vs-copy{font-size:.69rem;color:var(--muted);margin-top:5px;line-height:1.4;font-style:italic}
 /* Bid modal top banner */
 .bid-modal-risk-bar{background:linear-gradient(90deg,rgba(62,207,142,.1),rgba(62,207,142,.06),rgba(62,207,142,.1));border-bottom:1px solid rgba(62,207,142,.18);padding:11px 22px;display:flex;justify-content:center;gap:24px;flex-wrap:wrap}
 .bmrb-item{display:flex;align-items:center;gap:6px;font-size:.67rem;letter-spacing:1px;color:#5de3a8;white-space:nowrap}
@@ -2025,7 +2037,18 @@ function renderDrops(){
     const oneOfOneBadge=d.oneOfOne?`<span class="one-of-one-badge">1 OF 1</span>`:'';
     const oneOfOneStrip=d.oneOfOne&&!isTeaser?`<div class="one-of-one-strip">💎 <span>There is <strong style="color:#e9d5ff">exactly one</strong> of this item — once it's gone, it's gone forever.</span></div>`:'';
     const firstBidChip=!isTeaser&&!d.sold&&db.length===0?`<span style="background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.3);color:#fbbf24;font-size:.58rem;padding:2px 8px;border-radius:10px;letter-spacing:.3px;white-space:nowrap">🎁 First bid — 5% off</span>`:'';
-    const _cbAmt=d.compBid&&parseFloat(d.compBid)>0?parseFloat(d.compBid):0;const _rtAmt=d.retailPrice&&parseFloat(d.retailPrice)>0?parseFloat(d.retailPrice):0;const _vsText=d.compTemplate==='challenge'?`💰 Someone bid <strong>$${_cbAmt.toFixed(0)}</strong> — can you beat it? Retail is <strong>$${_rtAmt.toFixed(0)}</strong> and you only pay if you win.`:`🔥 Someone's already in at <strong>$${_cbAmt.toFixed(0)}</strong> — still <strong>$${(_rtAmt-_cbAmt).toFixed(0)} under retail.</strong> You could take this.`;const valueStrip=!isTeaser&&!d.sold&&_cbAmt>0&&_rtAmt>0&&_rtAmt>_cbAmt?`<div class="value-strip">${_vsText}</div>`:'';
+    const _cbAmt=d.compBid&&parseFloat(d.compBid)>0?parseFloat(d.compBid):0;
+    const _rtAmt=d.retailPrice&&parseFloat(d.retailPrice)>0?parseFloat(d.retailPrice):0;
+    let valueStrip='';
+    if(!isTeaser&&!d.sold&&_cbAmt>0&&_rtAmt>0&&_rtAmt>_cbAmt){
+      const _sv=(_rtAmt-_cbAmt).toFixed(0);
+      const _pct=Math.round((_rtAmt-_cbAmt)/_rtAmt*100);
+      if(d.compTemplate==='challenge'){
+        valueStrip=`<div class="value-strip vs-challenge"><div class="vs-top"><span class="vs-num">💰 Beat <span class="vs-big">$${_cbAmt.toFixed(0)}</span></span><span class="vs-dot">·</span><span class="vs-retail-line">Retail <span class="vs-retail-cross">$${_rtAmt.toFixed(0)}</span></span><span class="vs-save-pct">${_pct}% off retail</span></div><div class="vs-copy">Can you beat it? You only pay if you win.</div></div>`;
+      } else {
+        valueStrip=`<div class="value-strip vs-fomo"><div class="vs-top"><span class="vs-num">🔥 <span class="vs-big">$${_cbAmt.toFixed(0)}</span> bid</span><span class="vs-dot">·</span><span class="vs-save-amt">$${_sv} below retail</span><span class="vs-retail-line">(retail <span class="vs-retail-cross">$${_rtAmt.toFixed(0)}</span>)</span></div><div class="vs-copy">Someone's already in — you could still take this.</div></div>`;
+      }
+    }
     return`<div class="drop-card${isTeaser?' teaser-card':''}${hotClass}" data-drop-id="${d.id}" style="animation-delay:${i*.09}s${isTeaser?';cursor:default':''}"${cardClick?` onclick="${cardClick}"`:''}}>
       <div class="drop-img-wrap">${img}${teaserOverlay}${lockOverlay}${badgeChipFinal}${memberBadge}${hotBadge}${customBadges}${oneOfOneBadge}</div>
       <div class="card-stripe"></div>
