@@ -324,6 +324,14 @@ module.exports = async (req, res) => {
       } else if (body.action === 'setOneOfOne') {
         if (body.oneOfOne) drop.oneOfOne = true;
         else delete drop.oneOfOne;
+      } else if (body.action === 'setCompBid') {
+        if (body.compBid && parseFloat(body.compBid) > 0) {
+          drop.compBid = body.compBid;
+          drop.compBidId = body.compBidId || null;
+        } else {
+          delete drop.compBid;
+          delete drop.compBidId;
+        }
       } else {
         drop.status = drop.status === 'published' ? 'archived' : 'published';
       }

@@ -205,6 +205,8 @@ nav{position:fixed;top:38px;left:0;right:0;z-index:500;display:flex;justify-cont
 .bid-security-strip .bss-icon{font-size:1rem;flex-shrink:0}
 .bid-security-strip strong{color:#5de3a8}
 .first-bid-strip{display:flex;align-items:center;justify-content:center;gap:8px;background:rgba(62,207,142,.08);border:1px solid rgba(62,207,142,.28);border-radius:3px;padding:8px 12px;margin:4px 0;font-size:.73rem;color:#3ecf8e;text-align:center}
+.value-strip{display:flex;align-items:center;justify-content:center;gap:7px;background:rgba(251,191,36,.06);border:1px solid rgba(251,191,36,.2);border-radius:3px;padding:8px 12px;margin:4px 0;font-size:.73rem;color:#fbbf24;line-height:1.4;text-align:center}
+.value-strip strong{color:#fde68a}
 /* Bid modal top banner */
 .bid-modal-risk-bar{background:linear-gradient(90deg,rgba(62,207,142,.1),rgba(62,207,142,.06),rgba(62,207,142,.1));border-bottom:1px solid rgba(62,207,142,.18);padding:11px 22px;display:flex;justify-content:center;gap:24px;flex-wrap:wrap}
 .bmrb-item{display:flex;align-items:center;gap:6px;font-size:.67rem;letter-spacing:1px;color:#5de3a8;white-space:nowrap}
@@ -1872,7 +1874,7 @@ async function fetchBids(bust=false){
             _flashDropIds.add(dropId);
             if(!alertFired){
               const drop=(_drops||[]).find(d=>d.id===dropId&&d.status==='published');
-              if(drop){showBidAlert(`🏐 Someone just placed a bid on ${drop.name}`);alertFired=true;}
+              if(drop){const _topAmt=incoming.filter(b=>b.dropId===dropId).reduce((mx,b)=>parseFloat(b.amount)>mx?parseFloat(b.amount):mx,0);const _retail=drop.retailPrice?parseFloat(drop.retailPrice):0;const _sv=_retail>0&&_topAmt>0&&_retail>_topAmt?` — $${(_retail-_topAmt).toFixed(0)} below retail`:'';showBidAlert(`🏐 New bid on ${drop.name}${_sv}`);alertFired=true;}
             }
           }
         }
@@ -2029,6 +2031,7 @@ function renderDrops(){
     const oneOfOneStrip=d.oneOfOne&&!isTeaser?`<div class="one-of-one-strip">💎 <span>There is <strong style="color:#e9d5ff">exactly one</strong> of this item — once it's gone, it's gone forever.</span></div>`:'';
     const securityStrip=!isTeaser&&!d.sold?`<div class="bid-security-strip"><span class="bss-icon">🔒</span><span>Bid <strong>any amount</strong> — you will <strong>not be charged</strong> unless you win. Only the highest bidder pays.</span></div>`:'';
     const firstBidStrip=!isTeaser&&!d.sold&&db.length===0?`<div class="first-bid-strip">🎁 <strong>Be the first to bid — get 5% off</strong> this auction if you win</div>`:'';
+    const _cbAmt=d.compBid&&parseFloat(d.compBid)>0?parseFloat(d.compBid):0;const _rtAmt=d.retailPrice&&parseFloat(d.retailPrice)>0?parseFloat(d.retailPrice):0;const valueStrip=!isTeaser&&!d.sold&&_cbAmt>0&&_rtAmt>0&&_rtAmt>_cbAmt?`<div class="value-strip">💰 Bid of <strong>$${_cbAmt.toFixed(0)}</strong> saves <strong>$${(_rtAmt-_cbAmt).toFixed(0)}</strong> vs retail — <strong>${Math.round((_rtAmt-_cbAmt)/_rtAmt*100)}% below market value</strong></div>`:'';
     return`<div class="drop-card${isTeaser?' teaser-card':''}${hotClass}" data-drop-id="${d.id}" style="animation-delay:${i*.09}s${isTeaser?';cursor:default':''}"${cardClick?` onclick="${cardClick}"`:''}}>
       <div class="drop-img-wrap">${img}${teaserOverlay}${lockOverlay}${badgeChipFinal}${memberBadge}${hotBadge}${customBadges}${oneOfOneBadge}</div>
       <div class="card-stripe"></div>
@@ -2038,6 +2041,7 @@ function renderDrops(){
         ${d.desc?`<p class="drop-desc">${d.desc}</p>`:''}
         ${oneOfOneStrip}
         ${firstBidStrip}
+        ${valueStrip}
         ${securityStrip}
         <div class="drop-footer">${footerLeft}${actionBtn}</div>
         ${offerRow}${viewersRow}${notifyWaitingRow}
@@ -2188,6 +2192,7 @@ function startActivityFeed(){
     const parts=[];
     if(bidCount>0)parts.push(fmtBids(bidCount));
     if(watches>0)parts.push(`${watches} viewing right now`);
+    if(drop.retailPrice&&parseFloat(drop.retailPrice)>0&&bidCount>0){const _topAmt=(_bids||[]).filter(b=>b.dropId===drop.id).reduce((mx,b)=>parseFloat(b.amount)>mx?parseFloat(b.amount):mx,0);const _sv=parseFloat(drop.retailPrice)-_topAmt;if(_sv>0)parts.push(`$${_sv.toFixed(0)} below retail`);}
     showActivityItem(`🏐 ${drop.name} — ${parts.join(' · ')}`);
     _activityIdx++;
   }
@@ -2605,7 +2610,7 @@ function renderAdminDrops(){
     const soldBlock=drop.sold&&drop.soldTo?`<div style="padding:14px 18px;border-top:1px solid rgba(0,35,149,.18)"><div style="font-size:.6rem;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:10px">Purchase Details</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:5px 20px;font-size:.73rem;line-height:1.6"><span style="color:var(--muted)">Name</span><span><strong style="color:var(--fr-white)">${drop.soldTo.name}</strong></span><span style="color:var(--muted)">Email</span><span>${drop.soldTo.email}</span>${drop.soldTo.phone?`<span style="color:var(--muted)">Phone</span><span>${drop.soldTo.phone}</span>`:''}<span style="color:var(--muted)">Address</span><span>${drop.soldTo.address?`${drop.soldTo.address.street}, ${drop.soldTo.address.city} ${drop.soldTo.address.state} ${drop.soldTo.address.zip} — ${drop.soldTo.address.country||''}`.trim().replace(/—\s*$/,''):'—'}</span><span style="color:var(--muted)">Charged</span><span style="color:var(--success)"><strong>$${parseFloat(drop.soldTo.chargedPrice||0).toFixed(2)}</strong>${parseFloat(drop.soldTo.shippingFee||0)>0?` <span style="color:#fbbf24;font-size:.65rem">(incl. $${parseFloat(drop.soldTo.shippingFee).toFixed(2)} intl shipping)</span>`:''}</span>${drop.soldTo.promoCode?`<span style="color:var(--muted)">Promo</span><span style="color:#3ecf8e">${drop.soldTo.promoCode}</span>`:''}<span style="color:var(--muted)">Date</span><span>${new Date(drop.soldTo.purchasedAt).toLocaleString()}</span></div><div style="margin-top:12px"><button onclick="refundPurchase('${drop.id}')" style="background:rgba(255,107,107,.1);border:1px solid rgba(255,107,107,.35);color:#ff6b6b;padding:6px 16px;font-size:.7rem;letter-spacing:1.5px;text-transform:uppercase;border-radius:2px;cursor:pointer;font-family:'DM Sans',sans-serif">↩ Issue Refund</button></div></div>`:`<div style="padding:14px 18px;font-size:.78rem;color:var(--muted)">No purchase yet.</div>`;
     return`<div class="drop-group"><div class="drop-group-hd"><div><div class="drop-group-name" style="color:${isFlash?'#fbbf24':'var(--success)'}">${drop.name} <span style="font-size:.7rem;font-family:'DM Sans',sans-serif">[${typeLabel}]</span></div><div style="font-size:.7rem;color:var(--muted);margin-top:2px">${drop.status}${drop.sold?' · SOLD':''}</div></div><div style="display:flex;gap:8px"><button class="btn-tog" onclick="toggleStatus('${drop.id}')">${drop.status==='published'?'Archive':'Publish'}</button><button class="btn-del" onclick="deleteDrop('${drop.id}')">Delete</button></div></div>${timerRow}${badgesRow}${photosRow}${soldBlock}</div>`;}
     const db=bids.filter(b=>b.dropId===drop.id).sort((a,b)=>b.amount-a.amount);
-    const rows=db.length?db.map(bid=>{const sf=parseFloat(bid.shippingFee)||0;const bidTotal=sf>0?`$${parseFloat(bid.amount).toFixed(2)}<br><span style="color:#fbbf24;font-size:.65rem">+$${sf.toFixed(2)} intl shipping</span>`:(`$${parseFloat(bid.amount).toFixed(2)}`);return`<tr><td><strong>${bid.name}</strong><br><span style="color:var(--muted);font-size:.7rem">${bid.email}</span></td><td style="font-size:.73rem;color:var(--muted)">${bid.phone||'—'}</td><td class="bid-amt">${bidTotal}</td><td style="font-size:.7rem;color:var(--muted)">${bid.address?`${bid.address.street}, ${bid.address.city} ${bid.address.state} ${bid.address.zip} — ${bid.address.country||''}`.trim().replace(/—\s*$/,''):'—'}</td><td>${bid.charged?`<span class="badge-charged">✅ Charged</span>`:bid.paymentMethodId&&bid.paymentMethodId!=='[no-stripe]'?`<button class="btn-charge" onclick="chargeCard('${bid.id}')">Charge Card</button>`:`<span class="badge-nocard">No card</span>`}</td><td style="font-size:.68rem;color:var(--muted)">${new Date(bid.createdAt).toLocaleDateString()}</td></tr>`;}).join(''):`<tr><td colspan="6" class="no-bids">No bids yet.</td></tr>`;
+    const rows=db.length?db.map(bid=>{const sf=parseFloat(bid.shippingFee)||0;const bidTotal=sf>0?`$${parseFloat(bid.amount).toFixed(2)}<br><span style="color:#fbbf24;font-size:.65rem">+$${sf.toFixed(2)} intl shipping</span>`:(`$${parseFloat(bid.amount).toFixed(2)}`);const _isPin=drop.compBidId===bid.id;const _pinS=`font-size:.6rem;padding:2px 7px;border-radius:2px;cursor:pointer;font-family:'DM Sans',sans-serif;display:block;margin-top:4px;border:1px solid ${_isPin?'rgba(251,191,36,.5)':'rgba(123,159,212,.2)'};background:${_isPin?'rgba(251,191,36,.1)':'transparent'};color:${_isPin?'#fbbf24':'var(--muted)'}`;return`<tr><td><strong>${bid.name}</strong><br><span style="color:var(--muted);font-size:.7rem">${bid.email}</span></td><td style="font-size:.73rem;color:var(--muted)">${bid.phone||'—'}</td><td class="bid-amt">${bidTotal}</td><td style="font-size:.7rem;color:var(--muted)">${bid.address?`${bid.address.street}, ${bid.address.city} ${bid.address.state} ${bid.address.zip} — ${bid.address.country||''}`.trim().replace(/—\s*$/,''):'—'}</td><td>${bid.charged?`<span class="badge-charged">✅ Charged</span>`:bid.paymentMethodId&&bid.paymentMethodId!=='[no-stripe]'?`<button class="btn-charge" onclick="chargeCard('${bid.id}')">Charge Card</button>`:`<span class="badge-nocard">No card</span>`}<button onclick="setCompBid('${drop.id}','${bid.id}','${bid.amount}')" style="${_pinS}">${_isPin?'📌 Pinned':'📌 Pin'}</button></td><td style="font-size:.68rem;color:var(--muted)">${new Date(bid.createdAt).toLocaleDateString()}</td></tr>`;}).join(''):`<tr><td colspan="6" class="no-bids">No bids yet.</td></tr>`;
     const retailPriceRow=`<div style="padding:8px 18px;border-top:1px solid rgba(0,35,149,.18);display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span style="font-size:.6rem;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-right:2px">Retail Price:</span><span style="color:var(--muted);font-size:.8rem">$</span><input id="retail-${drop.id}" type="number" min="0" step="0.01" value="${drop.retailPrice||''}" placeholder="0.00" style="width:80px;background:rgba(255,255,255,.06);border:1px solid rgba(123,159,212,.3);border-radius:2px;padding:4px 8px;color:var(--fr-white);font-size:.75rem;font-family:'DM Sans',sans-serif"><button onclick="setRetailPrice('${drop.id}')" style="${btnS};border:1px solid rgba(62,207,142,.4);background:rgba(62,207,142,.1);color:var(--success)">Save</button>${drop.retailPrice?`<span style="font-size:.68rem;color:var(--muted)">currently: <span style="text-decoration:line-through">$${parseFloat(drop.retailPrice).toFixed(2)}</span></span>`:''}</div>`;
     const lastChanceRow=`<div style="padding:8px 18px;border-top:1px solid rgba(0,35,149,.18);display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span style="font-size:.6rem;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-right:2px">Notify:</span><button onclick="sendLastChanceEmail('${drop.id}')" style="${btnS};border:1px solid rgba(251,191,36,.4);background:rgba(251,191,36,.1);color:#fbbf24">⏰ Last Chance Email</button><span style="font-size:.65rem;color:var(--muted)">${db.length} bidder(s) — closing soon reminder</span></div>`;
     return`<div class="drop-group"><div class="drop-group-hd"><div><div class="drop-group-name">${drop.name}</div><div style="font-size:.7rem;color:var(--muted);margin-top:2px">${drop.status} · ${db.length} bid(s)</div></div><div style="display:flex;gap:8px"><button class="btn-tog" onclick="toggleStatus('${drop.id}')">${drop.status==='published'?'Archive':'Publish'}</button><button class="btn-del" onclick="deleteDrop('${drop.id}')">Delete</button></div></div>${timerRow}${badgesRow}${photosRow}${retailPriceRow}${lastChanceRow}<div style="overflow-x:auto"><table class="bids-table"><thead><tr><th>Name/Email</th><th>Phone</th><th>Bid</th><th>Address</th><th>Action</th><th>Date</th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
@@ -2690,6 +2695,20 @@ async function setRetailPrice(id){
     if(!res.ok){showToast('❌ '+(data.error||'Could not update'),true);return}
     await fetchDrops(true);renderAdminDrops();
     showToast(retailPrice?`Retail price set to $${parseFloat(retailPrice).toFixed(2)}`:'Retail price removed');
+  }catch(e){showToast('❌ Network error',true)}
+}
+async function setCompBid(dropId,bidId,amount){
+  if(!_adminPw){showToast('Admin session expired',true);return}
+  const drop=_drops.find(d=>d.id===dropId);
+  const isCurrentlyPinned=drop&&drop.compBidId===bidId;
+  const compBid=isCurrentlyPinned?null:amount;
+  const compBidId=isCurrentlyPinned?null:bidId;
+  try{
+    const res=await fetch('/api/drops',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:dropId,adminPw:_adminPw,action:'setCompBid',compBid,compBidId})});
+    const data=await res.json().catch(()=>({}));
+    if(!res.ok){showToast('❌ '+(data.error||'Could not update'),true);return}
+    await fetchDrops(true);renderAdminDrops();
+    showToast(compBid?`📌 Pinned $${parseFloat(amount).toFixed(2)} as comparison bid`:'Comparison bid removed');
   }catch(e){showToast('❌ Network error',true)}
 }
 async function sendLastChanceEmail(dropId){
