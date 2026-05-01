@@ -2179,21 +2179,37 @@ function startActivityFeed(){
   if(_activityTimer){clearInterval(_activityTimer);_activityTimer=null;}
   const liveDrops=(_drops||[]).filter(d=>d.status==='published');
   if(!liveDrops.length)return;
+  const compTemplates=[
+    (name,cb,sv,rt)=>`💰 Someone just bid $${cb} on ${name} — still $${sv} under the retail price!`,
+    (name,cb,sv,rt)=>`🔥 Active bid of $${cb} on ${name} — $${sv} below retail value of $${rt}`,
+    (name,cb,sv,rt)=>`💰 $${cb} bid placed on ${name} — that's a real deal at $${sv} under retail`,
+  ];
   function tick(){
-    const active=liveDrops.filter(d=>{
-      const bc=(_bids||[]).filter(b=>b.dropId===d.id).length;
-      const wc=(_watchCounts&&_watchCounts[d.id])||0;
-      return bc>0||wc>0;
-    });
-    if(!active.length)return;
-    const drop=active[_activityIdx%active.length];
-    const bidCount=(_bids||[]).filter(b=>b.dropId===drop.id).length;
-    const watches=(_watchCounts&&_watchCounts[drop.id])||0;
-    const parts=[];
-    if(bidCount>0)parts.push(fmtBids(bidCount));
-    if(watches>0)parts.push(`${watches} viewing right now`);
-    if(drop.retailPrice&&parseFloat(drop.retailPrice)>0&&bidCount>0){const _topAmt=(_bids||[]).filter(b=>b.dropId===drop.id).reduce((mx,b)=>parseFloat(b.amount)>mx?parseFloat(b.amount):mx,0);const _sv=parseFloat(drop.retailPrice)-_topAmt;if(_sv>0)parts.push(`$${_sv.toFixed(0)} below retail`);}
-    showActivityItem(`🏐 ${drop.name} — ${parts.join(' · ')}`);
+    const msgs=[];
+    for(const drop of liveDrops){
+      const bidCount=(_bids||[]).filter(b=>b.dropId===drop.id).length;
+      const watches=(_watchCounts&&_watchCounts[drop.id])||0;
+      if(bidCount>0||watches>0){
+        const parts=[];
+        if(bidCount>0)parts.push(fmtBids(bidCount));
+        if(watches>0)parts.push(`${watches} viewing right now`);
+        if(drop.retailPrice&&parseFloat(drop.retailPrice)>0&&bidCount>0){
+          const _topAmt=(_bids||[]).filter(b=>b.dropId===drop.id).reduce((mx,b)=>parseFloat(b.amount)>mx?parseFloat(b.amount):mx,0);
+          const _sv=parseFloat(drop.retailPrice)-_topAmt;
+          if(_sv>0)parts.push(`$${_sv.toFixed(0)} below retail`);
+        }
+        msgs.push(`🏐 ${drop.name} — ${parts.join(' · ')}`);
+      }
+      if(drop.compBid&&drop.retailPrice){
+        const cb=parseFloat(drop.compBid),rt=parseFloat(drop.retailPrice);
+        if(cb>0&&rt>cb){
+          const sv=(rt-cb).toFixed(0);
+          msgs.push(compTemplates[_activityIdx%compTemplates.length](drop.name,cb.toFixed(0),sv,rt.toFixed(0)));
+        }
+      }
+    }
+    if(!msgs.length)return;
+    showActivityItem(msgs[_activityIdx%msgs.length]);
     _activityIdx++;
   }
   setTimeout(()=>{tick();_activityTimer=setInterval(tick,20000);},5000);
