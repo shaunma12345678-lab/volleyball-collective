@@ -943,7 +943,7 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
           <div class="form-row" style="margin:0"><label>Phone (optional)</label><input type="tel" id="bid-phone" placeholder="+1 555 000 0000"></div>
           <div class="form-row" style="margin:0"><label>Message (optional)</label><input type="text" id="bid-msg" placeholder="Any notes..."></div>
         </div>
-        <span class="section-label">Shipping Address</span>
+        <span class="section-label">Shipping Address <span class="free-ship-chip" style="vertical-align:middle">🇺🇸 Free US Shipping</span></span>
         <div class="form-row"><label>Street Address</label><input type="text" id="bid-street" placeholder="123 Main St"></div>
         <div class="form-row-2">
           <div class="form-row" style="margin:0"><label>City</label><input type="text" id="bid-city" placeholder="Los Angeles"></div>
@@ -2016,9 +2016,10 @@ function renderDrops(){
     const closingSoon=!isTeaser&&d.endTime&&(new Date(d.endTime)-now)<7200000&&(new Date(d.endTime)-now)>0;
     const badgeChipFinal=isTeaser?`<span class="teaser-badge-chip">Coming Soon</span>`:closingSoon?`<span class="closing-soon-chip">⏰ Closing Soon</span>`:`<span class="drop-badge-chip">Active Drop</span>`;
     const retailAnchor=!isTeaser&&d.retailPrice&&parseFloat(d.retailPrice)>0?`<div style="font-size:.68rem;color:var(--muted);margin-bottom:2px">Retail: <span style="text-decoration:line-through">$${parseFloat(d.retailPrice).toFixed(2)}</span></div>`:'';
+    const auctionFreeShip=!isTeaser&&!d.sold?`<span class="free-ship-chip">🇺🇸 Free US Shipping</span>`:'';
     const footerLeft=isTeaser
       ?(d.dropTime?`<span class="countdown-tag" data-countdown="${d.dropTime}">—</span>`:`<span class="drop-bid-count" style="color:var(--muted)">Bidding opens soon</span>`)
-      :`<div>${retailAnchor}<span class="drop-bid-count">${fmtBids(db.length)}</span>${endTimeStr}${velocityTag}</div>`;
+      :`<div>${retailAnchor}<span class="drop-bid-count">${fmtBids(db.length)}</span>${endTimeStr}${velocityTag}${auctionFreeShip}</div>`;
     const hotLevel=!isTeaser&&db.length>=25?3:db.length>=10?2:db.length>=5?1:0;
     const hotClass=hotLevel?` card-hot-${hotLevel}`:'';
     const hotBadgeText=hotLevel===3?'🔥 On Fire':hotLevel===2?'🔥 Heating Up':hotLevel===1?'🔥 Hot':'';
