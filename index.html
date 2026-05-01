@@ -196,6 +196,10 @@ nav{position:fixed;top:38px;left:0;right:0;z-index:500;display:flex;justify-cont
 .snr-text{font-size:.75rem;line-height:1.5;color:var(--muted)}
 .snr-text strong{color:#5de3a8;display:block;font-size:.8rem;margin-bottom:1px}
 @media(max-width:640px){.snr-item{min-width:140px;padding:10px 14px}.snr-text{font-size:.68rem}}
+/* Card security strip */
+.bid-security-strip{display:flex;align-items:center;justify-content:center;gap:8px;background:rgba(62,207,142,.08);border:1px solid rgba(62,207,142,.22);border-radius:3px;padding:9px 12px;margin:10px 0 2px;font-size:.74rem;color:#3ecf8e;line-height:1.4;text-align:center}
+.bid-security-strip .bss-icon{font-size:1rem;flex-shrink:0}
+.bid-security-strip strong{color:#5de3a8}
 /* Bid modal top banner */
 .bid-modal-risk-bar{background:linear-gradient(90deg,rgba(62,207,142,.1),rgba(62,207,142,.06),rgba(62,207,142,.1));border-bottom:1px solid rgba(62,207,142,.18);padding:11px 22px;display:flex;justify-content:center;gap:24px;flex-wrap:wrap}
 .bmrb-item{display:flex;align-items:center;gap:6px;font-size:.67rem;letter-spacing:1px;color:#5de3a8;white-space:nowrap}
@@ -866,13 +870,13 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
   <div class="modal">
     <div id="bid-form-view">
       <div class="bid-modal-risk-bar">
-        <div class="bmrb-item"><div class="bmrb-dot"></div>Card saved, not charged</div>
-        <div class="bmrb-item"><div class="bmrb-dot"></div>Only winner pays</div>
+        <div class="bmrb-item"><div class="bmrb-dot"></div>Bid any amount</div>
+        <div class="bmrb-item"><div class="bmrb-dot"></div>You will NOT be charged unless you win</div>
+        <div class="bmrb-item"><div class="bmrb-dot"></div>Only the highest bidder pays</div>
         <div class="bmrb-item"><div class="bmrb-dot"></div>Lose? You owe $0</div>
-        <div class="bmrb-item"><div class="bmrb-dot"></div>Secured by Stripe</div>
       </div>
       <div class="modal-header">
-        <div><div class="modal-title" id="bid-modal-title">Place Your Bid</div><div class="modal-sub">Bid any amount — <strong>no charge unless you win</strong></div></div>
+        <div><div class="modal-title" id="bid-modal-title">Place Your Bid</div><div class="modal-sub">Enter any amount — your card is <strong>not charged</strong> unless you win</div></div>
         <button class="btn-close" onclick="closeModal('bid-overlay')">✕</button>
       </div>
       <div class="modal-body">
@@ -1952,7 +1956,7 @@ function renderDrops(){
       ?`<button class="btn-bid-card" style="background:rgba(123,159,212,.15);border:1px solid rgba(123,159,212,.4);color:var(--muted)" onclick="event.stopPropagation();openNotifyModal('${d.id}','${d.name.replace(/'/g,"\\'").replace(/"/g,'&quot;')}','teaser')">Notify Me →</button>`
       :isLocked
         ?`<button class="btn-bid-card btn-member-lock" onclick="event.stopPropagation();openMemberVerify(()=>openBidModal('${d.id}'))">🔒 Members Only</button>`
-        :`<div onclick="event.stopPropagation()"><button class="btn-bid-card" onclick="openBidModal('${d.id}')">Place Bid →</button><div style="font-size:.64rem;color:#3ecf8e;text-align:center;margin-top:6px;letter-spacing:.3px;font-weight:500">✓ Free to bid · Only winner pays</div></div>`;
+        :`<div onclick="event.stopPropagation()"><button class="btn-bid-card" onclick="openBidModal('${d.id}')">Bid Now — Free to Enter →</button><div style="font-size:.64rem;color:#3ecf8e;text-align:center;margin-top:6px;letter-spacing:.3px;font-weight:500">✓ Only the winner gets charged</div></div>`;
     const offerRow=isTeaser?'':`<div class="drop-offer-row"><button class="drop-offer-link" onclick="event.stopPropagation();openDropOfferModal('${d.id}','${d.name.replace(/'/g,"\\'").replace(/"/g,'&quot;')}')"><span class="bell-icon">🔔</span> Get 5% off this drop — click here</button><button class="drop-offer-link" style="color:var(--muted);margin-top:2px" onclick="event.stopPropagation();openNotifyModal('${d.id}','${d.name.replace(/'/g,"\\'").replace(/"/g,'&quot;')}','similar')"><span class="bell-icon">🔔</span> Notify me for drops like this</button></div>`;
     const watchCount=_watchCounts[d.id]||0;
     const notifyCount=isTeaser?((_notifyCounts&&_notifyCounts[d.id])||0):0;
@@ -1974,6 +1978,7 @@ function renderDrops(){
     const customBadges=d.badges&&d.badges.length?`<div class="drop-img-badges">${d.badges.map(b=>`<span class="item-badge item-badge-${b.color}">${b.label}</span>`).join('')}</div>`:'';
     const oneOfOneBadge=d.oneOfOne?`<span class="one-of-one-badge">1 OF 1</span>`:'';
     const oneOfOneStrip=d.oneOfOne&&!isTeaser?`<div class="one-of-one-strip">💎 <span>There is <strong style="color:#e9d5ff">exactly one</strong> of this item — once it's gone, it's gone forever.</span></div>`:'';
+    const securityStrip=!isTeaser&&!d.sold?`<div class="bid-security-strip"><span class="bss-icon">🔒</span><span>Bid <strong>any amount</strong> — you will <strong>not be charged</strong> unless you win. Only the highest bidder pays.</span></div>`:'';
     return`<div class="drop-card${isTeaser?' teaser-card':''}${hotClass}" data-drop-id="${d.id}" style="animation-delay:${i*.09}s${isTeaser?';cursor:default':''}"${cardClick?` onclick="${cardClick}"`:''}}>
       <div class="drop-img-wrap">${img}${teaserOverlay}${lockOverlay}${badgeChipFinal}${memberBadge}${hotBadge}${customBadges}${oneOfOneBadge}</div>
       <div class="card-stripe"></div>
@@ -1982,6 +1987,7 @@ function renderDrops(){
         <div class="drop-meta">${d.size?`<span>Size: ${d.size}</span>`:''}${d.condition?`<span>${d.condition}</span>`:''}</div>
         ${d.desc?`<p class="drop-desc">${d.desc}</p>`:''}
         ${oneOfOneStrip}
+        ${securityStrip}
         <div class="drop-footer">${footerLeft}${actionBtn}</div>
         ${offerRow}${viewersRow}${notifyWaitingRow}
       </div>
