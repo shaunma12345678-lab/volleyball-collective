@@ -137,12 +137,12 @@ nav{position:fixed;top:38px;left:0;right:0;z-index:500;display:flex;justify-cont
 .sold-overlay span{font-family:'Bebas Neue',sans-serif;font-size:2rem;letter-spacing:6px;color:var(--fr-white);opacity:.7}
 .card-stripe{height:3px;background:linear-gradient(90deg,var(--fr-blue) 33.3%,var(--fr-white) 33.3%,var(--fr-white) 66.6%,var(--fr-red) 66.6%)}
 .card-stripe-green{height:3px;background:linear-gradient(90deg,var(--success),#2fa870)}
-.drop-body{padding:22px}
-.drop-name{font-family:'Bebas Neue',sans-serif;font-size:1.45rem;letter-spacing:2px;color:var(--fr-white);margin-bottom:6px}
-.drop-meta{display:flex;gap:12px;font-size:.72rem;color:var(--muted);margin-bottom:14px;flex-wrap:wrap}
-.drop-meta span{background:rgba(0,35,149,.2);border:1px solid rgba(0,35,149,.3);padding:3px 9px;border-radius:2px}
-.drop-desc{font-size:.83rem;color:var(--muted);line-height:1.65;margin-bottom:20px}
-.drop-footer{display:flex;align-items:center;justify-content:space-between;padding-top:16px;border-top:1px solid rgba(255,255,255,.07)}
+.drop-body{padding:18px 20px 16px}
+.drop-name{font-family:'Bebas Neue',sans-serif;font-size:1.45rem;letter-spacing:2px;color:var(--fr-white);margin-bottom:5px}
+.drop-meta{display:flex;gap:8px;font-size:.7rem;color:var(--muted);margin-bottom:10px;flex-wrap:wrap;align-items:center}
+.drop-meta span{background:rgba(0,35,149,.2);border:1px solid rgba(0,35,149,.3);padding:3px 8px;border-radius:2px}
+.drop-desc{font-size:.82rem;color:var(--muted);line-height:1.6;margin-bottom:10px}
+.drop-footer{display:flex;align-items:flex-start;justify-content:space-between;padding-top:14px;border-top:1px solid rgba(255,255,255,.07);gap:10px}
 .drop-bid-count{font-size:.72rem;color:var(--muted);letter-spacing:1px}
 .price-tag{font-family:'Bebas Neue',sans-serif;font-size:1.6rem;color:var(--success)}
 .btn-bid-card{background:var(--fr-red);color:#fff;border:none;padding:11px 26px;font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:3px;cursor:pointer;border-radius:2px;transition:all .2s}
@@ -152,8 +152,8 @@ nav{position:fixed;top:38px;left:0;right:0;z-index:500;display:flex;justify-cont
 .btn-buynow-card:disabled{opacity:.45;cursor:not-allowed;transform:none}
 .btn-notify-card{background:transparent;color:var(--muted);border:1px solid rgba(123,159,212,.3);padding:11px 26px;font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:3px;cursor:pointer;border-radius:2px;transition:all .2s}
 .btn-notify-card:hover{border-color:rgba(123,159,212,.7);color:var(--fr-white);transform:translateY(-1px)}
-.drop-offer-row{border-top:1px solid rgba(255,255,255,.05);margin-top:10px;padding-top:10px;text-align:center}
-.drop-offer-link{background:none;border:1px solid rgba(62,207,142,.2);border-radius:20px;font-family:'DM Sans',sans-serif;font-size:.72rem;letter-spacing:2px;text-transform:uppercase;color:#3ecf8e;cursor:pointer;padding:6px 14px;transition:all .2s;display:inline-flex;align-items:center;gap:6px}
+.drop-offer-row{border-top:1px solid rgba(255,255,255,.05);margin-top:8px;padding-top:8px;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:5px}
+.drop-offer-link{background:none;border:1px solid rgba(62,207,142,.2);border-radius:20px;font-family:'DM Sans',sans-serif;font-size:.66rem;letter-spacing:1.5px;text-transform:uppercase;color:#3ecf8e;cursor:pointer;padding:4px 12px;transition:all .2s;display:inline-flex;align-items:center;gap:5px}
 .drop-offer-link:hover{background:rgba(62,207,142,.08);border-color:rgba(62,207,142,.5);transform:translateY(-1px)}
 @keyframes bell-ring{0%,60%,100%{transform:rotate(0)}65%{transform:rotate(12deg)}75%{transform:rotate(-10deg)}85%{transform:rotate(8deg)}95%{transform:rotate(-4deg)}}
 .bell-icon{display:inline-block;animation:bell-ring 2.5s ease-in-out infinite;transform-origin:top center}
@@ -176,7 +176,7 @@ nav{position:fixed;top:38px;left:0;right:0;z-index:500;display:flex;justify-cont
 .flash-sale-price{font-family:'Bebas Neue',sans-serif;font-size:1.6rem;color:#fbbf24}
 .watcher-count{font-size:.68rem;color:var(--muted);opacity:.8;letter-spacing:.5px}
 .countdown-tag{font-size:.72rem;color:var(--fr-red);letter-spacing:1px;font-variant-numeric:tabular-nums;white-space:nowrap}
-.end-countdown-tag{font-size:.67rem;color:#fbbf24;letter-spacing:.5px;font-variant-numeric:tabular-nums;white-space:nowrap;display:block;margin-top:3px;opacity:.85}
+.end-countdown-tag{font-size:.65rem;color:#fbbf24;letter-spacing:.5px;font-variant-numeric:tabular-nums;white-space:nowrap;display:block;margin-top:2px;opacity:.85}
 #activity-feed{position:fixed;top:110px;right:20px;z-index:600;pointer-events:none;display:flex;flex-direction:column;gap:8px}
 .activity-item{background:rgba(0,18,96,.93);border:1px solid rgba(237,41,57,.18);border-right:3px solid var(--fr-red);padding:10px 14px;border-radius:3px;font-size:.76rem;color:var(--fr-white);max-width:280px;opacity:0;transform:translateX(14px);transition:opacity .38s ease,transform .38s ease;backdrop-filter:blur(10px);line-height:1.4;text-align:right}
 .activity-item.show{opacity:1;transform:translateX(0)}
@@ -201,11 +201,7 @@ nav{position:fixed;top:38px;left:0;right:0;z-index:500;display:flex;justify-cont
 .bcp strong{color:#5de3a8;font-size:.82rem}
 @media(max-width:640px){.bid-confidence{padding:22px 18px;margin-bottom:20px}.bid-confidence-headline{font-size:1.5rem}.bid-confidence-pills{gap:8px}.bcp{font-size:.72rem;padding:8px 12px}}
 /* Card security strip */
-.bid-security-strip{display:flex;align-items:center;justify-content:center;gap:8px;background:rgba(62,207,142,.08);border:1px solid rgba(62,207,142,.22);border-radius:3px;padding:9px 12px;margin:10px 0 2px;font-size:.74rem;color:#3ecf8e;line-height:1.4;text-align:center}
-.bid-security-strip .bss-icon{font-size:1rem;flex-shrink:0}
-.bid-security-strip strong{color:#5de3a8}
-.first-bid-strip{display:flex;align-items:center;justify-content:center;gap:8px;background:rgba(62,207,142,.08);border:1px solid rgba(62,207,142,.28);border-radius:3px;padding:8px 12px;margin:4px 0;font-size:.73rem;color:#3ecf8e;text-align:center}
-.value-strip{display:flex;align-items:center;justify-content:center;gap:7px;background:rgba(251,191,36,.06);border:1px solid rgba(251,191,36,.2);border-radius:3px;padding:8px 12px;margin:4px 0;font-size:.73rem;color:#fbbf24;line-height:1.4;text-align:center}
+.value-strip{display:flex;align-items:flex-start;justify-content:flex-start;gap:7px;background:rgba(251,191,36,.06);border:1px solid rgba(251,191,36,.18);border-radius:3px;padding:7px 11px;margin:6px 0 2px;font-size:.72rem;color:#fbbf24;line-height:1.5;text-align:left}
 .value-strip strong{color:#fde68a}
 /* Bid modal top banner */
 .bid-modal-risk-bar{background:linear-gradient(90deg,rgba(62,207,142,.1),rgba(62,207,142,.06),rgba(62,207,142,.1));border-bottom:1px solid rgba(62,207,142,.18);padding:11px 22px;display:flex;justify-content:center;gap:24px;flex-wrap:wrap}
@@ -487,7 +483,7 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
 .shop-btn-row .btn-buynow-instant{flex:1;font-size:.82rem;padding:10px 8px;background:var(--success);color:#021a0e;border:none;font-family:'Bebas Neue',sans-serif;letter-spacing:2px;cursor:pointer;border-radius:2px;transition:all .2s;white-space:nowrap;font-weight:700}
 .shop-btn-row .btn-buynow-instant:hover{background:#5de3a8;transform:translateY(-1px);box-shadow:0 6px 20px rgba(62,207,142,.35)}
 /* Free shipping chip */
-.free-ship-chip{display:inline-flex;align-items:center;gap:4px;background:rgba(62,207,142,.08);border:1px solid rgba(62,207,142,.22);color:#3ecf8e;font-size:.58rem;letter-spacing:1.5px;text-transform:uppercase;padding:3px 8px;border-radius:10px;margin-left:6px;vertical-align:middle}
+.free-ship-chip{display:inline-flex;align-items:center;gap:3px;background:rgba(62,207,142,.08);border:1px solid rgba(62,207,142,.22);color:#3ecf8e;font-size:.56rem;letter-spacing:1px;text-transform:uppercase;padding:2px 7px;border-radius:10px;vertical-align:middle;white-space:nowrap}
 /* Bundle */
 .bundle-badge-chip{position:absolute;top:14px;left:14px;z-index:2;background:rgba(30,15,0,.9);border:1px solid rgba(251,191,36,.65);color:#fbbf24;font-size:.62rem;letter-spacing:3px;text-transform:uppercase;padding:5px 12px;border-radius:2px;backdrop-filter:blur(6px)}
 .card-stripe-bundle{height:3px;background:linear-gradient(90deg,#f59e0b,#fbbf24,#f59e0b)}
@@ -512,7 +508,7 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
 @media(max-width:640px){.trust-divider{display:none}.trust-bar{gap:14px 20px;padding:12px 16px}.trust-item{font-size:.62rem}}
 /* One-of-one badge */
 .one-of-one-badge{position:absolute;bottom:10px;left:10px;background:linear-gradient(135deg,#7c3aed,#a855f7);color:#fff;font-family:'Bebas Neue',sans-serif;font-size:.82rem;letter-spacing:3px;padding:4px 10px;border-radius:2px;z-index:5;box-shadow:0 2px 8px rgba(124,58,237,.45)}
-.one-of-one-strip{background:linear-gradient(90deg,rgba(124,58,237,.12),rgba(168,85,247,.08));border:1px solid rgba(168,85,247,.25);border-radius:3px;padding:9px 14px;margin:8px 0;font-size:.74rem;color:#c4b5fd;line-height:1.5;display:flex;align-items:center;gap:8px}
+.one-of-one-strip{background:linear-gradient(90deg,rgba(124,58,237,.1),rgba(168,85,247,.06));border:1px solid rgba(168,85,247,.22);border-radius:3px;padding:6px 11px;margin:6px 0 2px;font-size:.72rem;color:#c4b5fd;line-height:1.5;display:flex;align-items:center;gap:7px}
 /* FAQ section */
 #faq{position:relative;z-index:2;padding:90px 48px;border-top:1px solid rgba(0,35,149,.25)}
 .faq-inner{max-width:780px;margin:0 auto}
@@ -2007,10 +2003,9 @@ function renderDrops(){
       :isLocked
         ?`<button class="btn-bid-card btn-member-lock" onclick="event.stopPropagation();openMemberVerify(()=>openBidModal('${d.id}'))">🔒 Members Only</button>`
         :`<div onclick="event.stopPropagation()"><button class="btn-bid-card" onclick="openBidModal('${d.id}')">Bid Now — Free to Enter →</button><div style="font-size:.64rem;color:#3ecf8e;text-align:center;margin-top:6px;letter-spacing:.3px;font-weight:500">✓ Only the winner gets charged</div></div>`;
-    const offerRow=isTeaser?'':`<div class="drop-offer-row"><button class="drop-offer-link" onclick="event.stopPropagation();openDropOfferModal('${d.id}','${d.name.replace(/'/g,"\\'").replace(/"/g,'&quot;')}')"><span class="bell-icon">🔔</span> Get 5% off this drop — click here</button><button class="drop-offer-link" style="color:var(--muted);margin-top:2px" onclick="event.stopPropagation();openNotifyModal('${d.id}','${d.name.replace(/'/g,"\\'").replace(/"/g,'&quot;')}','similar')"><span class="bell-icon">🔔</span> Notify me for drops like this</button></div>`;
     const watchCount=_watchCounts[d.id]||0;
     const notifyCount=isTeaser?((_notifyCounts&&_notifyCounts[d.id])||0):0;
-    const viewersRow=!isTeaser&&watchCount>0?`<div class="live-viewers-row"><span class="live-dot"></span>${watchCount} viewing right now</div>`:'';
+    const offerRow=isTeaser?'':`<div class="drop-offer-row"><button class="drop-offer-link" onclick="event.stopPropagation();openDropOfferModal('${d.id}','${d.name.replace(/'/g,"\\'").replace(/"/g,'&quot;')}')">🔔 5% Off</button><span style="color:rgba(123,159,212,.3);font-size:.8rem">·</span><button class="drop-offer-link" style="color:var(--muted);border-color:rgba(123,159,212,.2)" onclick="event.stopPropagation();openNotifyModal('${d.id}','${d.name.replace(/'/g,"\\'").replace(/"/g,'&quot;')}','similar')">🔔 Notify Me</button>${watchCount>0?`<span style="display:inline-flex;align-items:center;gap:4px;font-size:.65rem;color:#3ecf8e;margin-left:2px"><span class="live-dot"></span>${watchCount} viewing</span>`:''}</div>`;
     const notifyWaitingRow=isTeaser&&notifyCount>0?`<div class="notify-waiting-row">🔔 ${notifyCount} ${notifyCount===1?'person':'people'} already waiting</div>`:'';
     const endTimeStr=!isTeaser&&d.endTime?`<span class="end-countdown-tag" data-endtime="${d.endTime}">—</span>`:'';
     const now=Date.now();
@@ -2018,11 +2013,10 @@ function renderDrops(){
     const velocityTag=recentBids>0?`<div class="velocity-tag">⚡ ${recentBids} bid${recentBids>1?'s':''} in the last hour</div>`:'';
     const closingSoon=!isTeaser&&d.endTime&&(new Date(d.endTime)-now)<7200000&&(new Date(d.endTime)-now)>0;
     const badgeChipFinal=isTeaser?`<span class="teaser-badge-chip">Coming Soon</span>`:closingSoon?`<span class="closing-soon-chip">⏰ Closing Soon</span>`:`<span class="drop-badge-chip">Active Drop</span>`;
-    const retailAnchor=!isTeaser&&d.retailPrice&&parseFloat(d.retailPrice)>0?`<div style="font-size:.68rem;color:var(--muted);margin-bottom:2px">Retail: <span style="text-decoration:line-through">$${parseFloat(d.retailPrice).toFixed(2)}</span></div>`:'';
-    const auctionFreeShip=!isTeaser&&!d.sold?`<span class="free-ship-chip">🇺🇸 Free US Shipping</span>`:'';
+    const auctionFreeShip=!isTeaser&&!d.sold?`<span class="free-ship-chip">🇺🇸 Free US Ship</span>`:'';
     const footerLeft=isTeaser
       ?(d.dropTime?`<span class="countdown-tag" data-countdown="${d.dropTime}">—</span>`:`<span class="drop-bid-count" style="color:var(--muted)">Bidding opens soon</span>`)
-      :`<div>${retailAnchor}<span class="drop-bid-count">${fmtBids(db.length)}</span>${endTimeStr}${velocityTag}${auctionFreeShip}</div>`;
+      :`<div style="display:flex;flex-direction:column;gap:3px">${d.retailPrice&&parseFloat(d.retailPrice)>0?`<span style="font-size:.62rem;color:var(--muted)">Retail <span style="text-decoration:line-through">$${parseFloat(d.retailPrice).toFixed(2)}</span></span>`:''}<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap"><span class="drop-bid-count">${fmtBids(db.length)}</span>${auctionFreeShip}</div>${endTimeStr}${velocityTag}</div>`;
     const hotLevel=!isTeaser&&db.length>=25?3:db.length>=10?2:db.length>=5?1:0;
     const hotClass=hotLevel?` card-hot-${hotLevel}`:'';
     const hotBadgeText=hotLevel===3?'🔥 On Fire':hotLevel===2?'🔥 Heating Up':hotLevel===1?'🔥 Hot':'';
@@ -2030,22 +2024,19 @@ function renderDrops(){
     const customBadges=d.badges&&d.badges.length?`<div class="drop-img-badges">${d.badges.map(b=>`<span class="item-badge item-badge-${b.color}">${b.label}</span>`).join('')}</div>`:'';
     const oneOfOneBadge=d.oneOfOne?`<span class="one-of-one-badge">1 OF 1</span>`:'';
     const oneOfOneStrip=d.oneOfOne&&!isTeaser?`<div class="one-of-one-strip">💎 <span>There is <strong style="color:#e9d5ff">exactly one</strong> of this item — once it's gone, it's gone forever.</span></div>`:'';
-    const securityStrip=!isTeaser&&!d.sold?`<div class="bid-security-strip"><span class="bss-icon">🔒</span><span>Bid <strong>any amount</strong> — you will <strong>not be charged</strong> unless you win. Only the highest bidder pays.</span></div>`:'';
-    const firstBidStrip=!isTeaser&&!d.sold&&db.length===0?`<div class="first-bid-strip">🎁 <strong>Be the first to bid — get 5% off</strong> this auction if you win</div>`:'';
+    const firstBidChip=!isTeaser&&!d.sold&&db.length===0?`<span style="background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.3);color:#fbbf24;font-size:.58rem;padding:2px 8px;border-radius:10px;letter-spacing:.3px;white-space:nowrap">🎁 First bid — 5% off</span>`:'';
     const _cbAmt=d.compBid&&parseFloat(d.compBid)>0?parseFloat(d.compBid):0;const _rtAmt=d.retailPrice&&parseFloat(d.retailPrice)>0?parseFloat(d.retailPrice):0;const _vsText=d.compTemplate==='challenge'?`💰 Someone bid <strong>$${_cbAmt.toFixed(0)}</strong> — can you beat it? Retail is <strong>$${_rtAmt.toFixed(0)}</strong> and you only pay if you win.`:`🔥 Someone's already in at <strong>$${_cbAmt.toFixed(0)}</strong> — still <strong>$${(_rtAmt-_cbAmt).toFixed(0)} under retail.</strong> You could take this.`;const valueStrip=!isTeaser&&!d.sold&&_cbAmt>0&&_rtAmt>0&&_rtAmt>_cbAmt?`<div class="value-strip">${_vsText}</div>`:'';
     return`<div class="drop-card${isTeaser?' teaser-card':''}${hotClass}" data-drop-id="${d.id}" style="animation-delay:${i*.09}s${isTeaser?';cursor:default':''}"${cardClick?` onclick="${cardClick}"`:''}}>
       <div class="drop-img-wrap">${img}${teaserOverlay}${lockOverlay}${badgeChipFinal}${memberBadge}${hotBadge}${customBadges}${oneOfOneBadge}</div>
       <div class="card-stripe"></div>
       <div class="drop-body">
         <div class="drop-name">${d.name}</div>
-        <div class="drop-meta">${d.size?`<span>Size: ${d.size}</span>`:''}${d.condition?`<span>${d.condition}</span>`:''}</div>
+        <div class="drop-meta">${d.size?`<span>Size: ${d.size}</span>`:''}${d.condition?`<span>${d.condition}</span>`:''}${firstBidChip}</div>
         ${d.desc?`<p class="drop-desc">${d.desc}</p>`:''}
         ${oneOfOneStrip}
-        ${firstBidStrip}
         ${valueStrip}
-        ${securityStrip}
         <div class="drop-footer">${footerLeft}${actionBtn}</div>
-        ${offerRow}${viewersRow}${notifyWaitingRow}
+        ${offerRow}${notifyWaitingRow}
       </div>
     </div>`;
   }).join('');
