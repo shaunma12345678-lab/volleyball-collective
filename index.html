@@ -204,6 +204,7 @@ nav{position:fixed;top:38px;left:0;right:0;z-index:500;display:flex;justify-cont
 .bid-security-strip{display:flex;align-items:center;justify-content:center;gap:8px;background:rgba(62,207,142,.08);border:1px solid rgba(62,207,142,.22);border-radius:3px;padding:9px 12px;margin:10px 0 2px;font-size:.74rem;color:#3ecf8e;line-height:1.4;text-align:center}
 .bid-security-strip .bss-icon{font-size:1rem;flex-shrink:0}
 .bid-security-strip strong{color:#5de3a8}
+.first-bid-strip{display:flex;align-items:center;justify-content:center;gap:8px;background:rgba(62,207,142,.08);border:1px solid rgba(62,207,142,.28);border-radius:3px;padding:8px 12px;margin:4px 0;font-size:.73rem;color:#3ecf8e;text-align:center}
 /* Bid modal top banner */
 .bid-modal-risk-bar{background:linear-gradient(90deg,rgba(62,207,142,.1),rgba(62,207,142,.06),rgba(62,207,142,.1));border-bottom:1px solid rgba(62,207,142,.18);padding:11px 22px;display:flex;justify-content:center;gap:24px;flex-wrap:wrap}
 .bmrb-item{display:flex;align-items:center;gap:6px;font-size:.67rem;letter-spacing:1px;color:#5de3a8;white-space:nowrap}
@@ -778,7 +779,7 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
       <div class="guarantee-card">
         <div class="guarantee-icon">🏆</div>
         <div class="guarantee-title">Authentic Items Only</div>
-        <p class="guarantee-text">Every jersey and piece of kit is <strong style="color:var(--fr-white)">personally verified</strong> before it hits the platform. What you see is exactly what you get.</p>
+        <p class="guarantee-text">Every item is <strong style="color:var(--fr-white)">personally verified</strong> before it hits the platform. If something doesn't match the photos, you can submit a <strong style="color:var(--fr-white)">dispute request</strong> — we review every case.</p>
       </div>
       <div class="guarantee-card">
         <div class="guarantee-icon">📦</div>
@@ -842,7 +843,7 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
           <span>Can I get a refund if something is wrong?</span>
           <span class="faq-arrow">▾</span>
         </button>
-        <div class="faq-a">If there's a genuine problem with your order — wrong item, significant condition discrepancy — reach out to us immediately via Instagram or email. We handle issues directly and fairly. Our goal is for every buyer to be thrilled with their purchase.</div>
+        <div class="faq-a">If the item you received <strong>significantly differs from what was shown in the photos</strong> — wrong condition, damage not pictured, wrong item — you can submit a formal refund request. Use the <strong>"Request a Refund"</strong> link in your winner email, describe what's wrong, and we will review it personally. <strong>Refunds are not guaranteed</strong> — we assess each case individually. If approved, a full refund is issued to your original payment method within 5–10 business days.</div>
       </div>
       <div class="faq-item">
         <button class="faq-q" onclick="toggleFaq(this)">
@@ -854,6 +855,34 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
     </div>
   </div>
 </section>
+
+<!-- REFUND REQUEST MODAL -->
+<div class="overlay" id="refund-overlay" onclick="overlayClick(event,'refund-overlay')">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-header">
+      <div><div class="modal-title">Request a Refund</div><div class="modal-sub">Only for items that don't match what was shown in the photos</div></div>
+      <button class="btn-close" onclick="closeModal('refund-overlay')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="background:rgba(251,191,36,.06);border:1px solid rgba(251,191,36,.25);border-radius:4px;padding:12px 16px;margin-bottom:20px;font-size:.8rem;color:#fbbf24;line-height:1.6">
+        ⚠️ Refund requests are reviewed manually and are <strong>not guaranteed</strong>. We only consider cases where the item significantly differs from the photos in the listing.
+      </div>
+      <input type="hidden" id="refund-bid-id">
+      <div class="form-row"><label>Your Email</label><input type="email" id="refund-email" placeholder="The email you used to bid"></div>
+      <div class="form-row">
+        <label>What's wrong with the item?</label>
+        <textarea id="refund-reason" placeholder="Describe how the item differs from what was shown in the photos. Be specific — include condition, color, damage, or anything not shown." style="width:100%;min-height:110px;background:rgba(0,21,79,.7);border:1px solid rgba(123,159,212,.35);border-radius:3px;padding:10px 12px;color:var(--fr-white);font-family:'DM Sans',sans-serif;font-size:.85rem;resize:vertical;box-sizing:border-box;line-height:1.6"></textarea>
+      </div>
+      <div class="error-msg" id="refund-error"></div>
+      <button class="btn-submit" id="refund-btn" onclick="submitRefundRequest()"><span class="btn-text">Submit Request</span><div class="spinner"></div></button>
+      <div id="refund-success" style="display:none;text-align:center;padding:20px 0">
+        <div style="font-size:1.5rem;margin-bottom:8px">✅</div>
+        <div style="font-size:.95rem;font-weight:600;margin-bottom:6px">Request submitted</div>
+        <div style="font-size:.82rem;color:var(--muted);line-height:1.6">We've received your request and notified our team. You'll hear back via email within a few days.</div>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- MEMBER VERIFY MODAL -->
 <div class="overlay" id="member-overlay" onclick="overlayClick(event,'member-overlay')">
@@ -889,6 +918,7 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
         <div class="bmrb-item"><div class="bmrb-dot"></div>Only the highest bidder pays</div>
         <div class="bmrb-item"><div class="bmrb-dot"></div>Lose? You owe $0</div>
       </div>
+      <div id="bid-firstbid-banner" style="display:none;background:rgba(62,207,142,.1);border-bottom:1px solid rgba(62,207,142,.2);padding:12px 24px;text-align:center;font-size:.83rem;color:var(--muted);line-height:1.5">🎁 <strong style="color:#3ecf8e">You'd be the first to bid!</strong> Place this bid and we'll send you a <strong style="color:var(--fr-white)">5% off code</strong> — applied automatically if you win.</div>
       <div class="modal-header">
         <div><div class="modal-title" id="bid-modal-title">Place Your Bid</div><div class="modal-sub">Enter any amount — your card is <strong>not charged</strong> unless you win</div></div>
         <button class="btn-close" onclick="closeModal('bid-overlay')">✕</button>
@@ -1112,6 +1142,7 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
         <button class="tab" onclick="switchTab('tab-add')">+ Add Item</button>
         <button class="tab" onclick="switchTab('tab-promos')">Ambassador Codes</button>
         <button class="tab" onclick="switchTab('tab-emaillist')">Email List</button>
+        <button class="tab" id="tab-btn-refunds" onclick="switchTab('tab-refunds')">Refund Requests</button>
       </div>
       <div class="tab-content active" id="tab-drops">
         <button class="btn-secondary" style="margin-bottom:18px;font-size:.7rem;letter-spacing:2px;padding:9px 18px" onclick="refreshAll().then(()=>{renderAdminDrops();renderAllBids();})">↻ Refresh</button>
@@ -1121,6 +1152,7 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
       <div class="tab-content" id="tab-members"><div id="admin-members-list">Loading…</div></div>
       <div class="tab-content" id="tab-promos"><div id="admin-promos-list">Loading…</div></div>
       <div class="tab-content" id="tab-emaillist"><div id="admin-emaillist">Loading…</div></div>
+      <div class="tab-content" id="tab-refunds"><div id="admin-refund-list">Loading…</div></div>
       <div class="tab-content" id="tab-add">
         <div class="form-row">
           <label>Listing Type</label>
@@ -1140,6 +1172,7 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
         </div>
         <div class="form-row" id="price-field" style="display:none"><label id="price-label">Fixed Price (USD) *</label><div class="amount-wrap"><span>$</span><input type="number" id="add-price" placeholder="0.00" min="1" step="0.01"></div></div>
         <div class="form-row" id="original-price-field" style="display:none"><label>Original / Retail Price (USD) <span style="font-weight:400;opacity:.5">(shows as crossed-out)</span></label><div class="amount-wrap"><span>$</span><input type="number" id="add-original-price" placeholder="0.00" min="0" step="0.01"></div></div>
+        <div class="form-row" id="retail-price-field" style="display:none"><label>Retail / Market Value (USD) <span style="font-weight:400;opacity:.5">optional — shows as crossed-out on auction cards to anchor value</span></label><div class="amount-wrap"><span>$</span><input type="number" id="add-retail-price" placeholder="0.00" min="0" step="0.01"></div></div>
         <div class="form-row" id="bundle-fields" style="display:none">
           <label>Bundle Items <span style="font-weight:400;opacity:.5">(one per line — e.g. "France Jersey · Size L")</span></label>
           <textarea id="add-bundle-items" rows="4" placeholder="France National Jersey · Size L&#10;Matching Shorts · Size L&#10;Training Socks"></textarea>
@@ -1982,9 +2015,10 @@ function renderDrops(){
     const velocityTag=recentBids>0?`<div class="velocity-tag">⚡ ${recentBids} bid${recentBids>1?'s':''} in the last hour</div>`:'';
     const closingSoon=!isTeaser&&d.endTime&&(new Date(d.endTime)-now)<7200000&&(new Date(d.endTime)-now)>0;
     const badgeChipFinal=isTeaser?`<span class="teaser-badge-chip">Coming Soon</span>`:closingSoon?`<span class="closing-soon-chip">⏰ Closing Soon</span>`:`<span class="drop-badge-chip">Active Drop</span>`;
+    const retailAnchor=!isTeaser&&d.retailPrice&&parseFloat(d.retailPrice)>0?`<div style="font-size:.68rem;color:var(--muted);margin-bottom:2px">Retail: <span style="text-decoration:line-through">$${parseFloat(d.retailPrice).toFixed(2)}</span></div>`:'';
     const footerLeft=isTeaser
       ?(d.dropTime?`<span class="countdown-tag" data-countdown="${d.dropTime}">—</span>`:`<span class="drop-bid-count" style="color:var(--muted)">Bidding opens soon</span>`)
-      :`<div><span class="drop-bid-count">${fmtBids(db.length)}</span>${endTimeStr}${velocityTag}</div>`;
+      :`<div>${retailAnchor}<span class="drop-bid-count">${fmtBids(db.length)}</span>${endTimeStr}${velocityTag}</div>`;
     const hotLevel=!isTeaser&&db.length>=25?3:db.length>=10?2:db.length>=5?1:0;
     const hotClass=hotLevel?` card-hot-${hotLevel}`:'';
     const hotBadgeText=hotLevel===3?'🔥 On Fire':hotLevel===2?'🔥 Heating Up':hotLevel===1?'🔥 Hot':'';
@@ -1993,6 +2027,7 @@ function renderDrops(){
     const oneOfOneBadge=d.oneOfOne?`<span class="one-of-one-badge">1 OF 1</span>`:'';
     const oneOfOneStrip=d.oneOfOne&&!isTeaser?`<div class="one-of-one-strip">💎 <span>There is <strong style="color:#e9d5ff">exactly one</strong> of this item — once it's gone, it's gone forever.</span></div>`:'';
     const securityStrip=!isTeaser&&!d.sold?`<div class="bid-security-strip"><span class="bss-icon">🔒</span><span>Bid <strong>any amount</strong> — you will <strong>not be charged</strong> unless you win. Only the highest bidder pays.</span></div>`:'';
+    const firstBidStrip=!isTeaser&&!d.sold&&db.length===0?`<div class="first-bid-strip">🎁 <strong>Be the first to bid — get 5% off</strong> this auction if you win</div>`:'';
     return`<div class="drop-card${isTeaser?' teaser-card':''}${hotClass}" data-drop-id="${d.id}" style="animation-delay:${i*.09}s${isTeaser?';cursor:default':''}"${cardClick?` onclick="${cardClick}"`:''}}>
       <div class="drop-img-wrap">${img}${teaserOverlay}${lockOverlay}${badgeChipFinal}${memberBadge}${hotBadge}${customBadges}${oneOfOneBadge}</div>
       <div class="card-stripe"></div>
@@ -2001,6 +2036,7 @@ function renderDrops(){
         <div class="drop-meta">${d.size?`<span>Size: ${d.size}</span>`:''}${d.condition?`<span>${d.condition}</span>`:''}</div>
         ${d.desc?`<p class="drop-desc">${d.desc}</p>`:''}
         ${oneOfOneStrip}
+        ${firstBidStrip}
         ${securityStrip}
         <div class="drop-footer">${footerLeft}${actionBtn}</div>
         ${offerRow}${viewersRow}${notifyWaitingRow}
@@ -2052,9 +2088,10 @@ function renderShop(){
     const freeShip=!isTeaser&&!d.sold?`<span class="free-ship-chip">🇺🇸 Free US Shipping</span>`:'';
     const bundleItemsHtml=isBundle&&d.bundleItems?`<ul class="bundle-items-list">${d.bundleItems.split('\n').filter(Boolean).map(l=>`<li>${l.trim()}</li>`).join('')}</ul>`:'';
     const bundleSaveHtml=isBundle&&savingsPct>0?`<span class="bundle-save-chip">Save ${savingsPct}% vs buying separately</span>`:'';
+    const shopRetailLine=!isTeaser&&!d.sold&&d.retailPrice&&parseFloat(d.retailPrice)>0?`<div style="font-size:.68rem;color:var(--muted);margin-bottom:3px">Retail: <span style="text-decoration:line-through">$${parseFloat(d.retailPrice).toFixed(2)}</span></div>`:'';
     const priceOrLabel=isTeaser
       ?(d.dropTime?`<span class="countdown-tag" data-countdown="${d.dropTime}">—</span>`:`<span class="drop-bid-count" style="color:var(--muted)">Price reveal soon</span>`)
-      :`<div><span class="price-tag">$${parseFloat(d.price||0).toFixed(2)}</span>${freeShip}${shopEndStr}</div>`;
+      :`<div>${shopRetailLine}<span class="price-tag">$${parseFloat(d.price||0).toFixed(2)}</span>${freeShip}${shopEndStr}</div>`;
     const offerRow=isTeaser||d.sold?'':`<div class="drop-offer-row"><button class="drop-offer-link" onclick="event.stopPropagation();openDropOfferModal('${d.id}','${d.name.replace(/'/g,"\\'").replace(/"/g,'&quot;')}')"><span class="bell-icon">🔔</span> Get 5% off this item — click here</button><button class="drop-offer-link" style="color:var(--muted);margin-top:2px" onclick="event.stopPropagation();openNotifyModal('${d.id}','${d.name.replace(/'/g,"\\'").replace(/"/g,'&quot;')}','similar')"><span class="bell-icon">🔔</span> Notify me for items like this</button></div>`;
     const shopCustomBadges=d.badges&&d.badges.length?`<div class="drop-img-badges">${d.badges.map(b=>`<span class="item-badge item-badge-${b.color}">${b.label}</span>`).join('')}</div>`:'';
     const shopOneOfOneBadge=d.oneOfOne?`<span class="one-of-one-badge">1 OF 1</span>`:'';
@@ -2206,6 +2243,8 @@ function openBidModal(dropId){
   document.getElementById('bid-success').style.display='none';
   document.getElementById('bid-error').style.display='none';
   const btn=document.getElementById('bid-btn');btn.disabled=false;btn.classList.remove('loading');
+  const firstBidBanner=document.getElementById('bid-firstbid-banner');
+  if(firstBidBanner){const hasBids=_bids.some(b=>b.dropId===dropId);firstBidBanner.style.display=hasBids?'none':'';}
   document.getElementById('bid-overlay').classList.add('active');
 }
 function updateBnButtonPrice(){
@@ -2528,7 +2567,7 @@ async function adminLogin(){
   renderAdminDrops();renderAllBids();
 }
 function switchTab(id){
-  const ids=['tab-drops','tab-all-bids','tab-members','tab-add','tab-promos','tab-emaillist'];
+  const ids=['tab-drops','tab-all-bids','tab-members','tab-add','tab-promos','tab-emaillist','tab-refunds'];
   document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',ids[i]===id));
   document.querySelectorAll('.tab-content').forEach(tc=>tc.classList.toggle('active',tc.id===id));
   if(id==='tab-drops')renderAdminDrops();
@@ -2536,6 +2575,7 @@ function switchTab(id){
   if(id==='tab-members')fetchSubscriptionCount(true);
   if(id==='tab-promos')renderAdminCodes();
   if(id==='tab-emaillist')renderAdminEmailList();
+  if(id==='tab-refunds')fetchRefundRequests();
 }
 
 function renderAdminDrops(){
@@ -2565,7 +2605,9 @@ function renderAdminDrops(){
     return`<div class="drop-group"><div class="drop-group-hd"><div><div class="drop-group-name" style="color:${isFlash?'#fbbf24':'var(--success)'}">${drop.name} <span style="font-size:.7rem;font-family:'DM Sans',sans-serif">[${typeLabel}]</span></div><div style="font-size:.7rem;color:var(--muted);margin-top:2px">${drop.status}${drop.sold?' · SOLD':''}</div></div><div style="display:flex;gap:8px"><button class="btn-tog" onclick="toggleStatus('${drop.id}')">${drop.status==='published'?'Archive':'Publish'}</button><button class="btn-del" onclick="deleteDrop('${drop.id}')">Delete</button></div></div>${timerRow}${badgesRow}${photosRow}${soldBlock}</div>`;}
     const db=bids.filter(b=>b.dropId===drop.id).sort((a,b)=>b.amount-a.amount);
     const rows=db.length?db.map(bid=>{const sf=parseFloat(bid.shippingFee)||0;const bidTotal=sf>0?`$${parseFloat(bid.amount).toFixed(2)}<br><span style="color:#fbbf24;font-size:.65rem">+$${sf.toFixed(2)} intl shipping</span>`:(`$${parseFloat(bid.amount).toFixed(2)}`);return`<tr><td><strong>${bid.name}</strong><br><span style="color:var(--muted);font-size:.7rem">${bid.email}</span></td><td style="font-size:.73rem;color:var(--muted)">${bid.phone||'—'}</td><td class="bid-amt">${bidTotal}</td><td style="font-size:.7rem;color:var(--muted)">${bid.address?`${bid.address.street}, ${bid.address.city} ${bid.address.state} ${bid.address.zip} — ${bid.address.country||''}`.trim().replace(/—\s*$/,''):'—'}</td><td>${bid.charged?`<span class="badge-charged">✅ Charged</span>`:bid.paymentMethodId&&bid.paymentMethodId!=='[no-stripe]'?`<button class="btn-charge" onclick="chargeCard('${bid.id}')">Charge Card</button>`:`<span class="badge-nocard">No card</span>`}</td><td style="font-size:.68rem;color:var(--muted)">${new Date(bid.createdAt).toLocaleDateString()}</td></tr>`;}).join(''):`<tr><td colspan="6" class="no-bids">No bids yet.</td></tr>`;
-    return`<div class="drop-group"><div class="drop-group-hd"><div><div class="drop-group-name">${drop.name}</div><div style="font-size:.7rem;color:var(--muted);margin-top:2px">${drop.status} · ${db.length} bid(s)</div></div><div style="display:flex;gap:8px"><button class="btn-tog" onclick="toggleStatus('${drop.id}')">${drop.status==='published'?'Archive':'Publish'}</button><button class="btn-del" onclick="deleteDrop('${drop.id}')">Delete</button></div></div>${timerRow}${badgesRow}${photosRow}<div style="overflow-x:auto"><table class="bids-table"><thead><tr><th>Name/Email</th><th>Phone</th><th>Bid</th><th>Address</th><th>Action</th><th>Date</th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
+    const retailPriceRow=`<div style="padding:8px 18px;border-top:1px solid rgba(0,35,149,.18);display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span style="font-size:.6rem;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-right:2px">Retail Price:</span><span style="color:var(--muted);font-size:.8rem">$</span><input id="retail-${drop.id}" type="number" min="0" step="0.01" value="${drop.retailPrice||''}" placeholder="0.00" style="width:80px;background:rgba(255,255,255,.06);border:1px solid rgba(123,159,212,.3);border-radius:2px;padding:4px 8px;color:var(--fr-white);font-size:.75rem;font-family:'DM Sans',sans-serif"><button onclick="setRetailPrice('${drop.id}')" style="${btnS};border:1px solid rgba(62,207,142,.4);background:rgba(62,207,142,.1);color:var(--success)">Save</button>${drop.retailPrice?`<span style="font-size:.68rem;color:var(--muted)">currently: <span style="text-decoration:line-through">$${parseFloat(drop.retailPrice).toFixed(2)}</span></span>`:''}</div>`;
+    const lastChanceRow=`<div style="padding:8px 18px;border-top:1px solid rgba(0,35,149,.18);display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span style="font-size:.6rem;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-right:2px">Notify:</span><button onclick="sendLastChanceEmail('${drop.id}')" style="${btnS};border:1px solid rgba(251,191,36,.4);background:rgba(251,191,36,.1);color:#fbbf24">⏰ Last Chance Email</button><span style="font-size:.65rem;color:var(--muted)">${db.length} bidder(s) — closing soon reminder</span></div>`;
+    return`<div class="drop-group"><div class="drop-group-hd"><div><div class="drop-group-name">${drop.name}</div><div style="font-size:.7rem;color:var(--muted);margin-top:2px">${drop.status} · ${db.length} bid(s)</div></div><div style="display:flex;gap:8px"><button class="btn-tog" onclick="toggleStatus('${drop.id}')">${drop.status==='published'?'Archive':'Publish'}</button><button class="btn-del" onclick="deleteDrop('${drop.id}')">Delete</button></div></div>${timerRow}${badgesRow}${photosRow}${retailPriceRow}${lastChanceRow}<div style="overflow-x:auto"><table class="bids-table"><thead><tr><th>Name/Email</th><th>Phone</th><th>Bid</th><th>Address</th><th>Action</th><th>Date</th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
   }).join('');
 }
 
@@ -2587,7 +2629,7 @@ function renderAdminMembers(subscribers){
 async function chargeCard(bidId){
   const pw=prompt('Enter admin password to confirm charge:');
   if(!pw)return;
-  if(pw!==ADMIN_PW){showToast('Wrong admin password',true);return}
+  if(pw!==_adminPw){showToast('Wrong admin password',true);return}
   const bid=_bids.find(b=>b.id===bidId);
   if(!bid)return;
   const originalAmt=parseFloat(bid.amount);
@@ -2633,6 +2675,32 @@ async function setDropBadge(id,badgeId,label,color){
     const data=await res.json().catch(()=>({}));
     if(!res.ok){showToast('❌ '+(data.error||'Could not update badges'),true);return}
     await fetchDrops(true);renderAdminDrops();
+  }catch(e){showToast('❌ Network error',true)}
+}
+async function setRetailPrice(id){
+  if(!_adminPw){showToast('Admin session expired',true);return}
+  const input=document.getElementById('retail-'+id);
+  if(!input)return;
+  const val=input.value.trim();
+  const retailPrice=val&&parseFloat(val)>0?val:null;
+  try{
+    const res=await fetch('/api/drops',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,adminPw:_adminPw,action:'setRetailPrice',retailPrice})});
+    const data=await res.json().catch(()=>({}));
+    if(!res.ok){showToast('❌ '+(data.error||'Could not update'),true);return}
+    await fetchDrops(true);renderAdminDrops();
+    showToast(retailPrice?`Retail price set to $${parseFloat(retailPrice).toFixed(2)}`:'Retail price removed');
+  }catch(e){showToast('❌ Network error',true)}
+}
+async function sendLastChanceEmail(dropId){
+  if(!_adminPw){showToast('Admin session expired',true);return}
+  const drop=_drops.find(d=>d.id===dropId);
+  if(!confirm(`Send "last chance" email to all bidders for "${drop?drop.name:dropId}"?\n\nBidders currently winning will see a green status. Others will see a red outbid status.`))return;
+  showToast('Sending last chance emails…');
+  try{
+    const res=await fetch('/api/last-chance-email',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({dropId,adminPw:_adminPw})});
+    const data=await res.json().catch(()=>({}));
+    if(!res.ok){showToast('❌ '+(data.error||'Failed to send'),true);return}
+    showToast(`✅ Sent to ${data.sent} bidder(s)`);
   }catch(e){showToast('❌ Network error',true)}
 }
 async function deleteDrop(id){
@@ -2811,7 +2879,7 @@ function setDropDuration(ms){
   const active=ms===0?'none':ms===86400000?'24':ms===172800000?'48':ms===259200000?'72':'7d';
   document.getElementById('dur-btn-'+active).className='active-bid';
 }
-function setListingType(type){_listingType=type;document.getElementById('type-btn-bid').className=type==='bid'?'active-bid':'';document.getElementById('type-btn-buy').className=type==='buynow'?'active-buy':'';document.getElementById('type-btn-flash').className=type==='flash'?'active-flash':'';document.getElementById('type-btn-bundle').className=type==='bundle'?'active-buy':'';const isPriced=type==='buynow'||type==='flash'||type==='bundle';document.getElementById('price-field').style.display=isPriced?'':'none';document.getElementById('original-price-field').style.display=type==='flash'?'':'none';document.getElementById('bundle-fields').style.display=type==='bundle'?'':'none';document.getElementById('bundle-retail-field').style.display=type==='bundle'?'':'none';const pl=document.getElementById('price-label');if(pl)pl.textContent=type==='flash'?'Flash Sale Price (USD) *':type==='bundle'?'Bundle Price (USD) *':'Fixed Price (USD) *';document.getElementById('publish-btn-text').textContent=type==='flash'?'⚡ Launch Flash Sale':type==='buynow'?'+ Publish to Shop':type==='bundle'?'📦 Publish Bundle':'+ Publish Drop';}
+function setListingType(type){_listingType=type;document.getElementById('type-btn-bid').className=type==='bid'?'active-bid':'';document.getElementById('type-btn-buy').className=type==='buynow'?'active-buy':'';document.getElementById('type-btn-flash').className=type==='flash'?'active-flash':'';document.getElementById('type-btn-bundle').className=type==='bundle'?'active-buy':'';const isPriced=type==='buynow'||type==='flash'||type==='bundle';document.getElementById('price-field').style.display=isPriced?'':'none';document.getElementById('original-price-field').style.display=type==='flash'?'':'none';document.getElementById('bundle-fields').style.display=type==='bundle'?'':'none';document.getElementById('bundle-retail-field').style.display=type==='bundle'?'':'none';document.getElementById('retail-price-field').style.display=(type==='bid'||type==='buynow')?'':'none';const pl=document.getElementById('price-label');if(pl)pl.textContent=type==='flash'?'Flash Sale Price (USD) *':type==='bundle'?'Bundle Price (USD) *':'Fixed Price (USD) *';document.getElementById('publish-btn-text').textContent=type==='flash'?'⚡ Launch Flash Sale':type==='buynow'?'+ Publish to Shop':type==='bundle'?'📦 Publish Bundle':'+ Publish Drop';}
 function setAccessType(type){_accessType=type;document.getElementById('access-btn-public').className=type==='public'?'active-bid':'';document.getElementById('access-btn-members').className=type==='members'?'active-buy':'';}
 
 // ── MEMBER VERIFICATION ──
@@ -3061,6 +3129,7 @@ async function addDrop(status){
   const drop={id:'drop_'+Date.now(),name,desc,size,condition,photo,photos,status,type:_listingType,memberOnly:_accessType==='members',oneOfOne:oneOfOneEl&&oneOfOneEl.checked?true:undefined,badges:_dropBadges.length>0?[..._dropBadges]:undefined,createdAt:new Date().toISOString()};
   if(_listingType==='buynow'||_listingType==='flash'||_listingType==='bundle')drop.price=price;
   if(_listingType==='flash'){const op=document.getElementById('add-original-price').value.trim();if(op&&parseFloat(op)>0)drop.originalPrice=op;}
+  if(_listingType==='bid'||_listingType==='buynow'){const rp=document.getElementById('add-retail-price').value.trim();if(rp&&parseFloat(rp)>0)drop.retailPrice=rp;}
   if(_listingType==='bundle'){const bi=document.getElementById('add-bundle-items').value.trim();if(bi)drop.bundleItems=bi;const br=document.getElementById('add-bundle-retail').value.trim();if(br&&parseFloat(br)>0)drop.bundleRetail=br;}
   const dropTimeEl=document.getElementById('add-drop-time');
   if(dropTimeEl&&dropTimeEl.value.trim()){
@@ -3075,7 +3144,7 @@ async function addDrop(status){
   }catch(e){errEl.textContent='Network error: '+(e&&e.message?e.message:'request failed');errEl.style.display='block';return}
   if(status==='published'||status==='teaser'){_drops=[..._drops,drop];if(_listingType==='flash')renderFlash();else if(_listingType==='buynow')renderShop();else renderDrops();}
   await refreshAll(true);renderAdminDrops();errEl.style.display='none';
-  ['add-name','add-desc','add-size','add-photo-url','add-price','add-original-price','add-drop-time','add-bundle-items','add-bundle-retail'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['add-name','add-desc','add-size','add-photo-url','add-price','add-original-price','add-retail-price','add-drop-time','add-bundle-items','add-bundle-retail'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   uploadedPhotos=[];renderUploadThumbs();
   _accessType='public';setAccessType('public');
   _dropDuration=0;setDropDuration(0);
@@ -3085,6 +3154,85 @@ async function addDrop(status){
   if(status==='published'||status==='teaser')switchTab('tab-drops');
 }
 
+// ── REFUND REQUESTS ──
+function openRefundModal(bidId){
+  document.getElementById('refund-bid-id').value=bidId||'';
+  document.getElementById('refund-email').value='';
+  document.getElementById('refund-reason').value='';
+  document.getElementById('refund-error').style.display='none';
+  document.getElementById('refund-success').style.display='none';
+  document.getElementById('refund-btn').style.display='';
+  document.getElementById('refund-overlay').classList.add('active');
+}
+async function submitRefundRequest(){
+  const bidId=document.getElementById('refund-bid-id').value.trim();
+  const email=document.getElementById('refund-email').value.trim();
+  const reason=document.getElementById('refund-reason').value.trim();
+  const errEl=document.getElementById('refund-error');
+  errEl.style.display='none';
+  if(!bidId){errEl.textContent='No order ID found. Please use the link from your winner email.';errEl.style.display='';return}
+  if(!email){errEl.textContent='Please enter your email address.';errEl.style.display='';return}
+  if(reason.length<10){errEl.textContent='Please describe the issue in more detail.';errEl.style.display='';return}
+  const btn=document.getElementById('refund-btn');
+  btn.disabled=true;btn.classList.add('loading');
+  try{
+    const res=await fetch('/api/refund-request',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({bidId,email,reason})});
+    const data=await res.json().catch(()=>({}));
+    if(!res.ok){errEl.textContent=data.error||'Could not submit. Please try again.';errEl.style.display='';return}
+    document.getElementById('refund-btn').style.display='none';
+    document.getElementById('refund-success').style.display='';
+  }catch(e){errEl.textContent='Network error. Please try again.';errEl.style.display='';}
+  finally{btn.disabled=false;btn.classList.remove('loading');}
+}
+async function fetchRefundRequests(){
+  if(!_adminPw)return;
+  try{
+    const res=await fetch('/api/refund-request?adminPw='+encodeURIComponent(_adminPw));
+    if(!res.ok)return;
+    const data=await res.json().catch(()=>({}));
+    renderRefundRequests(data.requests||[]);
+    const pending=(data.requests||[]).filter(r=>r.status==='pending').length;
+    const btn=document.getElementById('tab-btn-refunds');
+    if(btn)btn.textContent=pending>0?`Refund Requests (${pending})`:'Refund Requests';
+  }catch(e){}
+}
+function renderRefundRequests(requests){
+  const el=document.getElementById('admin-refund-list');
+  if(!requests.length){el.innerHTML='<p style="color:var(--muted);font-size:.85rem">No refund requests yet.</p>';return}
+  const btnS='font-size:.68rem;padding:5px 14px;border-radius:2px;cursor:pointer;font-family:\'DM Sans\',sans-serif;letter-spacing:1px;text-transform:uppercase';
+  const rowHtml=r=>{
+    const sc=r.status==='approved'?'#3ecf8e':r.status==='denied'?'#ED2939':'#fbbf24';
+    const actions=r.status==='pending'
+      ?`<div style="display:flex;gap:8px;margin-top:10px"><button onclick="approveRefundReq('${r.id}')" style="${btnS};background:rgba(62,207,142,.12);border:1px solid rgba(62,207,142,.4);color:#3ecf8e">✓ Approve + Refund</button><button onclick="denyRefundReq('${r.id}')" style="${btnS};background:rgba(237,41,57,.08);border:1px solid rgba(237,41,57,.35);color:#ED2939">✕ Deny</button></div>`
+      :`<span style="font-size:.7rem;color:${sc};text-transform:uppercase;letter-spacing:1px;margin-top:8px;display:block">${r.status}${r.resolvedAt?' · '+new Date(r.resolvedAt).toLocaleDateString():''}</span>`;
+    return`<div style="background:rgba(0,18,96,.3);border:1px solid rgba(0,35,149,.3);border-radius:4px;padding:16px 18px;margin-bottom:10px"><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:10px"><div><div style="font-size:.85rem;font-weight:600;color:var(--fr-white)">${r.buyerName}</div><div style="font-size:.72rem;color:var(--muted)">${r.buyerEmail}</div></div><div style="text-align:right"><div style="font-size:.78rem;color:var(--fr-white)">${r.dropName}</div><div style="font-size:.72rem;color:var(--muted)">Paid $${parseFloat(r.amount).toFixed(2)} · ${new Date(r.createdAt).toLocaleDateString()}</div></div></div><div style="background:rgba(0,21,79,.5);border-left:3px solid rgba(251,191,36,.4);padding:10px 14px;border-radius:2px;font-size:.8rem;color:var(--muted);line-height:1.6">${r.reason}</div>${actions}</div>`;
+  };
+  const pending=requests.filter(r=>r.status==='pending');
+  const resolved=requests.filter(r=>r.status!=='pending');
+  el.innerHTML=(pending.length?`<div style="font-size:.6rem;color:var(--muted);letter-spacing:3px;text-transform:uppercase;margin-bottom:12px">${pending.length} Pending</div>${pending.map(rowHtml).join('')}`:'')+(resolved.length?`<div style="font-size:.6rem;color:var(--muted);letter-spacing:3px;text-transform:uppercase;margin:${pending.length?'20px':'0'} 0 12px">Resolved</div>${resolved.map(rowHtml).join('')}`:'');
+}
+async function approveRefundReq(reqId){
+  if(!_adminPw){showToast('Admin session expired',true);return}
+  if(!confirm('Approve this refund? This will issue a full Stripe refund and re-publish the item.'))return;
+  showToast('Processing refund…');
+  try{
+    const res=await fetch('/api/refund-request',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({reqId,action:'approve',adminPw:_adminPw})});
+    const data=await res.json().catch(()=>({}));
+    if(!res.ok){showToast('❌ '+(data.error||'Refund failed'),true);return}
+    showToast('✅ Refund issued — buyer notified, item re-published');
+    await fetchRefundRequests();await refreshAll(true);renderAdminDrops();
+  }catch(e){showToast('❌ Network error',true)}
+}
+async function denyRefundReq(reqId){
+  if(!_adminPw){showToast('Admin session expired',true);return}
+  if(!confirm('Deny this refund request? The buyer will be notified by email.'))return;
+  try{
+    const res=await fetch('/api/refund-request',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({reqId,action:'deny',adminPw:_adminPw})});
+    const data=await res.json().catch(()=>({}));
+    if(!res.ok){showToast('❌ '+(data.error||'Could not update'),true);return}
+    showToast('Request denied — buyer notified');fetchRefundRequests();
+  }catch(e){showToast('❌ Network error',true)}
+}
 function toggleFaq(btn){
   const item=btn.closest('.faq-item');
   const isOpen=item.classList.contains('open');
@@ -3138,6 +3286,7 @@ function showToast(msg,err=false,ok=false){
 
 // ── INIT ──
 renderDrops();renderShop();renderFlash();refreshAll();
+(function(){const p=new URLSearchParams(window.location.search);const rb=p.get('refund');if(rb)setTimeout(()=>openRefundModal(rb),600);})();
 </script>
 <div id="activity-feed"></div>
 <div id="bid-alert"></div>

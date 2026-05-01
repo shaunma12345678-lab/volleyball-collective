@@ -318,6 +318,12 @@ module.exports = async (req, res) => {
         const photos = Array.isArray(body.photos) ? body.photos.filter(Boolean) : [];
         drop.photos = photos;
         drop.photo = photos[0] || drop.photo || '';
+      } else if (body.action === 'setRetailPrice') {
+        if (body.retailPrice && parseFloat(body.retailPrice) > 0) drop.retailPrice = body.retailPrice;
+        else delete drop.retailPrice;
+      } else if (body.action === 'setOneOfOne') {
+        if (body.oneOfOne) drop.oneOfOne = true;
+        else delete drop.oneOfOne;
       } else {
         drop.status = drop.status === 'published' ? 'archived' : 'published';
       }

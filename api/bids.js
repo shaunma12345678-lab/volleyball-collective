@@ -64,43 +64,52 @@ async function getOrCreateReferralCode(email, name) {
   return code;
 }
 
-async function sendOutbidEmail(prevBid, dropName) {
-  if (!process.env.GMAIL_USER || !process.env.GMAIL_PASS) return;
-  const transporter = nodemailer.createTransport({
+// Single transport per function invocation — avoids re-establishing SMTP connection for every email
+function makeTransport() {
+  return nodemailer.createTransport({
     service: 'gmail',
     auth: { user: process.env.GMAIL_USER, pass: process.env.GMAIL_PASS },
+    pool: true,
+    maxConnections: 1,
   });
-  let unsubUrl = 'https://volleyball-collective.vercel.app/api/unsubscribe';
-  try {
-    const subRaw = await redis('GET', `emailsub:${prevBid.email}`);
-    if (subRaw) {
-      const sub = JSON.parse(subRaw);
-      if (sub.unsubToken) unsubUrl += `?t=${sub.unsubToken}`;
-    }
-  } catch {}
-  await transporter.sendMail({
-    from: `"Volleyball Collective" <${process.env.GMAIL_USER}>`,
-    to: prevBid.email,
-    subject: `You've been outbid on "${dropName}"`,
-    html: `
-      <div style="font-family:'DM Sans',Helvetica,Arial,sans-serif;max-width:500px;margin:0 auto;background:#00154F;color:#F5F0E8;padding:36px 32px;border-radius:6px">
-        <div style="font-size:11px;letter-spacing:4px;text-transform:uppercase;color:#ED2939;margin-bottom:8px">Volleyball Collective</div>
-        <h2 style="font-size:26px;margin:0 0 16px;font-weight:700">You've been outbid.</h2>
-        <p style="margin:0 0 20px;line-height:1.6">Hey <strong>${prevBid.name}</strong>, someone just topped your bid on <strong>${dropName}</strong>. Get back in before it's gone.</p>
-        <a href="https://volleyball-collective.vercel.app" style="display:inline-block;background:#ED2939;color:#fff;padding:14px 32px;font-family:'DM Sans',sans-serif;font-size:.8rem;letter-spacing:3px;text-transform:uppercase;text-decoration:none;border-radius:2px">Rebid Now →</a>
-        <p style="margin:24px 0 0;font-size:11px;color:#7b9fd4">Only the winner gets charged. Everyone else owes nothing. — Volleyball Collective</p>
-        <p style="margin:12px 0 0;font-size:10px;color:#4a6fa0">You're on our drop alert list. <a href="${unsubUrl}" style="color:#4a6fa0">Unsubscribe</a></p>
-      </div>
-    `,
-  });
+}
+
+// Emails every outbid bidder (all lower bids), not just the previous top
+async function sendOutbidEmails(outbidBids, newBidAmount, dropName) {
+  if (!process.env.GMAIL_USER || !process.env.GMAIL_PASS || !outbidBids.length) return;
+  const t = makeTransport();
+  for (const prevBid of outbidBids) {
+    let unsubUrl = 'https://volleyball-collective.vercel.app/api/unsubscribe';
+    try {
+      const subRaw = await redis('GET', `emailsub:${prevBid.email.toLowerCase().trim()}`);
+      if (subRaw) { const sub = JSON.parse(subRaw); if (sub.unsubToken) unsubUrl += `?t=${sub.unsubToken}`; }
+    } catch {}
+    t.sendMail({
+      from: `"Volleyball Collective" <${process.env.GMAIL_USER}>`,
+      to: prevBid.email,
+      subject: `You've been outbid on "${dropName}"`,
+      html: `
+        <div style="font-family:'DM Sans',Helvetica,Arial,sans-serif;max-width:500px;margin:0 auto;background:#00154F;color:#F5F0E8;padding:36px 32px;border-radius:6px">
+          <div style="font-size:11px;letter-spacing:4px;text-transform:uppercase;color:#ED2939;margin-bottom:8px">Volleyball Collective</div>
+          <h2 style="font-size:26px;margin:0 0 16px;font-weight:700">You've been outbid.</h2>
+          <p style="margin:0 0 12px">Hey <strong>${prevBid.name}</strong>,</p>
+          <p style="margin:0 0 20px;line-height:1.6">Someone just topped your bid on <strong>${dropName}</strong>. Get back in before it's gone.</p>
+          <div style="background:rgba(255,255,255,.05);border-radius:4px;padding:14px 18px;margin-bottom:20px;font-size:13px;line-height:1.6">
+            Your bid: <strong>$${parseFloat(prevBid.amount).toFixed(2)}</strong><br>
+            New top bid: <strong style="color:#ED2939">$${parseFloat(newBidAmount).toFixed(2)}</strong>
+          </div>
+          <a href="https://volleyball-collective.vercel.app/#drops" style="display:inline-block;background:#ED2939;color:#fff;padding:14px 32px;font-family:'DM Sans',sans-serif;font-size:.8rem;letter-spacing:3px;text-transform:uppercase;text-decoration:none;border-radius:2px">Rebid Now →</a>
+          <p style="margin:24px 0 0;font-size:12px;color:#7b9fd4">Only the winner gets charged. Everyone else owes $0. — Volleyball Collective</p>
+          <p style="margin:10px 0 0;font-size:10px;color:#4a6fa0"><a href="${unsubUrl}" style="color:#4a6fa0">Unsubscribe</a></p>
+        </div>
+      `,
+    }).catch(e => console.warn(`Outbid email failed for ${prevBid.email}:`, e.message));
+  }
 }
 
 async function sendConfirmationEmail(bid, dropName, referralCode) {
   if (!process.env.GMAIL_USER || !process.env.GMAIL_PASS) return;
-  const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: { user: process.env.GMAIL_USER, pass: process.env.GMAIL_PASS },
-  });
+  const transporter = makeTransport();
   const discount = bid.promoDiscount || 0;
 
   let unsubUrl = 'https://volleyball-collective.vercel.app/api/unsubscribe';
@@ -147,10 +156,7 @@ async function sendConfirmationEmail(bid, dropName, referralCode) {
 
 async function sendFirstBidEmail(bid, dropName, code) {
   if (!process.env.GMAIL_USER || !process.env.GMAIL_PASS) return;
-  const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: { user: process.env.GMAIL_USER, pass: process.env.GMAIL_PASS },
-  });
+  const transporter = makeTransport();
   let unsubUrl = 'https://volleyball-collective.vercel.app/api/unsubscribe';
   try {
     const subRaw = await redis('GET', `emailsub:${bid.email.toLowerCase().trim()}`);
@@ -304,7 +310,7 @@ module.exports = async (req, res) => {
         }
       }
 
-      // Outbid detection — find previous highest bidder and notify them
+      // Outbid detection — if new bid is highest, email ALL lower bidders (not just previous top)
       try {
         const allIds = (await redis('SMEMBERS', 'bids:keys')) || [];
         const dropBids = (await Promise.all(
@@ -316,15 +322,19 @@ module.exports = async (req, res) => {
         )).filter(Boolean);
 
         if (dropBids.length > 0) {
-          const prevTop = dropBids.reduce((top, b) =>
-            parseFloat(b.amount) > parseFloat(top.amount) ? b : top, dropBids[0]);
-          if (
-            parseFloat(bid.amount) > parseFloat(prevTop.amount) &&
-            prevTop.email.toLowerCase() !== bid.email.toLowerCase()
-          ) {
+          const newAmt = parseFloat(bid.amount);
+          // Collect all distinct bidders whose best bid is now lower than the new bid
+          const byEmail = {};
+          for (const b of dropBids) {
+            const key = b.email.toLowerCase().trim();
+            if (key === bid.email.toLowerCase().trim()) continue; // don't email the new bidder about themselves
+            if (!byEmail[key] || parseFloat(b.amount) > parseFloat(byEmail[key].amount)) byEmail[key] = b;
+          }
+          const outbidBids = Object.values(byEmail).filter(b => parseFloat(b.amount) < newAmt);
+          if (outbidBids.length > 0) {
             const dropRaw = await redis('GET', `drop:${bid.dropId}`);
             const dropName = dropRaw ? JSON.parse(dropRaw).name : 'this drop';
-            sendOutbidEmail(prevTop, dropName).catch(() => {});
+            sendOutbidEmails(outbidBids, newAmt, dropName).catch(() => {});
           }
         }
       } catch (outbidErr) {

@@ -23,7 +23,7 @@ function cors(res) {
   res.setHeader('Cache-Control', 'no-store');
 }
 
-async function sendWinnerEmail({ email, name, originalAmount, chargedAmount, dropName, promoDiscount, shippingFee }) {
+async function sendWinnerEmail({ email, name, originalAmount, chargedAmount, dropName, promoDiscount, shippingFee, winnerBidId }) {
   if (!process.env.GMAIL_USER || !process.env.GMAIL_PASS) return;
   const t = nodemailer.createTransport({
     service: 'gmail',
@@ -56,6 +56,7 @@ async function sendWinnerEmail({ email, name, originalAmount, chargedAmount, dro
           <tr style="border-top:1px solid rgba(123,159,212,.2)"><td style="padding:8px 0 0;color:#7b9fd4;font-weight:700">Total Charged</td><td style="padding:8px 0 0;text-align:right;color:#3ecf8e;font-weight:700">$${parseFloat(chargedAmount).toFixed(2)}</td></tr>
         </table>
         <p style="margin:24px 0 0;font-size:11px;color:#7b9fd4">— Volleyball Collective</p>
+        ${winnerBidId ? `<p style="margin:16px 0 0;font-size:9px;color:#2d4a7a;line-height:1.5">Item not as shown in photos? <a href="https://volleyball-collective.vercel.app/?refund=${winnerBidId}" style="color:#2d4a7a">Request a refund</a></p>` : ''}
       </div>
     `,
   });
@@ -173,6 +174,7 @@ module.exports = async (req, res) => {
         dropName: dropName || 'your item',
         promoDiscount: discount,
         shippingFee: shipping,
+        winnerBidId,
       });
     } catch (e) {
       console.warn('Winner email failed:', e.message);
