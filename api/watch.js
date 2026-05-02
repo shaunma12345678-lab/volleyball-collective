@@ -24,7 +24,12 @@ module.exports = async (req, res) => {
   if (!dropId) return res.status(400).json({ error: 'dropId required' });
 
   try {
-    const count = await redis('INCR', `watch:${dropId}`);
+    const [count] = await Promise.all([
+      redis('INCR', `watch:${dropId}`),
+      redis('INCR', `watch:1h:${dropId}`).then(c =>
+        redis('EXPIRE', `watch:1h:${dropId}`, 3600).then(() => c)
+      ),
+    ]);
     return res.status(200).json({ count });
   } catch (err) {
     return res.status(500).json({ error: err.message });

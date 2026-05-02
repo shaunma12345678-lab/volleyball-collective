@@ -256,11 +256,16 @@ module.exports = async (req, res) => {
 
       const drops = allDrops.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
-      // Fetch watch counts for all drops
+      // Fetch watch counts (total + hourly) for all drops
       const watchCounts = {};
+      const hourlyWatchCounts = {};
       await Promise.all(drops.map(async d => {
-        const count = await redis('GET', `watch:${d.id}`);
+        const [count, hourly] = await Promise.all([
+          redis('GET', `watch:${d.id}`),
+          redis('GET', `watch:1h:${d.id}`),
+        ]);
         if (count) watchCounts[d.id] = parseInt(count);
+        if (hourly) hourlyWatchCounts[d.id] = parseInt(hourly);
       }));
 
       // Fetch notify waitlist counts for teaser drops
@@ -279,7 +284,7 @@ module.exports = async (req, res) => {
         return clean;
       });
 
-      return res.status(200).json({ drops: safeDrops, watchCounts, notifyCounts });
+      return res.status(200).json({ drops: safeDrops, watchCounts, hourlyWatchCounts, notifyCounts });
     }
 
     const body = req.body || {};

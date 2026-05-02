@@ -628,6 +628,20 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
 .comp-preset-btns{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:5px}
 .comp-preset-btn{background:rgba(0,35,149,.2);border:1px solid rgba(123,159,212,.3);color:var(--muted);font-size:.62rem;padding:3px 9px;border-radius:2px;cursor:pointer;font-family:'DM Sans',sans-serif;letter-spacing:.5px;transition:all .15s}
 .comp-preset-btn:hover{background:rgba(0,35,149,.35);color:var(--fr-white)}
+@keyframes closingSoonPulse{0%,100%{box-shadow:0 0 0 0 rgba(237,41,57,.5)}60%{box-shadow:0 0 0 7px rgba(237,41,57,0)}}
+.card-closing-soon{animation:closingSoonPulse 1.8s ease-in-out infinite;border-color:rgba(237,41,57,.5)!important}
+.winning-chip{display:inline-flex;align-items:center;gap:4px;background:rgba(62,207,142,.13);border:1px solid rgba(62,207,142,.4);color:#3ecf8e;font-size:.62rem;font-weight:600;padding:4px 10px;border-radius:3px;letter-spacing:.3px;white-space:nowrap;margin-bottom:6px}
+.losing-chip{display:inline-flex;align-items:center;gap:4px;background:rgba(251,191,36,.09);border:1px solid rgba(251,191,36,.35);color:#fbbf24;font-size:.62rem;font-weight:600;padding:4px 10px;border-radius:3px;letter-spacing:.3px;white-space:nowrap;margin-bottom:6px;cursor:pointer}
+.losing-chip:hover{background:rgba(251,191,36,.16)}
+.hourly-views{display:inline-flex;align-items:center;gap:5px;font-size:.65rem;color:#3ecf8e;padding:3px 8px;background:rgba(62,207,142,.07);border:1px solid rgba(62,207,142,.2);border-radius:10px;white-space:nowrap}
+.auto-bid-row{margin:10px 0 14px;padding:11px 14px;background:rgba(0,35,149,.15);border:1px solid rgba(0,35,149,.3);border-radius:3px;display:flex;flex-direction:column;gap:8px}
+.auto-bid-toggle-line{display:flex;align-items:center;gap:10px;cursor:pointer}
+.auto-bid-toggle-line input[type=checkbox]{width:15px;height:15px;accent-color:#3ecf8e;cursor:pointer;flex-shrink:0}
+.auto-bid-toggle-label{font-size:.78rem;color:var(--muted);line-height:1.4;user-select:none}
+.auto-bid-toggle-label strong{color:var(--fr-white)}
+.auto-bid-max-row{display:flex;align-items:center;gap:8px;padding-left:25px}
+.auto-bid-max-row label{font-size:.72rem;color:var(--muted);white-space:nowrap}
+.auto-bid-max-row input{width:90px;background:rgba(255,255,255,.06);border:1px solid rgba(123,159,212,.3);border-radius:2px;padding:5px 9px;color:var(--fr-white);font-size:.78rem;font-family:'DM Sans',sans-serif}
 </style>
 </head>
 <body>
@@ -1012,6 +1026,10 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
         </div>
         <div class="form-row"><label>Your Bid Amount (USD)</label><div class="amount-wrap"><span>$</span><input type="number" id="bid-amount" placeholder="0.00" min="1" step="0.01" oninput="onBidAmountInput()"></div></div>
         <div id="bid-cheaper-calc" style="display:none" class="cheaper-calc"></div>
+        <div class="auto-bid-row">
+          <label class="auto-bid-toggle-line"><input type="checkbox" id="auto-bid-toggle" onchange="toggleAutoBidMax()"><span class="auto-bid-toggle-label"><strong>Auto-bump my bid</strong> — if outbid, automatically raise by $5 (zero extra charge unless you win)</span></label>
+          <div id="auto-bid-max-row" class="auto-bid-max-row" style="display:none"><label>Stop at max: $</label><input type="number" id="auto-bid-max" placeholder="e.g. 200" min="1" step="1"><span style="font-size:.65rem;color:var(--muted)">optional ceiling</span></div>
+        </div>
         <div class="form-row" style="margin-bottom:16px">
           <label>Ambassador Code <span style="color:var(--muted);font-weight:400;font-size:.75rem">(optional)</span></label>
           <div class="promo-row">
@@ -1780,7 +1798,7 @@ document.querySelectorAll('button,a,.drop-card').forEach(el=>{
 })();
 
 // ── DATA ──
-let _drops=[],_bids=[],_adminPw=null,_subData={total:0,spotsLeft:200,isEarlyBird:true,currentPrice:'9.99'},_watchCounts={},_notifyCounts={},_prevBidsByDrop=null,_flashDropIds=new Set(),_bgProcessing=new Set(),_cart=[];
+let _drops=[],_bids=[],_adminPw=null,_subData={total:0,spotsLeft:200,isEarlyBird:true,currentPrice:'9.99'},_watchCounts={},_hourlyWatchCounts={},_notifyCounts={},_prevBidsByDrop=null,_flashDropIds=new Set(),_bgProcessing=new Set(),_cart=[];
 let _pendingAdminRefresh=false;
 let _dropsHash='',_bidsHash='';
 function isAdminInputFocused(){const el=document.activeElement;return!!(el&&(el.tagName==='INPUT'||el.tagName==='TEXTAREA'||el.tagName==='SELECT')&&el.closest&&el.closest('#admin-overlay'));}
@@ -1991,6 +2009,7 @@ async function fetchDrops(bust=false){
       const changed=newHash!==_dropsHash||bust;
       _drops=data.drops;_dropsHash=newHash;
       if(data.watchCounts)_watchCounts=data.watchCounts;
+      if(data.hourlyWatchCounts)_hourlyWatchCounts=data.hourlyWatchCounts;
       if(data.notifyCounts)_notifyCounts=data.notifyCounts;
       if(changed){renderDrops();renderShop();renderFlash();}
       const dash=document.getElementById('admin-dashboard');
@@ -2140,6 +2159,7 @@ function renderDrops(){
   document.getElementById('drops-badge').textContent=liveCount?liveCount+' Live':'Coming Soon';
   const g=document.getElementById('drops-grid');
   if(!drops.length){g.innerHTML=`<div class="empty-drops"><span class="ei">🏐</span><p>No active auctions — check back soon!</p></div>`;return}
+  let _myBidsLocal=[];try{_myBidsLocal=JSON.parse(localStorage.getItem('vc_mybids')||'[]');}catch(e){}
   g.innerHTML=drops.map((d,i)=>{
     const isTeaser=d.status==='teaser';
     const db=bids.filter(b=>b.dropId===d.id);
@@ -2156,8 +2176,10 @@ function renderDrops(){
         ?`<button class="btn-bid-card btn-member-lock" onclick="event.stopPropagation();openMemberVerify(()=>openBidModal('${d.id}'))">🔒 Members Only</button>`
         :`<div onclick="event.stopPropagation()"><button class="btn-bid-card" onclick="openBidModal('${d.id}')">Reserve It — Free →</button><div style="font-size:.64rem;color:#3ecf8e;text-align:center;margin-top:6px;letter-spacing:.3px;font-weight:500">✓ Only the winner gets charged</div></div>`;
     const watchCount=_watchCounts[d.id]||0;
+    const hourlyViews=_hourlyWatchCounts[d.id]||0;
     const notifyCount=isTeaser?((_notifyCounts&&_notifyCounts[d.id])||0):0;
-    const offerRow=isTeaser?'':`<div class="drop-offer-row"><button class="drop-offer-link" onclick="event.stopPropagation();openDropOfferModal('${d.id}','${d.name.replace(/'/g,"\\'").replace(/"/g,'&quot;')}')">🔔 5% Off</button><span style="color:rgba(123,159,212,.3);font-size:.8rem">·</span><button class="drop-offer-link" style="color:var(--muted);border-color:rgba(123,159,212,.2)" onclick="event.stopPropagation();openNotifyModal('${d.id}','${d.name.replace(/'/g,"\\'").replace(/"/g,'&quot;')}','similar')">🔔 Notify Me</button>${watchCount>0?`<span style="display:inline-flex;align-items:center;gap:4px;font-size:.65rem;color:#3ecf8e;margin-left:2px"><span class="live-dot"></span>${watchCount} viewing</span>`:''}</div>`;
+    const hourlyViewsStr=!isTeaser&&hourlyViews>1?`<span class="hourly-views">👁 ${hourlyViews} viewed in the last hour</span>`:'';
+    const offerRow=isTeaser?'':`<div class="drop-offer-row">${hourlyViewsStr}<button class="drop-offer-link" onclick="event.stopPropagation();openDropOfferModal('${d.id}','${d.name.replace(/'/g,"\\'").replace(/"/g,'&quot;')}')">🔔 5% Off</button><span style="color:rgba(123,159,212,.3);font-size:.8rem">·</span><button class="drop-offer-link" style="color:var(--muted);border-color:rgba(123,159,212,.2)" onclick="event.stopPropagation();openNotifyModal('${d.id}','${d.name.replace(/'/g,"\\'").replace(/"/g,'&quot;')}','similar')">🔔 Notify Me</button>${watchCount>0?`<span style="display:inline-flex;align-items:center;gap:4px;font-size:.65rem;color:rgba(62,207,142,.6);margin-left:auto;font-size:.62rem"><span class="live-dot"></span>${watchCount} total views</span>`:''}</div>`;
     const notifyWaitingRow=isTeaser&&notifyCount>0?`<div class="notify-waiting-row">🔔 ${notifyCount} ${notifyCount===1?'person':'people'} already waiting</div>`:'';
     const endTimeStr=!isTeaser&&d.endTime?`<span class="end-countdown-tag" data-endtime="${d.endTime}">—</span>`:'';
     const now=Date.now();
@@ -2171,11 +2193,31 @@ function renderDrops(){
       :`<div style="display:flex;flex-direction:column;gap:3px">${d.retailPrice&&parseFloat(d.retailPrice)>0?`<span style="font-size:.62rem;color:var(--muted)">Retail <span style="text-decoration:line-through">$${parseFloat(d.retailPrice).toFixed(2)}</span></span>`:''}<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap"><span class="drop-bid-count">${fmtBids(db.length)}</span>${auctionFreeShip}</div>${endTimeStr}${velocityTag}</div>`;
     const hotLevel=!isTeaser&&db.length>=25?3:db.length>=10?2:db.length>=5?1:0;
     const hotClass=hotLevel?` card-hot-${hotLevel}`:'';
+    const closingSoonClass=closingSoon?' card-closing-soon':'';
     const hotBadgeText=hotLevel===3?'🔥 On Fire':hotLevel===2?'🔥 Heating Up':hotLevel===1?'🔥 Hot':'';
     const hotBadge=hotLevel?`<span class="hot-badge hot-badge-${hotLevel}">${hotBadgeText}</span>`:'';
     const customBadges=d.badges&&d.badges.length?`<div class="drop-img-badges">${d.badges.map(b=>`<span class="item-badge item-badge-${b.color}">${b.label}</span>`).join('')}</div>`:'';
     const oneOfOneBadge=d.oneOfOne?`<span class="one-of-one-badge">1 OF 1</span>`:'';
     const oneOfOneStrip=d.oneOfOne&&!isTeaser?`<div class="one-of-one-strip">💎 <span>There is <strong style="color:#e9d5ff">exactly one</strong> of this item — once it's gone, it's gone forever.</span></div>`:'';
+    // Winning / losing chip for returning visitors
+    let _statusChip='';
+    if(!isTeaser&&!d.sold){
+      const _myDropEntries=_myBidsLocal.filter(mb=>mb.dropId===d.id);
+      if(_myDropEntries.length>0){
+        const _myTopAmt=_myDropEntries.reduce((mx,mb)=>Math.max(mx,mb.myAmount||0),0);
+        const _myBidIds=new Set(_myDropEntries.map(mb=>mb.bidId));
+        const _otherTopAmt=db.filter(b=>!_myBidIds.has(b.id)).reduce((mx,b)=>Math.max(mx,parseFloat(b.amount||0)),0);
+        const _cbAmtCheck=d.compBid&&parseFloat(d.compBid)>0?parseFloat(d.compBid):0;
+        const _isBehindComp=_cbAmtCheck>0&&_myTopAmt<_cbAmtCheck;
+        const _isOutbid=_otherTopAmt>_myTopAmt;
+        if(!_isOutbid&&!_isBehindComp){
+          _statusChip=`<div class="winning-chip">✅ You're leading — currently winning</div>`;
+        }else{
+          const _behindNote=_isOutbid?`someone bid $${_otherTopAmt.toFixed(0)}`:`below pinned bid of $${_cbAmtCheck.toFixed(0)}`;
+          _statusChip=`<div class="losing-chip" onclick="event.stopPropagation();openBidModal('${d.id}')">⚠️ You're behind (${_behindNote}) — tap to rebid</div>`;
+        }
+      }
+    }
     const _earlyActive=isEarlyBidActive(d);
     const _earlyChip=!isTeaser&&!d.sold&&_earlyActive?`<span class="early-bid-chip">⚡ Early Bid — 5% off if you win</span>`:'';
     const _cbAmt=d.compBid&&parseFloat(d.compBid)>0?parseFloat(d.compBid):0;
@@ -2197,12 +2239,13 @@ function renderDrops(){
     const _tsAmt=d.timelineStart&&parseFloat(d.timelineStart)>0?parseFloat(d.timelineStart):0;
     const _bidTimeline=!isTeaser&&!d.sold&&_tsAmt>0&&_cbAmt>0&&_rtAmt>0?`<div class="bid-timeline"><div class="bt-step"><div class="bt-dot"></div><div class="bt-amt">$${_tsAmt.toFixed(0)}</div><div class="bt-label">Started</div></div><div class="bt-line"></div><div class="bt-step"><div class="bt-dot now"></div><div class="bt-amt now">$${_cbAmt.toFixed(0)}</div><div class="bt-label">Now</div></div><div class="bt-line"></div><div class="bt-step"><div class="bt-dot"></div><div class="bt-amt">$${_rtAmt.toFixed(0)}</div><div class="bt-label">Retail</div></div></div>`:'';
     const _regretStrip=!isTeaser&&!d.sold&&d.regretText?`<div class="regret-strip">${d.regretText}</div>`:'';
-    return`<div class="drop-card${isTeaser?' teaser-card':''}${hotClass}" data-drop-id="${d.id}" style="animation-delay:${i*.09}s${isTeaser?';cursor:default':''}"${cardClick?` onclick="${cardClick}"`:''}}>
+    return`<div class="drop-card${isTeaser?' teaser-card':''}${hotClass}${closingSoonClass}" data-drop-id="${d.id}" style="animation-delay:${i*.09}s${isTeaser?';cursor:default':''}"${cardClick?` onclick="${cardClick}"`:''}}>
       <div class="drop-img-wrap">${img}${teaserOverlay}${lockOverlay}${badgeChipFinal}${memberBadge}${hotBadge}${customBadges}${oneOfOneBadge}</div>
       <div class="card-stripe"></div>
       <div class="drop-body">
         <div class="drop-name">${d.name}</div>
         <div class="drop-meta">${d.size?`<span>Size: ${d.size}</span>`:''}${d.condition?`<span>${d.condition}</span>`:''}${_earlyChip}</div>
+        ${_statusChip}
         ${d.desc?`<p class="drop-desc">${d.desc}</p>`:''}
         ${oneOfOneStrip}
         ${valueStrip}${_stealMeter}${_bidTimeline}${_oppBanner}${_regretStrip}
@@ -2621,12 +2664,25 @@ function checkOutbidStatus(){
     if(!myBids.length)return;
     const dismissed=JSON.parse(localStorage.getItem('vc_outbid_dismissed')||'[]');
     const outbid=[];
+    const autoBidFired=JSON.parse(localStorage.getItem('vc_autobid_fired')||'[]');
     for(const mb of myBids){
+      if(mb.isAutoBid)continue; // don't treat our own auto-bids as "my" reference bids for outbid detection
       if(dismissed.includes(mb.bidId))continue;
       const drop=_drops.find(d=>d.id===mb.dropId);
       if(!drop||drop.status==='archived')continue;
       const higherExists=_bids.some(b=>b.dropId===mb.dropId&&b.id!==mb.bidId&&parseFloat(b.amount||0)>mb.myAmount);
-      if(higherExists)outbid.push({drop,myBid:mb});
+      if(higherExists){
+        // Auto-bid: fire if enabled on this bid and not already fired
+        if(mb.autoBid&&mb.autoBid.step&&!autoBidFired.includes(mb.bidId)){
+          try{
+            const fired=[...autoBidFired,mb.bidId];
+            localStorage.setItem('vc_autobid_fired',JSON.stringify(fired.slice(-50)));
+          }catch(e){}
+          triggerAutoBid(mb.bidId,mb.dropId,drop.name);
+        }else{
+          outbid.push({drop,myBid:mb});
+        }
+      }
     }
     renderOutbidBanner(outbid);
   }catch(e){}
@@ -2676,7 +2732,11 @@ async function submitBid(){
   if(error){showErr(errEl,error.message);btn.disabled=false;btn.classList.remove('loading');return}
   const _earlyDropCheck=_drops.find(d=>d.id===activeDrop);
   const _useEarlyBonus=!_activeBidPromo&&_earlyDropCheck&&isEarlyBidActive(_earlyDropCheck);
-  const bid={id:'bid_'+Date.now(),name,email,phone,msg,amount,dropId:activeDrop,paymentMethodId:paymentMethod.id,address:{street,city,state,zip,country},createdAt:new Date().toISOString(),promoCode:_useEarlyBonus?'EARLY5':(_activeBidPromo?_activeBidPromo.code:null),promoDiscount:_useEarlyBonus?5:(_activeBidPromo?_activeBidPromo.discount:0),shippingFee:shippingFee||0};
+  const _autoBidToggle=document.getElementById('auto-bid-toggle');
+  const _autoBidMaxEl=document.getElementById('auto-bid-max');
+  const _autoBidEnabled=_autoBidToggle&&_autoBidToggle.checked;
+  const _autoBidMax=_autoBidEnabled&&_autoBidMaxEl&&_autoBidMaxEl.value?parseFloat(_autoBidMaxEl.value):null;
+  const bid={id:'bid_'+Date.now(),name,email,phone,msg,amount,dropId:activeDrop,paymentMethodId:paymentMethod.id,address:{street,city,state,zip,country},createdAt:new Date().toISOString(),promoCode:_useEarlyBonus?'EARLY5':(_activeBidPromo?_activeBidPromo.code:null),promoDiscount:_useEarlyBonus?5:(_activeBidPromo?_activeBidPromo.discount:0),shippingFee:shippingFee||0,...(_autoBidEnabled?{autoBid:{step:5,maxBid:_autoBidMax}}:{})};
   try{
     const res=await fetch('/api/bids',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({bid})});
     const data=await res.json().catch(()=>({}));
@@ -2684,7 +2744,7 @@ async function submitBid(){
   }catch(e){showErr(errEl,'Network error — please try again.');btn.disabled=false;btn.classList.remove('loading');return}
   const otherBidCount=_bids.filter(b=>b.dropId===activeDrop).length;
   _bids=[..._bids,{id:bid.id,dropId:bid.dropId,createdAt:bid.createdAt,amount:bid.amount}];
-  try{const _mb=JSON.parse(localStorage.getItem('vc_mybids')||'[]');_mb.push({dropId:activeDrop,bidId:bid.id,myAmount:parseFloat(amount),placedAt:bid.createdAt});localStorage.setItem('vc_mybids',JSON.stringify(_mb.slice(-20)));}catch(e){}
+  try{const _mb=JSON.parse(localStorage.getItem('vc_mybids')||'[]');_mb.push({dropId:activeDrop,bidId:bid.id,myAmount:parseFloat(amount),placedAt:bid.createdAt,...(_autoBidEnabled?{autoBid:{step:5,maxBid:_autoBidMax}}:{})});localStorage.setItem('vc_mybids',JSON.stringify(_mb.slice(-20)));}catch(e){}
   const competeMsg=otherBidCount===0
     ?`You're in first — nobody else has bid yet. <strong style="color:#5de3a8">You're currently winning.</strong> Watch the auction and raise your bid if someone catches up.`
     :otherBidCount===1
@@ -2709,6 +2769,9 @@ async function submitBid(){
   document.getElementById('bid-success').style.display='block';
   ['bid-name','bid-email','bid-amount','bid-phone','bid-msg','bid-street','bid-city','bid-state','bid-zip'].forEach(id=>{document.getElementById(id).value=''});
   try{if(cardEl)cardEl.clear();}catch(e){}
+  const _abt=document.getElementById('auto-bid-toggle');if(_abt)_abt.checked=false;
+  const _abmr=document.getElementById('auto-bid-max-row');if(_abmr)_abmr.style.display='none';
+  const _abm=document.getElementById('auto-bid-max');if(_abm)_abm.value='';
 }
 
 // ── SUBMIT BUY NOW ──
@@ -2963,7 +3026,7 @@ function renderAdminDrops(){
     const soldBlock=drop.sold&&drop.soldTo?`<div style="padding:14px 18px;border-top:1px solid rgba(0,35,149,.18)"><div style="font-size:.6rem;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:10px">Purchase Details</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:5px 20px;font-size:.73rem;line-height:1.6"><span style="color:var(--muted)">Name</span><span><strong style="color:var(--fr-white)">${drop.soldTo.name}</strong></span><span style="color:var(--muted)">Email</span><span>${drop.soldTo.email}</span>${drop.soldTo.phone?`<span style="color:var(--muted)">Phone</span><span>${drop.soldTo.phone}</span>`:''}<span style="color:var(--muted)">Address</span><span>${drop.soldTo.address?`${drop.soldTo.address.street}, ${drop.soldTo.address.city} ${drop.soldTo.address.state} ${drop.soldTo.address.zip} — ${drop.soldTo.address.country||''}`.trim().replace(/—\s*$/,''):'—'}</span><span style="color:var(--muted)">Charged</span><span style="color:var(--success)"><strong>$${parseFloat(drop.soldTo.chargedPrice||0).toFixed(2)}</strong>${parseFloat(drop.soldTo.shippingFee||0)>0?` <span style="color:#fbbf24;font-size:.65rem">(incl. $${parseFloat(drop.soldTo.shippingFee).toFixed(2)} intl shipping)</span>`:''}</span>${drop.soldTo.promoCode?`<span style="color:var(--muted)">Promo</span><span style="color:#3ecf8e">${drop.soldTo.promoCode}</span>`:''}<span style="color:var(--muted)">Date</span><span>${new Date(drop.soldTo.purchasedAt).toLocaleString()}</span></div><div style="margin-top:12px"><button onclick="refundPurchase('${drop.id}')" style="background:rgba(255,107,107,.1);border:1px solid rgba(255,107,107,.35);color:#ff6b6b;padding:6px 16px;font-size:.7rem;letter-spacing:1.5px;text-transform:uppercase;border-radius:2px;cursor:pointer;font-family:'DM Sans',sans-serif">↩ Issue Refund</button></div></div>`:`<div style="padding:14px 18px;font-size:.78rem;color:var(--muted)">No purchase yet.</div>`;
     return`<div class="drop-group"><div class="drop-group-hd"><div><div class="drop-group-name" style="color:${isFlash?'#fbbf24':'var(--success)'}">${drop.name} <span style="font-size:.7rem;font-family:'DM Sans',sans-serif">[${typeLabel}]</span></div><div style="font-size:.7rem;color:var(--muted);margin-top:2px">${drop.status}${drop.sold?' · SOLD':''}</div></div><div style="display:flex;gap:8px"><button class="btn-tog" onclick="toggleStatus('${drop.id}')">${drop.status==='published'?'Archive':'Publish'}</button><button class="btn-del" onclick="deleteDrop('${drop.id}')">Delete</button></div></div>${timerRow}${badgesRow}${photosRow}${soldBlock}</div>`;}
     const db=bids.filter(b=>b.dropId===drop.id).sort((a,b)=>b.amount-a.amount);
-    const rows=db.length?db.map(bid=>{const sf=parseFloat(bid.shippingFee)||0;const bidTotal=sf>0?`$${parseFloat(bid.amount).toFixed(2)}<br><span style="color:#fbbf24;font-size:.65rem">+$${sf.toFixed(2)} intl shipping</span>`:(`$${parseFloat(bid.amount).toFixed(2)}`);const _isPin=drop.compBidId===bid.id;const _pinS=`font-size:.6rem;padding:2px 7px;border-radius:2px;cursor:pointer;font-family:'DM Sans',sans-serif;display:block;margin-top:4px;border:1px solid ${_isPin?'rgba(251,191,36,.5)':'rgba(123,159,212,.2)'};background:${_isPin?'rgba(251,191,36,.1)':'transparent'};color:${_isPin?'#fbbf24':'var(--muted)'}`;return`<tr><td><strong>${bid.name}</strong><br><span style="color:var(--muted);font-size:.7rem">${bid.email}</span></td><td style="font-size:.73rem;color:var(--muted)">${bid.phone||'—'}</td><td class="bid-amt">${bidTotal}</td><td style="font-size:.7rem;color:var(--muted)">${bid.address?`${bid.address.street}, ${bid.address.city} ${bid.address.state} ${bid.address.zip} — ${bid.address.country||''}`.trim().replace(/—\s*$/,''):'—'}</td><td>${bid.charged?`<span class="badge-charged">✅ Charged</span>`:bid.paymentMethodId&&bid.paymentMethodId!=='[no-stripe]'?`<button class="btn-charge" onclick="chargeCard('${bid.id}')">Charge Card</button>`:`<span class="badge-nocard">No card</span>`}<button onclick="setCompBid('${drop.id}','${bid.id}','${bid.amount}')" style="${_pinS}">${_isPin?'📌 Pinned':'📌 Pin'}</button></td><td style="font-size:.68rem;color:var(--muted)">${new Date(bid.createdAt).toLocaleDateString()}</td></tr>`;}).join(''):`<tr><td colspan="6" class="no-bids">No bids yet.</td></tr>`;
+    const rows=db.length?db.map(bid=>{const sf=parseFloat(bid.shippingFee)||0;const bidTotal=sf>0?`$${parseFloat(bid.amount).toFixed(2)}<br><span style="color:#fbbf24;font-size:.65rem">+$${sf.toFixed(2)} intl shipping</span>`:(`$${parseFloat(bid.amount).toFixed(2)}`);const _isPin=drop.compBidId===bid.id;const _pinS=`font-size:.6rem;padding:2px 7px;border-radius:2px;cursor:pointer;font-family:'DM Sans',sans-serif;display:block;margin-top:4px;border:1px solid ${_isPin?'rgba(251,191,36,.5)':'rgba(123,159,212,.2)'};background:${_isPin?'rgba(251,191,36,.1)':'transparent'};color:${_isPin?'#fbbf24':'var(--muted)'}`;const _autoTag=bid.isAutoBid?`<span style="font-size:.58rem;color:#7b9fd4;background:rgba(123,159,212,.12);border:1px solid rgba(123,159,212,.25);padding:1px 5px;border-radius:2px;margin-left:4px">auto</span>`:'';return`<tr><td><strong>${bid.name}</strong>${_autoTag}<br><span style="color:var(--muted);font-size:.7rem">${bid.email}</span></td><td style="font-size:.73rem;color:var(--muted)">${bid.phone||'—'}</td><td class="bid-amt">${bidTotal}</td><td style="font-size:.7rem;color:var(--muted)">${bid.address?`${bid.address.street}, ${bid.address.city} ${bid.address.state} ${bid.address.zip} — ${bid.address.country||''}`.trim().replace(/—\s*$/,''):'—'}</td><td>${bid.charged?`<span class="badge-charged">✅ Charged</span>`:bid.paymentMethodId&&bid.paymentMethodId!=='[no-stripe]'?`<button class="btn-charge" onclick="chargeCard('${bid.id}')">Charge Card</button>`:`<span class="badge-nocard">No card</span>`}<button onclick="setCompBid('${drop.id}','${bid.id}','${bid.amount}')" style="${_pinS}">${_isPin?'📌 Pinned':'📌 Pin'}</button></td><td style="font-size:.68rem;color:var(--muted)">${new Date(bid.createdAt).toLocaleDateString()}<br><button onclick="deleteBid('${bid.id}','${drop.id}')" style="font-size:.58rem;padding:2px 6px;border:1px solid rgba(255,107,107,.35);background:transparent;color:#ff6b6b;border-radius:2px;cursor:pointer;font-family:'DM Sans',sans-serif;margin-top:3px">Remove</button></td></tr>`;}).join(''):`<tr><td colspan="6" class="no-bids">No bids yet.</td></tr>`;
     const retailPriceRow=`<div style="padding:8px 18px;border-top:1px solid rgba(0,35,149,.18);display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span style="font-size:.6rem;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-right:2px">Retail Price:</span><span style="color:var(--muted);font-size:.8rem">$</span><input id="retail-${drop.id}" type="number" min="0" step="0.01" value="${drop.retailPrice||''}" placeholder="0.00" style="width:80px;background:rgba(255,255,255,.06);border:1px solid rgba(123,159,212,.3);border-radius:2px;padding:4px 8px;color:var(--fr-white);font-size:.75rem;font-family:'DM Sans',sans-serif"><button onclick="setRetailPrice('${drop.id}')" style="${btnS};border:1px solid rgba(62,207,142,.4);background:rgba(62,207,142,.1);color:var(--success)">Save</button>${drop.retailPrice?`<span style="font-size:.68rem;color:var(--muted)">currently: <span style="text-decoration:line-through">$${parseFloat(drop.retailPrice).toFixed(2)}</span></span>`:''}</div>`;
     const lastChanceRow=`<div style="padding:8px 18px;border-top:1px solid rgba(0,35,149,.18);display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span style="font-size:.6rem;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-right:2px">Notify:</span><button onclick="sendLastChanceEmail('${drop.id}')" style="${btnS};border:1px solid rgba(251,191,36,.4);background:rgba(251,191,36,.1);color:#fbbf24">⏰ Last Chance Email</button><span style="font-size:.65rem;color:var(--muted)">${db.length} bidder(s) — closing soon reminder</span></div>`;
     const isFomo=!drop.compTemplate||drop.compTemplate==='fomo';const isChallenge=drop.compTemplate==='challenge';
@@ -3099,6 +3162,29 @@ async function setDropComparisons(id){
     showToast(comparisons.length?`✅ ${comparisons.length} comparison${comparisons.length===1?'':'s'} saved`:'✅ Comparisons cleared');
   }catch(e){showToast('❌ Network error',true)}
 }
+function toggleAutoBidMax(){
+  const t=document.getElementById('auto-bid-toggle');
+  const r=document.getElementById('auto-bid-max-row');
+  if(r)r.style.display=t&&t.checked?'flex':'none';
+}
+async function triggerAutoBid(prevBidId,dropId,dropName){
+  try{
+    const res=await fetch('/api/auto-bid',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prevBidId})});
+    const data=await res.json().catch(()=>({}));
+    if(data.success){
+      showToast(`⚡ Auto-bid placed on "${dropName}" — $${data.newAmount}`);
+      // Update localStorage so winning/losing status refreshes
+      try{
+        const mb=JSON.parse(localStorage.getItem('vc_mybids')||'[]');
+        mb.push({dropId,bidId:'ab_'+Date.now(),myAmount:parseFloat(data.newAmount),placedAt:new Date().toISOString(),isAutoBid:true});
+        localStorage.setItem('vc_mybids',JSON.stringify(mb.slice(-20)));
+      }catch(e){}
+      await refreshAll(true);
+    }else if(data.skipped){
+      // Silently skipped — either already leading or hit max
+    }
+  }catch(e){console.warn('Auto-bid failed',e);}
+}
 function appendCompPreset(taId,label){
   const ta=document.getElementById(taId);
   if(!ta)return;
@@ -3174,6 +3260,18 @@ async function deleteDrop(id){
   if(!confirm('Delete this item and all bids?'))return;
   if(!_adminPw){showToast('Admin session expired',true);return}
   try{const res=await fetch('/api/drops',{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,adminPw:_adminPw})});if(!res.ok){showToast('❌ Could not delete',true);return}try{await fetch('/api/bids',{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({dropId:id,adminPw:_adminPw})});}catch(e){}await refreshAll(true);renderAdminDrops();}catch(e){showToast('❌ Network error',true)}
+}
+async function deleteBid(bidId,dropId){
+  if(!confirm('Remove this bid? This cannot be undone.'))return;
+  if(!_adminPw){showToast('Admin session expired',true);return}
+  try{
+    const res=await fetch('/api/bids',{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({bidId,adminPw:_adminPw})});
+    const data=await res.json().catch(()=>({}));
+    if(!res.ok){showToast('❌ '+(data.error||'Could not remove bid'),true);return}
+    _bids=_bids.filter(b=>b.id!==bidId);
+    await fetchBids(true);renderAdminDrops();renderAllBids();
+    showToast('Bid removed');
+  }catch(e){showToast('❌ Network error',true)}
 }
 
 // ── REFUND ──
@@ -3758,6 +3856,24 @@ function showToast(msg,err=false,ok=false){
 // ── INIT ──
 renderDrops();renderShop();renderFlash();refreshAll();
 (function(){const p=new URLSearchParams(window.location.search);const rb=p.get('refund');if(rb)setTimeout(()=>openRefundModal(rb),600);})();
+// Deep link: ?bid=DROP_ID — auto-open bid modal (used in outbid emails for one-tap rebid)
+(function(){
+  const p=new URLSearchParams(window.location.search);
+  const bidDropId=p.get('bid');
+  if(!bidDropId)return;
+  window.history.replaceState({},'',window.location.pathname+(p.get('subscribed')||p.get('subscribe')||p.get('refund')?window.location.search:''));
+  const tryOpen=()=>{
+    const drop=_drops.find(d=>d.id===bidDropId&&d.status==='published');
+    if(drop){
+      const sect=document.getElementById('drops');
+      if(sect)sect.scrollIntoView({behavior:'smooth'});
+      setTimeout(()=>openBidModal(bidDropId),350);
+    }
+  };
+  // Wait for drops to load if not yet available
+  if(_drops.length>0)tryOpen();
+  else setTimeout(tryOpen,2500);
+})();
 </script>
 <div id="activity-feed"></div>
 <div id="bid-alert"></div>

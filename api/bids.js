@@ -75,9 +75,10 @@ function makeTransport() {
 }
 
 // Emails every outbid bidder (all lower bids), not just the previous top
-async function sendOutbidEmails(outbidBids, newBidAmount, dropName) {
+async function sendOutbidEmails(outbidBids, newBidAmount, dropName, dropId) {
   if (!process.env.GMAIL_USER || !process.env.GMAIL_PASS || !outbidBids.length) return;
   const t = makeTransport();
+  const rebidUrl = `https://volleyball-collective.vercel.app?bid=${dropId || ''}`;
   for (const prevBid of outbidBids) {
     let unsubUrl = 'https://volleyball-collective.vercel.app/api/unsubscribe';
     try {
@@ -98,8 +99,8 @@ async function sendOutbidEmails(outbidBids, newBidAmount, dropName) {
             Your bid: <strong>$${parseFloat(prevBid.amount).toFixed(2)}</strong><br>
             New top bid: <strong style="color:#ED2939">$${parseFloat(newBidAmount).toFixed(2)}</strong>
           </div>
-          <a href="https://volleyball-collective.vercel.app/#drops" style="display:inline-block;background:#ED2939;color:#fff;padding:14px 32px;font-family:'DM Sans',sans-serif;font-size:.8rem;letter-spacing:3px;text-transform:uppercase;text-decoration:none;border-radius:2px">Rebid Now →</a>
-          <p style="margin:24px 0 0;font-size:12px;color:#7b9fd4">Only the winner gets charged. Everyone else owes $0. — Volleyball Collective</p>
+          <a href="${rebidUrl}" style="display:inline-block;background:#ED2939;color:#fff;padding:14px 32px;font-family:'DM Sans',sans-serif;font-size:.8rem;letter-spacing:3px;text-transform:uppercase;text-decoration:none;border-radius:2px">Rebid Now — One Tap →</a>
+          <p style="margin:16px 0 0;font-size:12px;color:#7b9fd4">Only the winner gets charged. Everyone else owes $0. — Volleyball Collective</p>
           <p style="margin:10px 0 0;font-size:10px;color:#4a6fa0"><a href="${unsubUrl}" style="color:#4a6fa0">Unsubscribe</a></p>
         </div>
       `,
@@ -334,7 +335,7 @@ module.exports = async (req, res) => {
           if (outbidBids.length > 0) {
             const dropRaw = await redis('GET', `drop:${bid.dropId}`);
             const dropName = dropRaw ? JSON.parse(dropRaw).name : 'this drop';
-            sendOutbidEmails(outbidBids, newAmt, dropName).catch(() => {});
+            sendOutbidEmails(outbidBids, newAmt, dropName, bid.dropId).catch(() => {});
           }
         }
       } catch (outbidErr) {
@@ -367,6 +368,13 @@ module.exports = async (req, res) => {
     if (req.method === 'DELETE') {
       const authErr = await checkAdminAuth(req, body.adminPw);
       if (authErr) return res.status(authErr.status).json(authErr.json);
+      // Single bid delete — body.bidId provided
+      if (body.bidId) {
+        await redis('DEL', `bid:${body.bidId}`);
+        await redis('SREM', 'bids:keys', body.bidId);
+        return res.status(200).json({ success: true });
+      }
+      // Bulk delete all bids for a drop — body.dropId provided
       const ids = (await redis('SMEMBERS', 'bids:keys')) || [];
       await Promise.all(
         ids.map(async (id) => {
