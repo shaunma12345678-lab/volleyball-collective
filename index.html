@@ -565,33 +565,6 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
 .exit-dismiss:hover{color:var(--fr-white)}
 .exit-close-x{position:absolute;top:12px;right:14px;background:none;border:none;color:var(--muted);font-size:1.1rem;cursor:pointer;line-height:1;transition:color .2s}
 .exit-close-x:hover{color:var(--fr-white)}
-/* ── DEAL PSYCHOLOGY ── */
-.steal-meter-wrap{margin-top:9px}
-.steal-meter-labels{display:flex;justify-content:space-between;font-size:.58rem;color:var(--muted);margin-bottom:4px;letter-spacing:.4px}
-.steal-meter-bar{height:5px;background:rgba(255,255,255,.07);border-radius:10px;overflow:hidden}
-.steal-meter-fill{height:100%;border-radius:10px;background:linear-gradient(90deg,#3ecf8e 0%,#fbbf24 55%,#ef4444 100%);transition:width .6s ease}
-.savings-badge{display:inline-flex;align-items:center;gap:4px;background:rgba(62,207,142,.12);border:1px solid rgba(62,207,142,.3);color:#3ecf8e;font-size:.64rem;font-weight:700;padding:3px 9px;border-radius:10px;letter-spacing:.3px;white-space:nowrap;margin-top:5px}
-.opportunity-banner{background:rgba(251,191,36,.05);border:1px solid rgba(251,191,36,.18);border-radius:3px;padding:9px 13px;margin-top:6px;font-size:.73rem;color:#fbbf24;line-height:1.5}
-.deal-closes-label{font-size:.6rem;color:var(--muted);letter-spacing:.4px}
-.comp-table-wrap{background:rgba(0,35,149,.1);border:1px solid rgba(0,35,149,.35);border-radius:4px;overflow:hidden;margin-bottom:16px}
-.comp-table-title{font-size:.6rem;letter-spacing:3px;text-transform:uppercase;color:var(--muted);padding:8px 14px;border-bottom:1px solid rgba(0,35,149,.25)}
-.comp-table{width:100%;border-collapse:collapse}
-.comp-table td{padding:8px 14px;font-size:.81rem}
-.comp-table tr:not(:last-child) td{border-bottom:1px solid rgba(0,35,149,.18)}
-.comp-table .ct-label{color:var(--muted)}
-.comp-table .ct-price{text-align:right;font-weight:600;color:var(--fr-white)}
-.comp-table .ct-yours td{background:rgba(62,207,142,.07)}
-.comp-table .ct-yours .ct-label{color:#3ecf8e;font-weight:600}
-.comp-table .ct-yours .ct-price{color:#3ecf8e;font-size:1rem}
-.bid-exit-bar{display:none;background:rgba(237,41,57,.07);border-bottom:1px solid rgba(237,41,57,.2);padding:13px 24px;font-size:.82rem;color:var(--muted);line-height:1.5;animation:fadeIn .25s ease}
-.bid-exit-bar.show{display:block}
-.bid-exit-bar strong{color:var(--fr-white)}
-.share-box{background:rgba(0,35,149,.15);border:1px solid rgba(0,35,149,.35);border-radius:4px;padding:18px 20px;margin-top:16px;text-align:center}
-.share-box-title{font-size:.65rem;letter-spacing:3px;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
-.share-box-copy{font-size:.79rem;color:var(--muted);line-height:1.55;margin-bottom:12px}
-.btn-share{display:inline-flex;align-items:center;gap:8px;background:var(--fr-red);color:#fff;border:none;padding:11px 24px;font-family:'Bebas Neue',sans-serif;font-size:.95rem;letter-spacing:3px;cursor:pointer;border-radius:2px;transition:all .2s}
-.btn-share:hover{background:#c7202d;transform:translateY(-1px)}
-.share-copied{font-size:.68rem;color:#3ecf8e;margin-top:8px;display:none;letter-spacing:.5px}
 </style>
 </head>
 <body>
@@ -949,10 +922,6 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
 <div class="overlay" id="bid-overlay" onclick="overlayClick(event,'bid-overlay')">
   <div class="modal">
     <div id="bid-form-view">
-      <div class="bid-exit-bar" id="bid-exit-bar">
-        <strong>Before you go —</strong> your card won't be charged unless you win. If you don't take the top spot, you owe <strong>$0</strong>. No fees, no cancellation needed.
-        <span style="display:block;margin-top:6px;font-size:.73rem">Still want to leave? <button onclick="closeModal('bid-overlay')" style="background:none;border:none;color:var(--fr-red);cursor:pointer;font-size:.73rem;padding:0;text-decoration:underline">Close anyway →</button></span>
-      </div>
       <div class="bid-modal-risk-bar">
         <div class="bmrb-item"><div class="bmrb-dot"></div>Bid any amount</div>
         <div class="bmrb-item"><div class="bmrb-dot"></div>You will NOT be charged unless you win</div>
@@ -962,10 +931,9 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
       <div id="bid-firstbid-banner" style="display:none;background:rgba(62,207,142,.1);border-bottom:1px solid rgba(62,207,142,.2);padding:12px 24px;text-align:center;font-size:.83rem;color:var(--muted);line-height:1.5">🎁 <strong style="color:#3ecf8e">You'd be the first to bid!</strong> Place this bid and we'll send you a <strong style="color:var(--fr-white)">5% off code</strong> — applied automatically if you win.</div>
       <div class="modal-header">
         <div><div class="modal-title" id="bid-modal-title">Place Your Bid</div><div class="modal-sub">Enter any amount — your card is <strong>not charged</strong> unless you win</div></div>
-        <button class="btn-close" id="bid-close-btn" onclick="closeBidModalMaybe()">✕</button>
+        <button class="btn-close" onclick="closeModal('bid-overlay')">✕</button>
       </div>
       <div class="modal-body">
-        <div id="bid-comp-table" style="display:none"></div>
         <div class="form-row"><label>Your Bid Amount (USD)</label><div class="amount-wrap"><span>$</span><input type="number" id="bid-amount" placeholder="0.00" min="1" step="0.01"></div></div>
         <div class="form-row" style="margin-bottom:16px">
           <label>Ambassador Code <span style="color:var(--muted);font-weight:400;font-size:.75rem">(optional)</span></label>
@@ -1008,13 +976,6 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
     <div class="bid-success" id="bid-success">
       <span class="check">✅</span><h3>Bid Secured!</h3>
       <p id="bid-compete-text">Your bid is recorded and your card is saved securely via Stripe. You'll get a confirmation email.<br><br><strong>Your card is only charged if you win.</strong></p>
-      <div id="bid-savings-callout" style="display:none;background:rgba(62,207,142,.08);border:1px solid rgba(62,207,142,.2);border-radius:4px;padding:13px 18px;margin:0 auto 16px;max-width:360px;font-size:.83rem;color:var(--muted);line-height:1.5"></div>
-      <div class="share-box" id="bid-share-box" style="display:none;max-width:380px;margin:0 auto 16px">
-        <div class="share-box-title">Dare someone to beat you</div>
-        <div class="share-box-copy">Share this drop — if your friend bids first on any drop, <strong style="color:#3ecf8e">they get 5% off</strong>. Your referral code is in your confirmation email.</div>
-        <button class="btn-share" onclick="shareBid()">🏐 Share This Drop</button>
-        <div class="share-copied" id="share-copied">Link copied!</div>
-      </div>
       <button class="btn-secondary" onclick="closeModal('bid-overlay')">Close</button>
     </div>
   </div>
@@ -1222,10 +1183,6 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
         <div class="form-row" id="price-field" style="display:none"><label id="price-label">Fixed Price (USD) *</label><div class="amount-wrap"><span>$</span><input type="number" id="add-price" placeholder="0.00" min="1" step="0.01"></div></div>
         <div class="form-row" id="original-price-field" style="display:none"><label>Original / Retail Price (USD) <span style="font-weight:400;opacity:.5">(shows as crossed-out)</span></label><div class="amount-wrap"><span>$</span><input type="number" id="add-original-price" placeholder="0.00" min="0" step="0.01"></div></div>
         <div class="form-row" id="retail-price-field" style="display:none"><label>Retail / Market Value (USD) <span style="font-weight:400;opacity:.5">optional — shows as crossed-out on auction cards to anchor value</span></label><div class="amount-wrap"><span>$</span><input type="number" id="add-retail-price" placeholder="0.00" min="0" step="0.01"></div></div>
-        <div class="form-row" id="comparisons-field" style="display:none">
-          <label>"What You'd Pay Elsewhere" Comparisons <span style="font-weight:400;opacity:.5">optional — shown in the bid modal to anchor value. One per line: Label:Price</span></label>
-          <textarea id="add-comparisons" rows="3" placeholder="eBay avg:340&#10;StockX:290&#10;Facebook Marketplace:220"></textarea>
-        </div>
         <div class="form-row" id="comp-template-field" style="display:none"><label>Card Strip Style <span style="font-weight:400;opacity:.5">optional — shown after a comparison bid is pinned</span></label><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px"><button type="button" id="ct-btn-fomo" onclick="setAddDropTemplate('fomo')" style="padding:7px 16px;border-radius:2px;font-family:'DM Sans',sans-serif;font-size:.75rem;cursor:pointer;border:1px solid rgba(237,41,57,.5);background:rgba(237,41,57,.12);color:var(--fr-red)">🔥 FOMO — "Someone's already in…"</button><button type="button" id="ct-btn-challenge" onclick="setAddDropTemplate('challenge')" style="padding:7px 16px;border-radius:2px;font-family:'DM Sans',sans-serif;font-size:.75rem;cursor:pointer;border:1px solid rgba(123,159,212,.22);background:transparent;color:var(--muted)">💰 Challenge — "Can you beat it?"</button></div></div>
         <div class="form-row" id="bundle-fields" style="display:none">
           <label>Bundle Items <span style="font-weight:400;opacity:.5">(one per line — e.g. "France Jersey · Size L")</span></label>
@@ -2062,24 +2019,16 @@ function renderDrops(){
     const notifyCount=isTeaser?((_notifyCounts&&_notifyCounts[d.id])||0):0;
     const offerRow=isTeaser?'':`<div class="drop-offer-row"><button class="drop-offer-link" onclick="event.stopPropagation();openDropOfferModal('${d.id}','${d.name.replace(/'/g,"\\'").replace(/"/g,'&quot;')}')">🔔 5% Off</button><span style="color:rgba(123,159,212,.3);font-size:.8rem">·</span><button class="drop-offer-link" style="color:var(--muted);border-color:rgba(123,159,212,.2)" onclick="event.stopPropagation();openNotifyModal('${d.id}','${d.name.replace(/'/g,"\\'").replace(/"/g,'&quot;')}','similar')">🔔 Notify Me</button>${watchCount>0?`<span style="display:inline-flex;align-items:center;gap:4px;font-size:.65rem;color:#3ecf8e;margin-left:2px"><span class="live-dot"></span>${watchCount} viewing</span>`:''}</div>`;
     const notifyWaitingRow=isTeaser&&notifyCount>0?`<div class="notify-waiting-row">🔔 ${notifyCount} ${notifyCount===1?'person':'people'} already waiting</div>`:'';
-    const endTimeStr=!isTeaser&&d.endTime?`<span style="display:inline-flex;align-items:center;gap:4px;margin-top:2px"><span class="deal-closes-label">Deal closes in</span><span class="end-countdown-tag" data-endtime="${d.endTime}">—</span></span>`:'';
+    const endTimeStr=!isTeaser&&d.endTime?`<span class="end-countdown-tag" data-endtime="${d.endTime}">—</span>`:'';
     const now=Date.now();
     const recentBids=!isTeaser?db.filter(b=>now-new Date(b.createdAt).getTime()<3600000).length:0;
     const velocityTag=recentBids>0?`<div class="velocity-tag">⚡ ${recentBids} bid${recentBids>1?'s':''} in the last hour</div>`:'';
     const closingSoon=!isTeaser&&d.endTime&&(new Date(d.endTime)-now)<7200000&&(new Date(d.endTime)-now)>0;
     const badgeChipFinal=isTeaser?`<span class="teaser-badge-chip">Coming Soon</span>`:closingSoon?`<span class="closing-soon-chip">⏰ Closing Soon</span>`:`<span class="drop-badge-chip">Active Drop</span>`;
     const auctionFreeShip=!isTeaser&&!d.sold?`<span class="free-ship-chip">🇺🇸 Free US Ship</span>`:'';
-    const _rtAmt=d.retailPrice&&parseFloat(d.retailPrice)>0?parseFloat(d.retailPrice):0;
-    const topBidAmt=db.length>0?Math.max(...db.map(b=>parseFloat(b.amount)||0)):0;
-    const savingsAmt=_rtAmt>0&&topBidAmt>0&&_rtAmt>topBidAmt?Math.round(_rtAmt-topBidAmt):0;
-    const savingsBadge=!isTeaser&&!d.sold&&savingsAmt>0?`<span class="savings-badge">💰 Save $${savingsAmt} vs retail right now</span>`:'';
-    const stealPct=_rtAmt>0&&topBidAmt>0?Math.min(99,Math.round(topBidAmt/_rtAmt*100)):4;
-    const stealMeter=!isTeaser&&!d.sold&&_rtAmt>0?`<div class="steal-meter-wrap"><div class="steal-meter-labels"><span>🟢 Steal</span><span>Market $${_rtAmt.toFixed(0)}</span></div><div class="steal-meter-bar"><div class="steal-meter-fill" style="width:${stealPct}%"></div></div></div>`:'';
-    const wc=watchCount||0;
-    const opportunityBanner=!isTeaser&&!d.sold&&db.length===0&&wc>0?`<div class="opportunity-banner">👀 <strong>${wc} ${wc===1?'person':'people'} watching</strong> — nobody has committed yet. Be the first and we'll send you <strong>5% off</strong> if you win.</div>`:'';
     const footerLeft=isTeaser
       ?(d.dropTime?`<span class="countdown-tag" data-countdown="${d.dropTime}">—</span>`:`<span class="drop-bid-count" style="color:var(--muted)">Bidding opens soon</span>`)
-      :`<div style="display:flex;flex-direction:column;gap:3px">${_rtAmt>0?`<span style="font-size:.62rem;color:var(--muted)">Retail <span style="text-decoration:line-through">$${_rtAmt.toFixed(2)}</span></span>`:''}<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap"><span class="drop-bid-count">${fmtBids(db.length)}</span>${auctionFreeShip}</div>${savingsBadge}${endTimeStr}${velocityTag}</div>`;
+      :`<div style="display:flex;flex-direction:column;gap:3px">${d.retailPrice&&parseFloat(d.retailPrice)>0?`<span style="font-size:.62rem;color:var(--muted)">Retail <span style="text-decoration:line-through">$${parseFloat(d.retailPrice).toFixed(2)}</span></span>`:''}<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap"><span class="drop-bid-count">${fmtBids(db.length)}</span>${auctionFreeShip}</div>${endTimeStr}${velocityTag}</div>`;
     const hotLevel=!isTeaser&&db.length>=25?3:db.length>=10?2:db.length>=5?1:0;
     const hotClass=hotLevel?` card-hot-${hotLevel}`:'';
     const hotBadgeText=hotLevel===3?'🔥 On Fire':hotLevel===2?'🔥 Heating Up':hotLevel===1?'🔥 Hot':'';
@@ -2109,8 +2058,6 @@ function renderDrops(){
         ${d.desc?`<p class="drop-desc">${d.desc}</p>`:''}
         ${oneOfOneStrip}
         ${valueStrip}
-        ${opportunityBanner}
-        ${stealMeter}
         <div class="drop-footer">${footerLeft}${actionBtn}</div>
         ${offerRow}${notifyWaitingRow}
       </div>
@@ -2319,14 +2266,12 @@ setInterval(()=>{
 },1000);
 
 // ── MODALS ──
-let _bidExitWarned=false;
 function openBidModal(dropId){
   const drop=_drops.find(d=>d.id===dropId);
   if(drop&&drop.memberOnly&&!isMemberVerified()){openMemberVerify(()=>openBidModal(dropId));return}
   incrementWatch(dropId);
   activeDrop=dropId;
   _activeBidPromo=null;
-  _bidExitWarned=false;
   document.getElementById('bid-modal-title').textContent=drop?`Bid on: ${drop.name}`:'Place Your Bid';
   document.getElementById('bid-promo').value='';
   document.getElementById('bid-promo-ok').style.display='none';
@@ -2334,34 +2279,10 @@ function openBidModal(dropId){
   document.getElementById('bid-form-view').style.display='';
   document.getElementById('bid-success').style.display='none';
   document.getElementById('bid-error').style.display='none';
-  document.getElementById('bid-exit-bar').classList.remove('show');
   const btn=document.getElementById('bid-btn');btn.disabled=false;btn.classList.remove('loading');
   const firstBidBanner=document.getElementById('bid-firstbid-banner');
   if(firstBidBanner){const hasBids=_bids.some(b=>b.dropId===dropId);firstBidBanner.style.display=hasBids?'none':'';}
-  // Build comparison table
-  const ctWrap=document.getElementById('bid-comp-table');
-  if(ctWrap){
-    const comps=drop&&drop.comparisons&&drop.comparisons.length?drop.comparisons:[];
-    const rtAmt=drop&&drop.retailPrice&&parseFloat(drop.retailPrice)>0?parseFloat(drop.retailPrice):0;
-    const rows=[...comps.map(c=>`<tr><td class="ct-label">${c.label}</td><td class="ct-price">$${parseFloat(c.price).toFixed(0)}</td></tr>`)];
-    if(rtAmt>0&&comps.length>0)rows.push(`<tr><td class="ct-label" style="color:var(--muted)">Retail value</td><td class="ct-price" style="text-decoration:line-through;color:var(--muted)">$${rtAmt.toFixed(0)}</td></tr>`);
-    if(rows.length>0){
-      ctWrap.innerHTML=`<div class="comp-table-wrap"><div class="comp-table-title">What you'd pay elsewhere</div><table class="comp-table"><tbody>${rows.join('')}<tr class="ct-yours"><td class="ct-label">Your bid here</td><td class="ct-price">Your call →</td></tr></tbody></table></div>`;
-      ctWrap.style.display='';
-    } else {
-      ctWrap.style.display='none';
-    }
-  }
   document.getElementById('bid-overlay').classList.add('active');
-}
-function closeBidModalMaybe(){
-  if(!_bidExitWarned){
-    _bidExitWarned=true;
-    const bar=document.getElementById('bid-exit-bar');
-    if(bar){bar.classList.add('show');bar.scrollIntoView({behavior:'smooth',block:'nearest'});}
-    return;
-  }
-  closeModal('bid-overlay');
 }
 function updateBnButtonPrice(){
   const drop=_drops.find(d=>d.id===activeBuyNow);
@@ -2454,25 +2375,12 @@ async function submitBid(){
   }catch(e){showErr(errEl,'Network error — please try again.');btn.disabled=false;btn.classList.remove('loading');return}
   const otherBidCount=_bids.filter(b=>b.dropId===activeDrop).length;
   _bids=[..._bids,{id:bid.id,dropId:bid.dropId,createdAt:bid.createdAt}];
-  const _bidDrop=_drops.find(d=>d.id===activeDrop);
-  const _rtAmt=_bidDrop&&_bidDrop.retailPrice&&parseFloat(_bidDrop.retailPrice)>0?parseFloat(_bidDrop.retailPrice):0;
-  const _bidAmt=parseFloat(amount);
-  const _savingsNow=_rtAmt>0&&_bidAmt>0&&_rtAmt>_bidAmt?Math.round(_rtAmt-_bidAmt):0;
   const competeMsg=otherBidCount===0
     ?`You're in first — nobody else has bid yet. <strong style="color:#5de3a8">You're currently winning.</strong> Watch the auction and raise your bid if someone catches up.`
     :otherBidCount===1
       ?`You're now competing with <strong>1 other bidder</strong>. The highest bid when the auction closes takes it home — the other person owes nothing.`
       :`You're now in the running with <strong>${otherBidCount} other bidders</strong>. Only the winner gets charged — everyone else walks away owing $0. Raise your bid anytime to stay ahead.`;
   document.getElementById('bid-compete-text').innerHTML=`Bid locked in. Your card is saved securely via Stripe and you'll get a confirmation email. Remember — <strong>you are not charged unless you win.</strong><br><br>${competeMsg}`;
-  const savingsCallout=document.getElementById('bid-savings-callout');
-  if(savingsCallout){
-    if(_savingsNow>0){savingsCallout.innerHTML=`💰 <strong style="color:#3ecf8e">Smart move.</strong> At your bid of <strong>$${_bidAmt.toFixed(2)}</strong>, you're <strong style="color:#3ecf8e">$${_savingsNow} below retail</strong> right now. If you win, that's your saving.`;savingsCallout.style.display='';}
-    else savingsCallout.style.display='none';
-  }
-  const shareBox=document.getElementById('bid-share-box');
-  if(shareBox)shareBox.style.display='';
-  const copiedEl=document.getElementById('share-copied');
-  if(copiedEl)copiedEl.style.display='none';
   renderDrops();await refreshAll(true);
   btn.disabled=false;btn.classList.remove('loading');
   document.getElementById('bid-form-view').style.display='none';
@@ -3034,7 +2942,7 @@ function setDropDuration(ms){
   const active=ms===0?'none':ms===86400000?'24':ms===172800000?'48':ms===259200000?'72':'7d';
   document.getElementById('dur-btn-'+active).className='active-bid';
 }
-function setListingType(type){_listingType=type;document.getElementById('type-btn-bid').className=type==='bid'?'active-bid':'';document.getElementById('type-btn-buy').className=type==='buynow'?'active-buy':'';document.getElementById('type-btn-flash').className=type==='flash'?'active-flash':'';document.getElementById('type-btn-bundle').className=type==='bundle'?'active-buy':'';const isPriced=type==='buynow'||type==='flash'||type==='bundle';document.getElementById('price-field').style.display=isPriced?'':'none';document.getElementById('original-price-field').style.display=type==='flash'?'':'none';document.getElementById('bundle-fields').style.display=type==='bundle'?'':'none';document.getElementById('bundle-retail-field').style.display=type==='bundle'?'':'none';document.getElementById('retail-price-field').style.display=(type==='bid'||type==='buynow')?'':'none';document.getElementById('comparisons-field').style.display=type==='bid'?'':'none';document.getElementById('comp-template-field').style.display=type==='bid'?'':'none';const pl=document.getElementById('price-label');if(pl)pl.textContent=type==='flash'?'Flash Sale Price (USD) *':type==='bundle'?'Bundle Price (USD) *':'Fixed Price (USD) *';document.getElementById('publish-btn-text').textContent=type==='flash'?'⚡ Launch Flash Sale':type==='buynow'?'+ Publish to Shop':type==='bundle'?'📦 Publish Bundle':'+ Publish Drop';}
+function setListingType(type){_listingType=type;document.getElementById('type-btn-bid').className=type==='bid'?'active-bid':'';document.getElementById('type-btn-buy').className=type==='buynow'?'active-buy':'';document.getElementById('type-btn-flash').className=type==='flash'?'active-flash':'';document.getElementById('type-btn-bundle').className=type==='bundle'?'active-buy':'';const isPriced=type==='buynow'||type==='flash'||type==='bundle';document.getElementById('price-field').style.display=isPriced?'':'none';document.getElementById('original-price-field').style.display=type==='flash'?'':'none';document.getElementById('bundle-fields').style.display=type==='bundle'?'':'none';document.getElementById('bundle-retail-field').style.display=type==='bundle'?'':'none';document.getElementById('retail-price-field').style.display=(type==='bid'||type==='buynow')?'':'none';document.getElementById('comp-template-field').style.display=type==='bid'?'':'none';const pl=document.getElementById('price-label');if(pl)pl.textContent=type==='flash'?'Flash Sale Price (USD) *':type==='bundle'?'Bundle Price (USD) *':'Fixed Price (USD) *';document.getElementById('publish-btn-text').textContent=type==='flash'?'⚡ Launch Flash Sale':type==='buynow'?'+ Publish to Shop':type==='bundle'?'📦 Publish Bundle':'+ Publish Drop';}
 function setAddDropTemplate(tpl){_compTemplate=tpl;const fomoBtn=document.getElementById('ct-btn-fomo');const chalBtn=document.getElementById('ct-btn-challenge');if(fomoBtn){fomoBtn.style.border=tpl==='fomo'?'1px solid rgba(237,41,57,.5)':'1px solid rgba(123,159,212,.22)';fomoBtn.style.background=tpl==='fomo'?'rgba(237,41,57,.12)':'transparent';fomoBtn.style.color=tpl==='fomo'?'var(--fr-red)':'var(--muted)';}if(chalBtn){chalBtn.style.border=tpl==='challenge'?'1px solid rgba(62,207,142,.5)':'1px solid rgba(123,159,212,.22)';chalBtn.style.background=tpl==='challenge'?'rgba(62,207,142,.12)':'transparent';chalBtn.style.color=tpl==='challenge'?'var(--success)':'var(--muted)';}}
 function setAccessType(type){_accessType=type;document.getElementById('access-btn-public').className=type==='public'?'active-bid':'';document.getElementById('access-btn-members').className=type==='members'?'active-buy':'';}
 
@@ -3287,7 +3195,6 @@ async function addDrop(status){
   if(_listingType==='flash'){const op=document.getElementById('add-original-price').value.trim();if(op&&parseFloat(op)>0)drop.originalPrice=op;}
   if(_listingType==='bid'||_listingType==='buynow'){const rp=document.getElementById('add-retail-price').value.trim();if(rp&&parseFloat(rp)>0)drop.retailPrice=rp;}
   if(_listingType==='bid'&&_compTemplate)drop.compTemplate=_compTemplate;
-  if(_listingType==='bid'){const rawComps=document.getElementById('add-comparisons').value.trim();if(rawComps){drop.comparisons=rawComps.split('\n').map(l=>{const[label,...rest]=l.split(':');const price=rest.join(':').trim();return label&&price?{label:label.trim(),price}:null}).filter(Boolean);}}
   if(_listingType==='bundle'){const bi=document.getElementById('add-bundle-items').value.trim();if(bi)drop.bundleItems=bi;const br=document.getElementById('add-bundle-retail').value.trim();if(br&&parseFloat(br)>0)drop.bundleRetail=br;}
   const dropTimeEl=document.getElementById('add-drop-time');
   if(dropTimeEl&&dropTimeEl.value.trim()){
@@ -3302,7 +3209,7 @@ async function addDrop(status){
   }catch(e){errEl.textContent='Network error: '+(e&&e.message?e.message:'request failed');errEl.style.display='block';return}
   if(status==='published'||status==='teaser'){_drops=[..._drops,drop];if(_listingType==='flash')renderFlash();else if(_listingType==='buynow')renderShop();else renderDrops();}
   await refreshAll(true);renderAdminDrops();errEl.style.display='none';
-  ['add-name','add-desc','add-size','add-photo-url','add-price','add-original-price','add-retail-price','add-drop-time','add-bundle-items','add-bundle-retail','add-comparisons'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['add-name','add-desc','add-size','add-photo-url','add-price','add-original-price','add-retail-price','add-drop-time','add-bundle-items','add-bundle-retail'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   uploadedPhotos=[];renderUploadThumbs();
   _accessType='public';setAccessType('public');
   _dropDuration=0;setDropDuration(0);
@@ -3399,13 +3306,6 @@ function toggleFaq(btn){
   item.classList.toggle('open',!isOpen);
 }
 
-function shareBid(){
-  const drop=_drops.find(d=>d.id===activeDrop);
-  const url=window.location.origin+'/#drops';
-  const text=`I just bid on "${drop?drop.name:'a jersey'}" at Volleyball Collective. Get in before the auction closes — only the winner pays. 🏐 ${url}`;
-  if(navigator.share){navigator.share({title:'Volleyball Collective — Bid Now',text,url}).catch(()=>{});}
-  else{navigator.clipboard.writeText(url).then(()=>{const el=document.getElementById('share-copied');if(el){el.textContent='Link copied! Your referral code is in your confirmation email.';el.style.display='block';}}).catch(()=>{const el=document.getElementById('share-copied');if(el){el.textContent='Share this link: '+url;el.style.display='block';}});}
-}
 function showToast(msg,err=false,ok=false){
   const t=document.getElementById('toast');t.textContent=msg;
   t.classList.remove('err','ok');
