@@ -2044,9 +2044,9 @@ function renderDrops(){
       const _sv=(_rtAmt-_cbAmt).toFixed(0);
       const _pct=Math.round((_rtAmt-_cbAmt)/_rtAmt*100);
       if(d.compTemplate==='challenge'){
-        valueStrip=`<div class="value-strip vs-challenge"><div class="vs-top"><span class="vs-num">💰 Beat <span class="vs-big">$${_cbAmt.toFixed(0)}</span></span><span class="vs-dot">·</span><span class="vs-retail-line">Retail <span class="vs-retail-cross">$${_rtAmt.toFixed(0)}</span></span><span class="vs-save-pct">${_pct}% off retail</span></div><div class="vs-copy">Can you beat it? You only pay if you win.</div></div>`;
+        valueStrip=`<div class="value-strip vs-challenge"><div class="vs-top"><span class="vs-num">💰 Someone's holding <span class="vs-big">$${_cbAmt.toFixed(0)}</span></span><span class="vs-dot">·</span><span class="vs-save-amt">$${_sv} under retail</span><span class="vs-retail-line">(retail <span class="vs-retail-cross">$${_rtAmt.toFixed(0)}</span>)</span></div><div class="vs-copy">Outbid them and take their spot. You only pay if you win.</div></div>`;
       } else {
-        valueStrip=`<div class="value-strip vs-fomo"><div class="vs-top"><span class="vs-num">🔥 <span class="vs-big">$${_cbAmt.toFixed(0)}</span> bid</span><span class="vs-dot">·</span><span class="vs-save-amt">$${_sv} below retail</span><span class="vs-retail-line">(retail <span class="vs-retail-cross">$${_rtAmt.toFixed(0)}</span>)</span></div><div class="vs-copy">Someone's already in — you could still take this.</div></div>`;
+        valueStrip=`<div class="value-strip vs-fomo"><div class="vs-top"><span class="vs-num">🔥 <span class="vs-big">$${_cbAmt.toFixed(0)}</span> bid placed</span><span class="vs-dot">·</span><span class="vs-save-amt">$${_sv} below retail</span><span class="vs-retail-line">(retail <span class="vs-retail-cross">$${_rtAmt.toFixed(0)}</span>)</span></div><div class="vs-copy">Someone moved first. This is still a deal — and it could still be yours.</div></div>`;
       }
     }
     return`<div class="drop-card${isTeaser?' teaser-card':''}${hotClass}" data-drop-id="${d.id}" style="animation-delay:${i*.09}s${isTeaser?';cursor:default':''}"${cardClick?` onclick="${cardClick}"`:''}}>
