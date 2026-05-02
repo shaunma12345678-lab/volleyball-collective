@@ -2087,8 +2087,7 @@ function renderDrops(){
         valueStrip=`<div class="value-strip vs-fomo"><div class="vs-top"><span class="vs-num">🔥 <span class="vs-big">$${_cbAmt.toFixed(0)}</span> bid placed</span><span class="vs-dot">·</span><span class="vs-save-amt">$${_sv} below retail</span><span class="vs-retail-line">(retail <span class="vs-retail-cross">$${_rtAmt.toFixed(0)}</span>)</span></div><div class="vs-copy">Someone moved first. This is still a deal — and it could still be yours.</div></div>`;
       }
     }
-    const _topBidAmt=!isTeaser&&db.length>0?db.reduce((mx,b)=>Math.max(mx,parseFloat(b.amount||0)),0):0;
-    const _dealSavings=_rtAmt>0&&_topBidAmt>0?_rtAmt-_topBidAmt:0;
+    const _dealSavings=_rtAmt>0&&_cbAmt>0?_rtAmt-_cbAmt:0;
     const _stealPct=_rtAmt>0&&_dealSavings>0?Math.min(100,Math.max(5,Math.round((_dealSavings/_rtAmt)*100))):0;
     const _stealMeter=!isTeaser&&!d.sold&&_stealPct>0?`<div class="steal-meter-wrap"><div class="steal-meter-labels"><span>💰 Saving $${_dealSavings.toFixed(0)} vs retail</span><span>Retail $${_rtAmt.toFixed(0)}</span></div><div class="steal-meter-bar"><div class="steal-meter-fill" style="width:${_stealPct}%"></div></div></div>`:'';
     const _oppBanner=!isTeaser&&!d.sold&&db.length===0&&watchCount>0?`<div class="opportunity-banner">👀 ${watchCount} ${watchCount===1?'person':'people'} watching — <strong style="color:#fbbf24">no bids yet.</strong> Be first and automatically get 5% off if you win.</div>`:'';
