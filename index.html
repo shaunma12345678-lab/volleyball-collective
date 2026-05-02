@@ -2741,7 +2741,9 @@ function renderAdminDrops(){
     const lastChanceRow=`<div style="padding:8px 18px;border-top:1px solid rgba(0,35,149,.18);display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span style="font-size:.6rem;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-right:2px">Notify:</span><button onclick="sendLastChanceEmail('${drop.id}')" style="${btnS};border:1px solid rgba(251,191,36,.4);background:rgba(251,191,36,.1);color:#fbbf24">⏰ Last Chance Email</button><span style="font-size:.65rem;color:var(--muted)">${db.length} bidder(s) — closing soon reminder</span></div>`;
     const isFomo=!drop.compTemplate||drop.compTemplate==='fomo';const isChallenge=drop.compTemplate==='challenge';
     const templateRow=drop.compBid&&parseFloat(drop.compBid)>0?`<div style="padding:8px 18px;border-top:1px solid rgba(0,35,149,.18);display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span style="font-size:.6rem;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-right:2px">Card Strip:</span><button onclick="setCompTemplate('${drop.id}','fomo')" style="${btnS};border:1px solid ${isFomo?'rgba(237,41,57,.5)':'rgba(123,159,212,.22)'};background:${isFomo?'rgba(237,41,57,.12)':'transparent'};color:${isFomo?'var(--fr-red)':'var(--muted)'}">🔥 FOMO</button><button onclick="setCompTemplate('${drop.id}','challenge')" style="${btnS};border:1px solid ${isChallenge?'rgba(62,207,142,.5)':'rgba(123,159,212,.22)'};background:${isChallenge?'rgba(62,207,142,.12)':'transparent'};color:${isChallenge?'var(--success)':'var(--muted)'}">💰 Challenge</button><span style="font-size:.63rem;color:var(--muted);font-style:italic">${isFomo?'"Someone\'s already in — still under retail. You could take this."':'"Can you beat it? Retail is $X and you only pay if you win."'}</span></div>`:'';
-    return`<div class="drop-group"><div class="drop-group-hd"><div><div class="drop-group-name">${drop.name}</div><div style="font-size:.7rem;color:var(--muted);margin-top:2px">${drop.status} · ${db.length} bid(s)</div></div><div style="display:flex;gap:8px"><button class="btn-tog" onclick="toggleStatus('${drop.id}')">${drop.status==='published'?'Archive':'Publish'}</button><button class="btn-del" onclick="deleteDrop('${drop.id}')">Delete</button></div></div>${timerRow}${badgesRow}${photosRow}${retailPriceRow}${templateRow}${lastChanceRow}<div style="overflow-x:auto"><table class="bids-table"><thead><tr><th>Name/Email</th><th>Phone</th><th>Bid</th><th>Address</th><th>Action</th><th>Date</th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
+    const _curComps=drop.comparisons&&drop.comparisons.length?drop.comparisons.map(c=>c.label+(c.price?' · '+c.price:'')).join('\n'):'';
+    const comparisonsRow=`<div style="padding:8px 18px;border-top:1px solid rgba(0,35,149,.18);display:flex;align-items:flex-start;gap:8px;flex-wrap:wrap"><span style="font-size:.6rem;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-right:2px;margin-top:5px;flex-shrink:0">Comparisons:</span><div style="flex:1;min-width:200px"><textarea id="comps-${drop.id}" rows="3" placeholder="eBay avg · $180&#10;StockX · $220&#10;Retail price · $199" style="width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(123,159,212,.3);border-radius:2px;padding:6px 8px;color:var(--fr-white);font-size:.73rem;font-family:'DM Sans',sans-serif;resize:vertical">${_curComps}</textarea><div style="display:flex;gap:8px;margin-top:5px;align-items:center"><button onclick="setDropComparisons('${drop.id}')" style="${btnS};border:1px solid rgba(62,207,142,.4);background:rgba(62,207,142,.1);color:var(--success)">Save</button>${drop.comparisons&&drop.comparisons.length?`<span style="font-size:.65rem;color:#3ecf8e">${drop.comparisons.length} row${drop.comparisons.length===1?'':'s'} — shown in bid modal</span>`:'<span style="font-size:.65rem;color:var(--muted)">None set — enter above, shown in bid modal</span>'}</div></div></div>`;
+    return`<div class="drop-group"><div class="drop-group-hd"><div><div class="drop-group-name">${drop.name}</div><div style="font-size:.7rem;color:var(--muted);margin-top:2px">${drop.status} · ${db.length} bid(s)</div></div><div style="display:flex;gap:8px"><button class="btn-tog" onclick="toggleStatus('${drop.id}')">${drop.status==='published'?'Archive':'Publish'}</button><button class="btn-del" onclick="deleteDrop('${drop.id}')">Delete</button></div></div>${timerRow}${badgesRow}${photosRow}${retailPriceRow}${comparisonsRow}${templateRow}${lastChanceRow}<div style="overflow-x:auto"><table class="bids-table"><thead><tr><th>Name/Email</th><th>Phone</th><th>Bid</th><th>Address</th><th>Action</th><th>Date</th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
   }).join('');
 }
 
@@ -2847,6 +2849,20 @@ async function setCompTemplate(dropId,tpl){
     if(!res.ok){showToast('❌ '+(data.error||'Could not update'),true);return}
     await fetchDrops(true);renderAdminDrops();
     showToast(tpl==='fomo'?'🔥 FOMO strip active':'💰 Challenge strip active');
+  }catch(e){showToast('❌ Network error',true)}
+}
+async function setDropComparisons(id){
+  if(!_adminPw){showToast('Admin session expired',true);return}
+  const ta=document.getElementById('comps-'+id);
+  if(!ta)return;
+  const raw=ta.value.trim();
+  const comparisons=raw?raw.split('\n').filter(l=>l.trim()).map(l=>{const parts=l.split('·').map(s=>s.trim());return{label:parts[0]||'',price:parts[1]||''};}):[];
+  try{
+    const res=await fetch('/api/drops',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,adminPw:_adminPw,action:'setComparisons',comparisons})});
+    const data=await res.json().catch(()=>({}));
+    if(!res.ok){showToast('❌ '+(data.error||'Could not update'),true);return}
+    await fetchDrops(true);renderAdminDrops();
+    showToast(comparisons.length?`✅ ${comparisons.length} comparison${comparisons.length===1?'':'s'} saved`:'✅ Comparisons cleared');
   }catch(e){showToast('❌ Network error',true)}
 }
 async function sendLastChanceEmail(dropId){
