@@ -335,6 +335,9 @@ module.exports = async (req, res) => {
       } else if (body.action === 'setCompTemplate') {
         if (body.compTemplate) drop.compTemplate = body.compTemplate;
         else delete drop.compTemplate;
+      } else if (body.action === 'setComparisons') {
+        if (Array.isArray(body.comparisons) && body.comparisons.length > 0) drop.comparisons = body.comparisons;
+        else delete drop.comparisons;
       } else {
         drop.status = drop.status === 'published' ? 'archived' : 'published';
       }
