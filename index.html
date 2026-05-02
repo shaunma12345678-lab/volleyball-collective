@@ -1781,6 +1781,24 @@ document.querySelectorAll('button,a,.drop-card').forEach(el=>{
 
 // ── DATA ──
 let _drops=[],_bids=[],_adminPw=null,_subData={total:0,spotsLeft:200,isEarlyBird:true,currentPrice:'9.99'},_watchCounts={},_notifyCounts={},_prevBidsByDrop=null,_flashDropIds=new Set(),_bgProcessing=new Set(),_cart=[];
+let _pendingAdminRefresh=false;
+let _dropsHash='',_bidsHash='';
+function isAdminInputFocused(){const el=document.activeElement;return!!(el&&(el.tagName==='INPUT'||el.tagName==='TEXTAREA'||el.tagName==='SELECT')&&el.closest&&el.closest('#admin-overlay'));}
+function _hashState(arr){return arr.map(x=>x.id+':'+(x.status||'')+(x.compBid||'')).join('|');}
+function _bidHashState(arr){return arr.map(x=>x.id+':'+x.dropId+':'+x.amount).join('|');}
+// Flush pending admin re-render when user leaves the last input in the panel
+document.addEventListener('focusout',e=>{
+  if(!_pendingAdminRefresh)return;
+  if(e.target&&e.target.closest&&e.target.closest('#admin-overlay')){
+    setTimeout(()=>{
+      if(!isAdminInputFocused()&&_pendingAdminRefresh){
+        _pendingAdminRefresh=false;
+        const dash=document.getElementById('admin-dashboard');
+        if(dash&&dash.style.display==='block'){renderAdminDrops();renderAllBids();}
+      }
+    },120);
+  }
+});
 
 // ── CART ──
 function cartIncludes(dropId){return _cart.some(i=>i.dropId===dropId);}
@@ -1964,7 +1982,24 @@ function closeExitPopup(){document.getElementById('exit-overlay').classList.remo
 
 // ── FETCH ──
 async function fetchDrops(bust=false){
-  try{const url='/api/drops'+(bust?'?_t='+Date.now():'');const r=await fetch(url);if(!r.ok)return;const data=await r.json();if(Array.isArray(data.drops))_drops=data.drops;if(data.watchCounts)_watchCounts=data.watchCounts;if(data.notifyCounts)_notifyCounts=data.notifyCounts;renderDrops();renderShop();renderFlash();const dash=document.getElementById('admin-dashboard');if(dash&&dash.style.display==='block')renderAdminDrops();}catch(e){console.warn('fetchDrops failed',e);}
+  try{
+    const url='/api/drops'+(bust?'?_t='+Date.now():'');
+    const r=await fetch(url);if(!r.ok)return;
+    const data=await r.json();
+    if(Array.isArray(data.drops)){
+      const newHash=_hashState(data.drops);
+      const changed=newHash!==_dropsHash||bust;
+      _drops=data.drops;_dropsHash=newHash;
+      if(data.watchCounts)_watchCounts=data.watchCounts;
+      if(data.notifyCounts)_notifyCounts=data.notifyCounts;
+      if(changed){renderDrops();renderShop();renderFlash();}
+      const dash=document.getElementById('admin-dashboard');
+      if(dash&&dash.style.display==='block'){
+        if(isAdminInputFocused()){_pendingAdminRefresh=true;}
+        else if(changed||bust)renderAdminDrops();
+      }
+    }
+  }catch(e){console.warn('fetchDrops failed',e);}
 }
 async function fetchBids(bust=false){
   try{
@@ -1988,11 +2023,17 @@ async function fetchBids(bust=false){
         }
       }
       _prevBidsByDrop=incomingCounts;
+      const newBidsHash=_bidHashState(incoming);
+      const bidsChanged=newBidsHash!==_bidsHash||bust;
+      _bidsHash=newBidsHash;
       _bids=incoming;
+      if(bidsChanged){renderDrops();startActivityFeed();}
+      const dash=document.getElementById('admin-dashboard');
+      if(dash&&dash.style.display==='block'){
+        if(isAdminInputFocused()){_pendingAdminRefresh=true;}
+        else if(bidsChanged||bust){renderAdminDrops();renderAllBids();}
+      }
     }
-    renderDrops();startActivityFeed();
-    const dash=document.getElementById('admin-dashboard');
-    if(dash&&dash.style.display==='block'){renderAdminDrops();renderAllBids();}
   }catch(e){console.warn('fetchBids failed',e);}
 }
 async function fetchSubscriptionCount(bust=false){
