@@ -2044,7 +2044,7 @@ function renderDrops(){
       const _sv=(_rtAmt-_cbAmt).toFixed(0);
       const _pct=Math.round((_rtAmt-_cbAmt)/_rtAmt*100);
       if(d.compTemplate==='challenge'){
-        valueStrip=`<div class="value-strip vs-challenge"><div class="vs-top"><span class="vs-num">💰 Someone's holding <span class="vs-big">$${_cbAmt.toFixed(0)}</span></span><span class="vs-dot">·</span><span class="vs-save-amt">$${_sv} under retail</span><span class="vs-retail-line">(retail <span class="vs-retail-cross">$${_rtAmt.toFixed(0)}</span>)</span></div><div class="vs-copy">Outbid them and take their spot. You only pay if you win.</div></div>`;
+        valueStrip=`<div class="value-strip vs-challenge"><div class="vs-top"><span class="vs-num">💰 Someone already bid <span class="vs-big">$${_cbAmt.toFixed(0)}</span></span><span class="vs-dot">·</span><span class="vs-save-amt">still $${_sv} under retail</span><span class="vs-retail-line">(retail <span class="vs-retail-cross">$${_rtAmt.toFixed(0)}</span>)</span></div><div class="vs-copy">Top it and you're still walking away with an awesome deal — you only pay if you win.</div></div>`;
       } else {
         valueStrip=`<div class="value-strip vs-fomo"><div class="vs-top"><span class="vs-num">🔥 <span class="vs-big">$${_cbAmt.toFixed(0)}</span> bid placed</span><span class="vs-dot">·</span><span class="vs-save-amt">$${_sv} below retail</span><span class="vs-retail-line">(retail <span class="vs-retail-cross">$${_rtAmt.toFixed(0)}</span>)</span></div><div class="vs-copy">Someone moved first. This is still a deal — and it could still be yours.</div></div>`;
       }
