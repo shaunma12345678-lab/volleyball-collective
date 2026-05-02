@@ -338,6 +338,15 @@ module.exports = async (req, res) => {
       } else if (body.action === 'setComparisons') {
         if (Array.isArray(body.comparisons) && body.comparisons.length > 0) drop.comparisons = body.comparisons;
         else delete drop.comparisons;
+      } else if (body.action === 'setEarlyBidBonus') {
+        if (body.hours && parseInt(body.hours) > 0) drop.earlyBidBonus = { hours: parseInt(body.hours) };
+        else delete drop.earlyBidBonus;
+      } else if (body.action === 'setTimelineStart') {
+        if (body.timelineStart && parseFloat(body.timelineStart) > 0) drop.timelineStart = body.timelineStart;
+        else delete drop.timelineStart;
+      } else if (body.action === 'setRegretText') {
+        if (body.regretText && body.regretText.trim()) drop.regretText = body.regretText.trim();
+        else delete drop.regretText;
       } else {
         drop.status = drop.status === 'published' ? 'archived' : 'published';
       }
