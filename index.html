@@ -586,6 +586,28 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
 .btn-share{background:var(--fr-red);color:#fff;border:none;padding:10px 22px;font-family:'Bebas Neue',sans-serif;font-size:.95rem;letter-spacing:3px;cursor:pointer;border-radius:2px;width:100%;transition:background .2s}
 .btn-share:hover{background:#c7202d}
 .share-copied{font-size:.72rem;color:#3ecf8e;margin-top:7px;display:none}
+.sticky-bid-bar{position:fixed;bottom:0;left:0;right:0;z-index:800;background:linear-gradient(90deg,var(--deep),var(--navy));border-top:1px solid rgba(237,41,57,.35);padding:13px 24px;display:flex;align-items:center;gap:14px;transform:translateY(110%);transition:transform .35s cubic-bezier(.4,0,.2,1);box-shadow:0 -8px 40px rgba(0,0,0,.6)}
+.sticky-bid-bar.show{transform:translateY(0)}
+.sbb-name{font-family:'Bebas Neue',sans-serif;font-size:1.05rem;letter-spacing:2px;color:var(--fr-white);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sbb-meta{font-size:.68rem;color:var(--muted);white-space:nowrap;flex-shrink:0}
+.sbb-btn{background:var(--fr-red);color:#fff;border:none;padding:10px 22px;font-family:'Bebas Neue',sans-serif;font-size:.95rem;letter-spacing:3px;cursor:pointer;border-radius:2px;transition:background .2s;white-space:nowrap;flex-shrink:0}
+.sbb-btn:hover{background:#c7202d}
+.sbb-close{background:none;border:none;color:var(--muted);font-size:.9rem;cursor:pointer;padding:6px;line-height:1;transition:color .2s;flex-shrink:0}
+.sbb-close:hover{color:var(--fr-white)}
+.bid-sugg-wrap{margin-bottom:14px}
+.bid-sugg-label{font-size:.6rem;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;display:block}
+.bid-sugg-btn{width:100%;background:rgba(62,207,142,.07);border:1px solid rgba(62,207,142,.28);color:var(--fr-white);padding:11px 16px;border-radius:3px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:.82rem;text-align:left;transition:all .2s;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.bid-sugg-btn:hover{background:rgba(62,207,142,.14);border-color:rgba(62,207,142,.5)}
+.bid-sugg-btn.active{background:rgba(62,207,142,.18);border-color:#3ecf8e}
+.bid-sugg-amt{font-family:'Bebas Neue',sans-serif;font-size:1.35rem;letter-spacing:2px;color:#3ecf8e;display:block;line-height:1}
+.bid-sugg-note{font-size:.64rem;color:var(--muted);display:block;margin-top:2px}
+#outbid-banner{position:fixed;top:38px;left:0;right:0;z-index:480;display:none}
+.outbid-item{background:linear-gradient(90deg,rgba(237,41,57,.13),rgba(237,41,57,.07));border-bottom:1px solid rgba(237,41,57,.22);padding:10px 24px;display:flex;align-items:center;gap:12px;animation:fadeIn .3s ease}
+.outbid-text{flex:1;font-size:.8rem;color:var(--fr-white);line-height:1.4}
+.outbid-rebid{background:var(--fr-red);color:#fff;border:none;padding:7px 18px;font-family:'Bebas Neue',sans-serif;font-size:.82rem;letter-spacing:2px;cursor:pointer;border-radius:2px;white-space:nowrap;flex-shrink:0;transition:background .2s}
+.outbid-rebid:hover{background:#c7202d}
+.outbid-dismiss{background:none;border:none;color:var(--muted);font-size:.85rem;cursor:pointer;padding:4px 8px;transition:color .2s;flex-shrink:0}
+.outbid-dismiss:hover{color:var(--fr-white)}
 </style>
 </head>
 <body>
@@ -961,6 +983,13 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
       </div>
       <div class="modal-body">
         <div id="bid-comp-table"></div>
+        <div id="bid-sugg-wrap" class="bid-sugg-wrap" style="display:none">
+          <span class="bid-sugg-label">Suggested Bid</span>
+          <button class="bid-sugg-btn" id="bid-sugg-btn" onclick="setSuggestedBid()">
+            <span><span class="bid-sugg-amt" id="bid-sugg-amt">$0.00</span><span class="bid-sugg-note">+$14.99 over the pinned bid — still well below retail</span></span>
+            <span style="font-size:.72rem;color:#3ecf8e;font-weight:600;white-space:nowrap">Tap to use →</span>
+          </button>
+        </div>
         <div class="form-row"><label>Your Bid Amount (USD)</label><div class="amount-wrap"><span>$</span><input type="number" id="bid-amount" placeholder="0.00" min="1" step="0.01"></div></div>
         <div class="form-row" style="margin-bottom:16px">
           <label>Ambassador Code <span style="color:var(--muted);font-weight:400;font-size:.75rem">(optional)</span></label>
@@ -1322,6 +1351,13 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
 
 <div class="toast" id="toast"></div>
 
+<div class="sticky-bid-bar" id="sticky-bid-bar">
+  <div style="flex:1;min-width:0"><div class="sbb-name" id="sbb-name"></div><div class="sbb-meta" id="sbb-meta"></div></div>
+  <button class="sbb-btn" onclick="sbbBidNow()">Bid Now →</button>
+  <button class="sbb-close" onclick="sbbDismiss()" aria-label="Dismiss">✕</button>
+</div>
+<div id="outbid-banner"></div>
+
 <div class="popup-overlay" id="email-popup" style="display:none">
   <div class="popup-card">
     <button class="popup-close" onclick="dismissPopupTemp()">✕</button>
@@ -1455,7 +1491,10 @@ const _cardObserver=new IntersectionObserver((entries)=>{
   });
 },{threshold:0.12});
 function observeCards(){
-  document.querySelectorAll('.drop-card').forEach(c=>_cardObserver.observe(c));
+  document.querySelectorAll('.drop-card').forEach(c=>{
+    _cardObserver.observe(c);
+    if(c.dataset.dropId&&!c.classList.contains('teaser-card'))_sbbObserver.observe(c);
+  });
 }
 
 // ── MOBILE MENU ──
@@ -1946,7 +1985,7 @@ async function fetchSubscriptionCount(bust=false){
     if(_adminPw&&data.subscribers)renderAdminMembers(data.subscribers);
   }catch(e){console.warn('fetchSubscriptionCount failed',e);}
 }
-async function refreshAll(bust=false){await Promise.all([fetchDrops(bust),fetchBids(bust),fetchSubscriptionCount(bust)]);}
+async function refreshAll(bust=false){await Promise.all([fetchDrops(bust),fetchBids(bust),fetchSubscriptionCount(bust)]);checkOutbidStatus();}
 let _pollTimer=setInterval(refreshAll,30000);
 document.addEventListener('visibilitychange',()=>{
   if(document.visibilityState==='visible'){refreshAll();if(!_pollTimer)_pollTimer=setInterval(refreshAll,30000);}
@@ -2342,6 +2381,23 @@ function openBidModal(dropId){
       compTableEl.innerHTML='';
     }
   }
+  const suggWrap=document.getElementById('bid-sugg-wrap');
+  const suggBtn=document.getElementById('bid-sugg-btn');
+  const suggAmt=document.getElementById('bid-sugg-amt');
+  if(suggWrap&&suggBtn&&suggAmt){
+    const cbAmt=drop&&drop.compBid&&parseFloat(drop.compBid)>0?parseFloat(drop.compBid):0;
+    if(cbAmt>0){
+      const suggested=cbAmt+14.99;
+      suggAmt.textContent='$'+suggested.toFixed(2);
+      suggBtn.dataset.amount=suggested.toFixed(2);
+      suggBtn.classList.remove('active');
+      suggWrap.style.display='';
+    }else{
+      suggWrap.style.display='none';
+    }
+  }
+  const stickyBar=document.getElementById('sticky-bid-bar');
+  if(stickyBar)stickyBar.classList.remove('show');
   document.getElementById('bid-overlay').classList.add('active');
 }
 function updateBnButtonPrice(){
@@ -2418,6 +2474,82 @@ function shareBid(){
   }
 }
 
+// ── BID SUGGESTER ──
+function setSuggestedBid(){
+  const btn=document.getElementById('bid-sugg-btn');
+  const input=document.getElementById('bid-amount');
+  if(!btn||!input)return;
+  input.value=btn.dataset.amount||'';
+  btn.classList.add('active');
+}
+
+// ── STICKY BID BAR ──
+let _sbbDropId=null;
+const _sbbDismissed=new Set();
+const _sbbSeen=new Set();
+const _sbbObserver=new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{
+    const dropId=e.target.dataset.dropId;
+    if(!dropId)return;
+    if(e.isIntersecting){
+      _sbbSeen.add(dropId);
+      if(_sbbDropId===dropId)sbbHide();
+    }else if(_sbbSeen.has(dropId)&&!_sbbDismissed.has(dropId)){
+      sbbShow(dropId);
+    }
+  });
+},{threshold:0.05});
+function sbbShow(dropId){
+  const drop=_drops.find(d=>d.id===dropId);
+  if(!drop||drop.status!=='published'||drop.sold)return;
+  if(drop.type==='buynow'||drop.type==='flash'||drop.type==='bundle')return;
+  if(drop.memberOnly&&!isMemberVerified())return;
+  _sbbDropId=dropId;
+  const db=_bids.filter(b=>b.dropId===dropId);
+  document.getElementById('sbb-name').textContent=drop.name;
+  const tl=drop.endTime?(' · '+_sbbTimeLeft(drop.endTime)):'';
+  document.getElementById('sbb-meta').textContent=`${db.length} bid${db.length!==1?'s':''} placed${tl}`;
+  document.getElementById('sticky-bid-bar').classList.add('show');
+}
+function sbbHide(){document.getElementById('sticky-bid-bar').classList.remove('show');_sbbDropId=null;}
+function sbbDismiss(){if(_sbbDropId)_sbbDismissed.add(_sbbDropId);sbbHide();}
+function sbbBidNow(){if(_sbbDropId){const id=_sbbDropId;sbbHide();openBidModal(id);}}
+function _sbbTimeLeft(endTime){
+  const diff=new Date(endTime)-new Date();
+  if(diff<=0)return'ended';
+  const h=Math.floor(diff/3600000),m=Math.floor((diff%3600000)/60000);
+  return h>0?`${h}h ${m}m left`:`${m}m left`;
+}
+
+// ── OUTBID BANNER ──
+function checkOutbidStatus(){
+  try{
+    const myBids=JSON.parse(localStorage.getItem('vc_mybids')||'[]');
+    if(!myBids.length)return;
+    const dismissed=JSON.parse(localStorage.getItem('vc_outbid_dismissed')||'[]');
+    const outbid=[];
+    for(const mb of myBids){
+      if(dismissed.includes(mb.bidId))continue;
+      const drop=_drops.find(d=>d.id===mb.dropId);
+      if(!drop||drop.status==='archived')continue;
+      const higherExists=_bids.some(b=>b.dropId===mb.dropId&&b.id!==mb.bidId&&parseFloat(b.amount||0)>mb.myAmount);
+      if(higherExists)outbid.push({drop,myBid:mb});
+    }
+    renderOutbidBanner(outbid);
+  }catch(e){}
+}
+function renderOutbidBanner(items){
+  const el=document.getElementById('outbid-banner');
+  if(!el)return;
+  if(!items.length){el.style.display='none';el.innerHTML='';return;}
+  el.style.display='block';
+  el.innerHTML=items.map(({drop,myBid})=>`<div class="outbid-item"><div class="outbid-text">⚠️ <strong style="color:var(--fr-white)">You've been outbid on "${drop.name}"</strong> — someone placed a higher bid. Your card is not charged. Rebid to stay in it.</div><button class="outbid-rebid" onclick="dismissOutbid('${myBid.bidId}');openBidModal('${drop.id}')">Rebid →</button><button class="outbid-dismiss" onclick="dismissOutbid('${myBid.bidId}')" title="Dismiss">✕</button></div>`).join('');
+}
+function dismissOutbid(bidId){
+  try{const d=JSON.parse(localStorage.getItem('vc_outbid_dismissed')||'[]');if(!d.includes(bidId))d.push(bidId);localStorage.setItem('vc_outbid_dismissed',JSON.stringify(d.slice(-50)));}catch(e){}
+  checkOutbidStatus();
+}
+
 // ── SUBMIT BID ──
 const INTL_SHIPPING_FEE=20;
 const _usaVariants=new Set(['usa','us','u.s.','u.s.a.','united states','united states of america']);
@@ -2456,7 +2588,8 @@ async function submitBid(){
     if(!res.ok){showErr(errEl,data.error||'Could not submit bid.');btn.disabled=false;btn.classList.remove('loading');return}
   }catch(e){showErr(errEl,'Network error — please try again.');btn.disabled=false;btn.classList.remove('loading');return}
   const otherBidCount=_bids.filter(b=>b.dropId===activeDrop).length;
-  _bids=[..._bids,{id:bid.id,dropId:bid.dropId,createdAt:bid.createdAt}];
+  _bids=[..._bids,{id:bid.id,dropId:bid.dropId,createdAt:bid.createdAt,amount:bid.amount}];
+  try{const _mb=JSON.parse(localStorage.getItem('vc_mybids')||'[]');_mb.push({dropId:activeDrop,bidId:bid.id,myAmount:parseFloat(amount),placedAt:bid.createdAt});localStorage.setItem('vc_mybids',JSON.stringify(_mb.slice(-20)));}catch(e){}
   const competeMsg=otherBidCount===0
     ?`You're in first — nobody else has bid yet. <strong style="color:#5de3a8">You're currently winning.</strong> Watch the auction and raise your bid if someone catches up.`
     :otherBidCount===1
