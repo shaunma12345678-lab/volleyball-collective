@@ -642,6 +642,42 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
 .auto-bid-max-row{display:flex;align-items:center;gap:8px;padding-left:25px}
 .auto-bid-max-row label{font-size:.72rem;color:var(--muted);white-space:nowrap}
 .auto-bid-max-row input{width:90px;background:rgba(255,255,255,.06);border:1px solid rgba(123,159,212,.3);border-radius:2px;padding:5px 9px;color:var(--fr-white);font-size:.78rem;font-family:'DM Sans',sans-serif}
+/* ── ONLY HERE CHIP ── */
+.only-here-card-row{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:1px}
+.only-here-chip{background:rgba(62,207,142,.12);border:1px solid rgba(62,207,142,.35);color:#3ecf8e;font-size:.55rem;letter-spacing:2px;text-transform:uppercase;padding:2px 7px;border-radius:2px;font-weight:700;white-space:nowrap}
+.only-here-banner{background:linear-gradient(135deg,rgba(0,35,149,.25),rgba(62,207,142,.08));border:1px solid rgba(62,207,142,.3);border-radius:4px;padding:13px 16px;margin-bottom:12px}
+.ohb-top{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:6px}
+.ohb-exclusive{font-size:.58rem;letter-spacing:4px;text-transform:uppercase;color:var(--muted)}
+.ohb-badge{background:rgba(62,207,142,.15);border:1px solid rgba(62,207,142,.4);color:#3ecf8e;font-size:.62rem;letter-spacing:2px;text-transform:uppercase;padding:3px 10px;border-radius:2px;font-weight:700}
+.ohb-sub{font-size:.72rem;color:var(--muted);line-height:1.5}
+/* ── LAST CHANCE ── */
+.last-chance-strip{background:rgba(237,41,57,.1);border:1px solid rgba(237,41,57,.35);border-radius:3px;padding:8px 12px;font-size:.72rem;color:#ED2939;margin:6px 0 2px;line-height:1.45;text-align:center}
+.last-chance-strip strong{color:#ff4d5e}
+.end-countdown-lastchance{font-size:.76rem!important;color:#ED2939!important;font-weight:700!important;letter-spacing:.5px;animation:lastChancePulse 1s ease-in-out infinite}
+@keyframes lastChancePulse{0%,100%{opacity:1}50%{opacity:.6}}
+/* ── DROP SCHEDULE ── */
+#schedule{position:relative;z-index:2;padding:90px 48px;border-top:1px solid rgba(0,35,149,.25)}
+.schedule-inner{max-width:900px;margin:0 auto}
+.schedule-week{display:grid;grid-template-columns:repeat(7,1fr);gap:10px;margin:36px 0 32px}
+.schedule-day{display:flex;flex-direction:column;align-items:center;gap:6px;padding:16px 8px;border-radius:4px;border:1px solid rgba(0,35,149,.3);background:rgba(0,35,149,.1)}
+.schedule-day.drop-day{border-color:rgba(237,41,57,.5);background:rgba(237,41,57,.08)}
+.schedule-day.today{animation:schedDayPulse 2s ease-in-out infinite}
+@keyframes schedDayPulse{0%,100%{box-shadow:0 0 0 0 rgba(237,41,57,.4)}60%{box-shadow:0 0 0 8px rgba(237,41,57,0)}}
+.sd-name{font-size:.58rem;letter-spacing:3px;text-transform:uppercase;color:var(--muted)}
+.schedule-day.drop-day .sd-name{color:#ED2939;font-weight:700}
+.sd-icon{font-size:1.3rem}
+.sd-label{font-size:.6rem;color:var(--muted);letter-spacing:1px;text-align:center}
+.schedule-day.drop-day .sd-label{color:#ED2939;font-size:.58rem;letter-spacing:1.5px;text-transform:uppercase}
+.schedule-upcoming{max-width:520px;margin:0 auto}
+.schedule-upcoming-title{font-size:.62rem;letter-spacing:4px;text-transform:uppercase;color:var(--muted);text-align:center;margin-bottom:16px}
+.schedule-dates{display:flex;flex-direction:column;gap:8px}
+.sched-date-row{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:rgba(0,35,149,.12);border:1px solid rgba(0,35,149,.3);border-radius:3px}
+.sched-date-row.next-up{border-color:rgba(237,41,57,.45);background:rgba(237,41,57,.07)}
+.sched-date-row.next-up .sched-date-label{color:var(--fr-white)}
+.sched-date-label{font-size:.82rem;color:var(--muted)}
+.sched-next-badge{font-size:.56rem;letter-spacing:2px;text-transform:uppercase;color:#ED2939;background:rgba(237,41,57,.12);border:1px solid rgba(237,41,57,.3);padding:2px 8px;border-radius:2px;font-weight:700}
+.sched-muted-badge{font-size:.56rem;letter-spacing:2px;text-transform:uppercase;color:var(--muted);opacity:.6}
+@media(max-width:640px){#schedule{padding:60px 20px}.schedule-week{gap:5px}.schedule-day{padding:11px 4px}.sd-icon{font-size:1rem}}
 </style>
 </head>
 <body>
@@ -660,6 +696,7 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
     <a href="#flash" style="color:#fbbf24!important;font-weight:600">⚡ Flash Sale</a>
     <a href="#membership">Members</a>
     <a href="#how">How It Works</a>
+    <a href="#schedule">Schedule</a>
     <a href="#faq">FAQ</a>
     <a href="#newsletter" style="color:#3ecf8e!important;font-weight:600">Get 10% Off</a>
     <a href="https://www.instagram.com/volleyballcollective/" target="_blank" rel="noopener" aria-label="Instagram" style="display:flex;align-items:center;color:var(--muted);transition:color .2s" onmouseover="this.style.color='#E1306C'" onmouseout="this.style.color=''"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg></a>
@@ -680,6 +717,7 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
   <a href="#flash" onclick="closeMobileMenu()" style="color:#fbbf24!important;font-weight:600">⚡ Flash Sale</a>
   <a href="#membership" onclick="closeMobileMenu()">Members</a>
   <a href="#how" onclick="closeMobileMenu()">How It Works</a>
+  <a href="#schedule" onclick="closeMobileMenu()">Schedule</a>
   <a href="#faq" onclick="closeMobileMenu()">FAQ</a>
   <a href="#newsletter" onclick="closeMobileMenu()" style="color:#3ecf8e!important">Get 10% Off 🎁</a>
   <a href="#" onclick="closeMobileMenu();openCartDrawer();return false" style="color:var(--fr-white)!important">🛒 Cart <span id="cart-badge-mobile" style="display:none;background:var(--fr-red);color:#fff;border-radius:50%;padding:1px 6px;font-size:.65rem;margin-left:4px">0</span></a>
@@ -881,6 +919,69 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
     </div>
   </div>
 </section>
+
+<!-- DROP SCHEDULE SECTION -->
+<section id="schedule">
+  <div class="schedule-inner">
+    <div style="text-align:center">
+      <span class="section-eyebrow">When to Show Up</span>
+      <h2 class="section-title">Drop Schedule</h2>
+      <p style="font-family:'Playfair Display',serif;font-style:italic;color:var(--muted);font-size:.95rem;max-width:500px;margin:14px auto 0;line-height:1.7">New drops every <strong style="color:var(--fr-white);font-style:normal">Tuesday, Thursday, and Sunday</strong>. Set your alarm.</p>
+    </div>
+    <div class="schedule-week" id="schedule-week"></div>
+    <div class="schedule-upcoming">
+      <div class="schedule-upcoming-title">Upcoming Drop Days</div>
+      <div class="schedule-dates" id="schedule-dates"></div>
+    </div>
+  </div>
+</section>
+<script>
+(function(){
+  const DROP_DAYS=[2,4,0]; // Tue=2, Thu=4, Sun=0
+  const DAY_NAMES=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const DAY_FULL=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const today=new Date();
+  const todayDow=today.getDay();
+  // render week grid
+  const weekEl=document.getElementById('schedule-week');
+  if(weekEl){
+    // start grid on Monday
+    const days=[1,2,3,4,5,6,0];
+    weekEl.innerHTML=days.map(dow=>{
+      const isDropDay=DROP_DAYS.includes(dow);
+      const isToday=dow===todayDow;
+      const icon=isDropDay?'🏐':'—';
+      const label=isDropDay?'Drop Day':'';
+      return`<div class="schedule-day${isDropDay?' drop-day':''}${isToday?' today':''}">
+        <span class="sd-name">${DAY_NAMES[dow]}</span>
+        <span class="sd-icon">${icon}</span>
+        <span class="sd-label">${isToday&&isDropDay?'Today — Drop Day':isToday?'Today':label}</span>
+      </div>`;
+    }).join('');
+  }
+  // generate next 6 upcoming drop dates
+  const datesEl=document.getElementById('schedule-dates');
+  if(datesEl){
+    const upcoming=[];
+    const d=new Date(today);
+    d.setHours(0,0,0,0);
+    while(upcoming.length<6){
+      if(DROP_DAYS.includes(d.getDay())){
+        upcoming.push(new Date(d));
+      }
+      d.setDate(d.getDate()+1);
+    }
+    const fmt=dt=>dt.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
+    datesEl.innerHTML=upcoming.map((dt,i)=>{
+      const isNext=i===0;
+      return`<div class="sched-date-row${isNext?' next-up':''}">
+        <span class="sched-date-label">${fmt(dt)}</span>
+        ${isNext?`<span class="sched-next-badge">Next Drop</span>`:`<span class="sched-muted-badge">Drop Day</span>`}
+      </div>`;
+    }).join('');
+  }
+})();
+</script>
 
 <!-- FAQ SECTION -->
 <section id="faq">
@@ -2190,7 +2291,7 @@ function renderDrops(){
     const auctionFreeShip=!isTeaser&&!d.sold?`<span class="free-ship-chip">🇺🇸 Free US Ship</span>`:'';
     const footerLeft=isTeaser
       ?(d.dropTime?`<span class="countdown-tag" data-countdown="${d.dropTime}">—</span>`:`<span class="drop-bid-count" style="color:var(--muted)">Bidding opens soon</span>`)
-      :`<div style="display:flex;flex-direction:column;gap:3px">${d.retailPrice&&parseFloat(d.retailPrice)>0?`<span style="font-size:.62rem;color:var(--muted)">Retail <span style="text-decoration:line-through">$${parseFloat(d.retailPrice).toFixed(2)}</span></span>`:''}<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap"><span class="drop-bid-count">${fmtBids(db.length)}</span>${auctionFreeShip}</div>${endTimeStr}${velocityTag}</div>`;
+      :`<div style="display:flex;flex-direction:column;gap:3px">${d.retailPrice&&parseFloat(d.retailPrice)>0?`<span class="only-here-card-row"><span style="font-size:.62rem;color:var(--muted)">Retail <span style="text-decoration:line-through">$${parseFloat(d.retailPrice).toFixed(2)}</span></span><span class="only-here-chip">Only Here</span></span>`:''}<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap"><span class="drop-bid-count">${fmtBids(db.length)}</span>${auctionFreeShip}</div>${endTimeStr}${velocityTag}</div>`;
     const hotLevel=!isTeaser&&db.length>=25?3:db.length>=10?2:db.length>=5?1:0;
     const hotClass=hotLevel?` card-hot-${hotLevel}`:'';
     const closingSoonClass=closingSoon?' card-closing-soon':'';
@@ -2239,6 +2340,7 @@ function renderDrops(){
     const _tsAmt=d.timelineStart&&parseFloat(d.timelineStart)>0?parseFloat(d.timelineStart):0;
     const _bidTimeline=!isTeaser&&!d.sold&&_tsAmt>0&&_cbAmt>0&&_rtAmt>0?`<div class="bid-timeline"><div class="bt-step"><div class="bt-dot"></div><div class="bt-amt">$${_tsAmt.toFixed(0)}</div><div class="bt-label">Started</div></div><div class="bt-line"></div><div class="bt-step"><div class="bt-dot now"></div><div class="bt-amt now">$${_cbAmt.toFixed(0)}</div><div class="bt-label">Now</div></div><div class="bt-line"></div><div class="bt-step"><div class="bt-dot"></div><div class="bt-amt">$${_rtAmt.toFixed(0)}</div><div class="bt-label">Retail</div></div></div>`:'';
     const _regretStrip=!isTeaser&&!d.sold&&d.regretText?`<div class="regret-strip">${d.regretText}</div>`:'';
+    const _lastChanceStrip=closingSoon&&!d.sold?`<div class="last-chance-strip">🚨 <strong>Last Chance</strong> — This deal closes in under 2 hours. Price won't get better than this.</div>`:'';
     return`<div class="drop-card${isTeaser?' teaser-card':''}${hotClass}${closingSoonClass}" data-drop-id="${d.id}" style="animation-delay:${i*.09}s${isTeaser?';cursor:default':''}"${cardClick?` onclick="${cardClick}"`:''}}>
       <div class="drop-img-wrap">${img}${teaserOverlay}${lockOverlay}${badgeChipFinal}${memberBadge}${hotBadge}${customBadges}${oneOfOneBadge}</div>
       <div class="card-stripe"></div>
@@ -2248,7 +2350,7 @@ function renderDrops(){
         ${_statusChip}
         ${d.desc?`<p class="drop-desc">${d.desc}</p>`:''}
         ${oneOfOneStrip}
-        ${valueStrip}${_stealMeter}${_bidTimeline}${_oppBanner}${_regretStrip}
+        ${valueStrip}${_stealMeter}${_bidTimeline}${_oppBanner}${_regretStrip}${_lastChanceStrip}
         <div class="drop-footer">${footerLeft}${actionBtn}</div>
         ${offerRow}${notifyWaitingRow}
       </div>
@@ -2450,9 +2552,17 @@ setInterval(()=>{
   });
   document.querySelectorAll('[data-endtime]').forEach(el=>{
     const diff=new Date(el.dataset.endtime)-new Date();
-    if(diff<=0){el.textContent='Auction ended';return}
+    if(diff<=0){el.textContent='Auction ended';el.classList.remove('end-countdown-lastchance');return}
     const d=Math.floor(diff/86400000),h=Math.floor((diff%86400000)/3600000),m=Math.floor((diff%3600000)/60000),s=Math.floor((diff%60000)/1000);
-    el.textContent=d>0?`🔥 Deal closes in ${d}d ${h}h ${m}m`:h>0?`🔥 Deal closes in ${h}h ${m}m ${s}s`:`🔥 Deal closes in ${m}m ${s}s`;
+    if(diff<7200000){
+      el.textContent=`🚨 LAST CHANCE — ${h>0?h+'h ':''}${m}m ${s}s`;
+      el.classList.add('end-countdown-lastchance');
+      const card=el.closest('.drop-card,.flash-card');
+      if(card)card.classList.add('card-closing-soon');
+    }else{
+      el.textContent=d>0?`🔥 Deal closes in ${d}d ${h}h ${m}m`:h>0?`🔥 Deal closes in ${h}h ${m}m ${s}s`:`🔥 Deal closes in ${m}m ${s}s`;
+      el.classList.remove('end-countdown-lastchance');
+    }
   });
 },1000);
 
@@ -2490,7 +2600,7 @@ function openBidModal(dropId){
       const topBidAmt=_bids.filter(b=>b.dropId===dropId).reduce((mx,b)=>Math.max(mx,parseFloat(b.amount||0)),0);
       const compRows=drop.comparisons.map(c=>`<tr><td>${c.label}</td><td>${c.price}</td></tr>`).join('');
       const vcRow=`<tr class="vc-row"><td>🏆 Current Bid Here</td><td>${topBidAmt>0?'$'+topBidAmt.toFixed(2):'Be the first!'}</td></tr>`;
-      compTableEl.innerHTML=`<div class="comp-table-wrap"><div class="comp-table-title">What You'd Pay Elsewhere</div><table class="comp-table"><tbody>${compRows}${vcRow}</tbody></table></div>`;
+      compTableEl.innerHTML=`<div class="only-here-banner"><div class="ohb-top"><span class="ohb-exclusive">Exclusive Pricing</span><span class="ohb-badge">Only Available Here</span></div><div class="ohb-sub">This item is priced exclusively on Volleyball Collective — you won't find this deal anywhere else.</div></div><div class="comp-table-wrap"><div class="comp-table-title">What You'd Pay Elsewhere</div><table class="comp-table"><tbody>${compRows}${vcRow}</tbody></table></div>`;
     }else{
       compTableEl.innerHTML='';
     }
