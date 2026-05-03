@@ -352,6 +352,9 @@ module.exports = async (req, res) => {
       } else if (body.action === 'setRegretText') {
         if (body.regretText && body.regretText.trim()) drop.regretText = body.regretText.trim();
         else delete drop.regretText;
+      } else if (body.action === 'setOhbCopy') {
+        if (body.ohbCopy && body.ohbCopy.trim()) drop.ohbCopy = body.ohbCopy.trim();
+        else delete drop.ohbCopy;
       } else {
         drop.status = drop.status === 'published' ? 'archived' : 'published';
       }
