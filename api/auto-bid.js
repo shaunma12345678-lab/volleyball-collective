@@ -100,6 +100,8 @@ module.exports = async (req, res) => {
       promoDiscount: prevBid.promoDiscount || 0,
       shippingFee: prevBid.shippingFee || 0,
       isAutoBid: true,
+      autoBidFromAmount: prevBid.amount,
+      autoBidFromId: prevBidId,
       autoBid: prevBid.autoBid,
     };
 
