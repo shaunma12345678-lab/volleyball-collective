@@ -314,6 +314,11 @@ input:focus,textarea:focus,select:focus{border-color:var(--fr-red);background:rg
 #stripe-card-element,#buynow-card-element{background:rgba(0,35,149,.12);border:1px solid rgba(0,35,149,.4);border-radius:3px;padding:14px 16px;transition:border-color .2s}
 #stripe-card-element.focused,#buynow-card-element.focused{border-color:var(--fr-red)}
 .stripe-note{font-size:.72rem;color:var(--muted);margin-top:8px;display:flex;align-items:center;gap:6px}
+.saved-card-row{display:flex;align-items:center;gap:12px;background:rgba(0,35,149,.12);border:1px solid rgba(0,35,149,.38);border-radius:3px;padding:12px 16px}
+.saved-card-label{flex:1;font-size:.82rem;color:var(--fr-white);font-weight:600}
+.saved-card-sub{font-size:.69rem;color:var(--muted);margin-top:2px;letter-spacing:.3px}
+.btn-change-card{background:none;border:none;color:rgba(123,159,212,.65);font-size:.7rem;cursor:pointer;font-family:'DM Sans',sans-serif;text-decoration:underline;padding:0;white-space:nowrap;flex-shrink:0}
+.btn-change-card:hover{color:var(--muted)}
 .error-msg{background:rgba(255,107,107,.1);border:1px solid rgba(255,107,107,.3);color:#ffaaaa;padding:12px 16px;border-radius:3px;font-size:.82rem;margin-top:12px;display:none}
 .btn-submit{width:100%;background:var(--fr-red);color:#fff;border:none;padding:17px;font-family:'Bebas Neue',sans-serif;font-size:1.25rem;letter-spacing:4px;cursor:pointer;border-radius:3px;margin-top:20px;transition:all .2s;position:relative;overflow:hidden}
 .btn-submit:hover{background:#c7202d;box-shadow:0 8px 32px rgba(237,41,57,.4)}
@@ -1229,7 +1234,16 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
         </div>
         <button class="btn-save-info" id="bid-save-btn" onclick="saveBidInfo()">💾 Save my info for next time</button>
         <span class="section-label">Payment — Secured by Stripe</span>
-        <div class="form-row"><div id="stripe-card-element"></div><p class="stripe-note">🔒 Card saved but <strong>NOT charged</strong> until you win</p></div>
+        <div id="bid-saved-card-wrap" style="display:none">
+          <div class="saved-card-row">
+            <span style="font-size:1.3rem">💳</span>
+            <div style="flex:1"><div class="saved-card-label" id="bid-saved-card-text">Saved card</div><div class="saved-card-sub">🔒 Secured by Stripe · Not charged unless you win</div></div>
+            <button class="btn-change-card" onclick="enterNewCard()">Use different card</button>
+          </div>
+        </div>
+        <div id="bid-card-input-wrap">
+          <div class="form-row"><div id="stripe-card-element"></div><p class="stripe-note">🔒 Card saved but <strong>NOT charged</strong> until you win</p></div>
+        </div>
         <div class="error-msg" id="bid-error"></div>
         <div class="zero-risk-callout">✓ <strong>Your card is saved, not charged.</strong> If you don't win, you owe nothing — no cancellation needed, no fees, no risk. Only the highest bidder ever pays.</div>
         <button class="btn-submit" id="bid-btn" onclick="submitBid()"><span class="btn-text">🔒 Reserve My Deal — Free to Enter</span><div class="spinner"></div></button>
@@ -2245,7 +2259,7 @@ document.addEventListener('visibilitychange',()=>{
 });
 
 // ── STRIPE ──
-let stripe=null,cardEl=null,bnCardEl=null;
+let stripe=null,cardEl=null,bnCardEl=null,_useSavedCard=false;
 try{
   stripe=Stripe('pk_live_51TNLmTJLxjt4Zu09CD9HYKgwQRf6k7KWCdG6tfF5kt011UmrBxjzcBGdmyex9C7vmyq0QsjtccjncguMMvZ3klOF00PekVjmfC');
   const appearance={theme:'night',variables:{colorPrimary:'#ED2939',colorBackground:'rgba(0,35,149,.12)',colorText:'#F5F0E8',colorDanger:'#ff6b6b',fontFamily:'DM Sans,sans-serif',borderRadius:'3px'}};
@@ -2435,7 +2449,10 @@ function renderDrops(){
     const _vtIcon=recentBids>=6?'🚨':recentBids>=3?'🔥':'⚡';
     // Strip: prefer hourly viewers (more relevant), fall back to all-time total after hour resets
     const _stripViewCount=hourlyViews>=1?hourlyViews:watchCount;
-    const _stripViewLabel=hourlyViews>=1?`${hourlyViews} viewing this hour`:`${watchCount} watching`;
+    const _svGap=_cbAmt>0&&_rtAmt>_cbAmt?`$${(_rtAmt-_cbAmt).toFixed(0)} below retail`:null;
+    const _stripViewLabel=hourlyViews>=1
+      ?`${hourlyViews} watching this deal${_svGap?` — ${_svGap}`:''}`
+      :`${watchCount} watching${_svGap?` — ${_svGap}`:''}`;
     const _lasViewers=_stripViewCount>=1?`<span class="las-viewers"><span class="las-dot"></span>${_stripViewLabel}</span>`:'';
     const _lasBids=recentBids>=1
       ?`<span class="las-bids ${_vtClass}">${_vtIcon} ${recentBids} bid${recentBids>1?'s':''} this hour</span>`
@@ -2874,7 +2891,34 @@ function openBidModal(dropId){
     }else{if(_wbEl)_wbEl.style.display='none';}
   }catch(e){}
   const _sbtn=document.getElementById('bid-save-btn');if(_sbtn){_sbtn.textContent='💾 Save my info for next time';_sbtn.classList.remove('saved');}
+  try{
+    const _sc=JSON.parse(localStorage.getItem('vc_saved_card')||'null');
+    const _scWrap=document.getElementById('bid-saved-card-wrap');
+    const _ciWrap=document.getElementById('bid-card-input-wrap');
+    const _scTxt=document.getElementById('bid-saved-card-text');
+    if(_sc&&_sc.last4){
+      _useSavedCard=true;
+      if(_scWrap)_scWrap.style.display='';
+      if(_ciWrap)_ciWrap.style.display='none';
+      if(_scTxt)_scTxt.textContent=`${_sc.brand?_sc.brand.charAt(0).toUpperCase()+_sc.brand.slice(1):'Card'} ending in ${_sc.last4}`;
+    }else{
+      _useSavedCard=false;
+      if(_scWrap)_scWrap.style.display='none';
+      if(_ciWrap)_ciWrap.style.display='';
+    }
+  }catch(e){_useSavedCard=false;}
   document.getElementById('bid-overlay').classList.add('active');
+}
+function enterNewCard(){
+  _useSavedCard=false;
+  const _scWrap=document.getElementById('bid-saved-card-wrap');
+  const _ciWrap=document.getElementById('bid-card-input-wrap');
+  if(_scWrap)_scWrap.style.display='none';
+  if(_ciWrap)_ciWrap.style.display='';
+}
+function clearSavedCard(){
+  try{localStorage.removeItem('vc_saved_card');}catch(e){}
+  enterNewCard();
 }
 function useSavedInfo(){
   try{
@@ -3110,16 +3154,25 @@ async function submitBid(){
   if(parseFloat(amount)<1){showErr(errEl,'Bid must be at least $1.');return}
   if(!street||!city||!zip){showErr(errEl,'Please enter your shipping address.');return}
   const btn=document.getElementById('bid-btn');btn.disabled=true;btn.classList.add('loading');
-  if(!stripe||!cardEl){showErr(errEl,'Payment system unavailable. Please refresh.');btn.disabled=false;btn.classList.remove('loading');return}
-  const{paymentMethod,error}=await stripe.createPaymentMethod({type:'card',card:cardEl,billing_details:{name,email,phone:phone||undefined}});
-  if(error){showErr(errEl,error.message);btn.disabled=false;btn.classList.remove('loading');return}
+  let _pmId;
+  if(_useSavedCard){
+    const _sc=JSON.parse(localStorage.getItem('vc_saved_card')||'null');
+    _pmId=_sc?_sc.pmId:null;
+    if(!_pmId){showErr(errEl,'Saved card unavailable — please enter your card details.');btn.disabled=false;btn.classList.remove('loading');enterNewCard();return}
+  }else{
+    if(!stripe||!cardEl){showErr(errEl,'Payment system unavailable. Please refresh.');btn.disabled=false;btn.classList.remove('loading');return}
+    const{paymentMethod,error}=await stripe.createPaymentMethod({type:'card',card:cardEl,billing_details:{name,email,phone:phone||undefined}});
+    if(error){showErr(errEl,error.message);btn.disabled=false;btn.classList.remove('loading');return}
+    _pmId=paymentMethod.id;
+    try{localStorage.setItem('vc_saved_card',JSON.stringify({pmId:paymentMethod.id,last4:paymentMethod.card.last4,brand:paymentMethod.card.brand}));}catch(e){}
+  }
   const _earlyDropCheck=_drops.find(d=>d.id===activeDrop);
   const _useEarlyBonus=!_activeBidPromo&&_earlyDropCheck&&isEarlyBidActive(_earlyDropCheck);
   const _autoBidToggle=document.getElementById('auto-bid-toggle');
   const _autoBidMaxEl=document.getElementById('auto-bid-max');
   const _autoBidEnabled=_autoBidToggle&&_autoBidToggle.checked;
   const _autoBidMax=_autoBidEnabled&&_autoBidMaxEl&&_autoBidMaxEl.value?parseFloat(_autoBidMaxEl.value):null;
-  const bid={id:'bid_'+Date.now(),name,email,phone,msg,amount,dropId:activeDrop,paymentMethodId:paymentMethod.id,address:{street,city,state,zip,country},createdAt:new Date().toISOString(),promoCode:_useEarlyBonus?'EARLY5':(_activeBidPromo?_activeBidPromo.code:null),promoDiscount:_useEarlyBonus?5:(_activeBidPromo?_activeBidPromo.discount:0),shippingFee:shippingFee||0,...(_autoBidEnabled?{autoBid:{step:5,maxBid:_autoBidMax}}:{})};
+  const bid={id:'bid_'+Date.now(),name,email,phone,msg,amount,dropId:activeDrop,paymentMethodId:_pmId,address:{street,city,state,zip,country},createdAt:new Date().toISOString(),promoCode:_useEarlyBonus?'EARLY5':(_activeBidPromo?_activeBidPromo.code:null),promoDiscount:_useEarlyBonus?5:(_activeBidPromo?_activeBidPromo.discount:0),shippingFee:shippingFee||0,...(_autoBidEnabled?{autoBid:{step:5,maxBid:_autoBidMax}}:{})};
   try{
     const res=await fetch('/api/bids',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({bid})});
     const data=await res.json().catch(()=>({}));
@@ -3151,7 +3204,7 @@ async function submitBid(){
   document.getElementById('bid-form-view').style.display='none';
   document.getElementById('bid-success').style.display='block';
   ['bid-name','bid-email','bid-amount','bid-phone','bid-msg','bid-street','bid-city','bid-state','bid-zip'].forEach(id=>{document.getElementById(id).value=''});
-  try{if(cardEl)cardEl.clear();}catch(e){}
+  try{if(!_useSavedCard&&cardEl)cardEl.clear();}catch(e){}
   const _abt=document.getElementById('auto-bid-toggle');if(_abt)_abt.checked=false;
   const _abmr=document.getElementById('auto-bid-max-row');if(_abmr)_abmr.style.display='none';
   const _abm=document.getElementById('auto-bid-max');if(_abm)_abm.value='';
