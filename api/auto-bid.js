@@ -20,6 +20,21 @@ module.exports = async (req, res) => {
   res.setHeader('Content-Type', 'application/json');
   res.setHeader('Cache-Control', 'no-store');
   if (req.method === 'OPTIONS') return res.status(200).end();
+  if (req.method === 'DELETE') {
+    try {
+      const body = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {});
+      const { bidId } = body;
+      if (!bidId) return res.status(400).json({ error: 'bidId required' });
+      const raw = await redis('GET', `bid:${bidId}`);
+      if (!raw) return res.status(404).json({ error: 'Bid not found' });
+      const bid = JSON.parse(raw);
+      delete bid.autoBid;
+      await redis('SET', `bid:${bidId}`, JSON.stringify(bid));
+      return res.status(200).json({ success: true });
+    } catch (err) {
+      return res.status(500).json({ error: err.message });
+    }
+  }
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   const { prevBidId } = req.body || {};
