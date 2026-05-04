@@ -89,7 +89,19 @@ nav{position:fixed;top:38px;left:0;right:0;z-index:500;display:flex;justify-cont
 .hero-stats{display:flex;gap:56px;margin-top:60px;padding-top:40px;border-top:1px solid rgba(245,240,232,.07);animation:fadeUp .9s ease .45s both;flex-wrap:wrap;justify-content:center}
 .stat{text-align:center}
 .stat-num{font-family:'Bebas Neue',sans-serif;font-size:2.9rem;color:var(--fr-red);display:block;line-height:1;text-shadow:0 0 30px rgba(237,41,57,.35)}
+.stat-num-green{color:#3ecf8e;text-shadow:0 0 30px rgba(62,207,142,.4)}
 .stat-label{font-size:.65rem;letter-spacing:3px;text-transform:uppercase;color:var(--muted);margin-top:5px;display:block}
+/* Live bid savings preview */
+.bls-inner{background:linear-gradient(135deg,rgba(62,207,142,.16) 0%,rgba(0,35,149,.22) 100%);border:1px solid rgba(62,207,142,.5);border-radius:5px;padding:14px 16px;display:flex;align-items:center;gap:14px;animation:fadeIn .18s ease}
+.bls-icon{font-size:1.5rem;flex-shrink:0}
+.bls-num{font-family:'Bebas Neue',sans-serif;font-size:1.6rem;letter-spacing:2px;color:#3ecf8e;line-height:1;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.bls-pct{background:rgba(62,207,142,.22);border:1px solid rgba(62,207,142,.45);border-radius:2px;padding:2px 8px;font-size:.68rem;font-weight:700;color:#3ecf8e;font-family:'DM Sans',sans-serif;letter-spacing:1px}
+.bls-sub{font-size:.74rem;color:var(--muted);margin-top:4px;line-height:1.55}
+.bls-warn{background:linear-gradient(135deg,rgba(251,191,36,.12),rgba(251,191,36,.06));border:1px solid rgba(251,191,36,.4);border-radius:5px;padding:10px 14px;font-size:.79rem;color:#fbbf24;line-height:1.5}
+/* Deal lock countdown */
+.bid-deal-lock{background:linear-gradient(90deg,rgba(237,41,57,.16),rgba(237,41,57,.06));border:1px solid rgba(237,41,57,.45);border-radius:4px;padding:11px 16px;margin-bottom:12px;display:flex;align-items:center;gap:12px}
+.bdl-timer{font-family:'Bebas Neue',sans-serif;font-size:1.15rem;letter-spacing:2px;color:#ED2939;font-variant-numeric:tabular-nums;line-height:1}
+.bdl-sub{font-size:.71rem;color:var(--muted);margin-top:3px;line-height:1.45}
 .scroll-hint{position:absolute;bottom:34px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:8px;color:var(--muted);font-size:.63rem;letter-spacing:4px;text-transform:uppercase;animation:fadeIn 1.5s ease 1s both}
 .scroll-arrow{width:20px;height:20px;border-right:1.5px solid var(--muted);border-bottom:1.5px solid var(--muted);transform:rotate(45deg);animation:sarrow 2s ease-in-out infinite}
 @keyframes sarrow{0%,100%{transform:rotate(45deg) translate(0,0);opacity:1}50%{transform:rotate(45deg) translate(4px,4px);opacity:.3}}
@@ -818,6 +830,7 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
     <div class="stat"><span class="stat-num" id="stat-drops">0</span><span class="stat-label">Active Auctions</span></div>
     <div class="stat"><span class="stat-num" id="stat-shop">0</span><span class="stat-label">In Shop</span></div>
     <div class="stat"><span class="stat-num" id="stat-bids">0</span><span class="stat-label">Bids Placed</span></div>
+    <div class="stat"><span class="stat-num stat-num-green" id="stat-savings">$0</span><span class="stat-label">Below Retail Right Now</span></div>
     <span id="stat-members" style="display:none"></span>
   </div>
   <div class="scroll-hint"><span>Scroll</span><div class="scroll-arrow"></div></div>
@@ -1194,8 +1207,10 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
           </button>
         </div>
         <div id="bid-proactive-savings" class="bid-proactive-savings" style="display:none"></div>
+        <div id="bid-deal-lock" class="bid-deal-lock" style="display:none"></div>
         <div class="form-row"><label>Your Bid Amount (USD)</label><div class="amount-wrap"><span>$</span><input type="number" id="bid-amount" placeholder="0.00" min="1" step="0.01" oninput="onBidAmountInput()"></div></div>
         <div id="bid-cheaper-calc" style="display:none" class="cheaper-calc"></div>
+        <div id="bid-live-savings" style="display:none;margin-top:10px"></div>
         <div class="auto-bid-row">
           <label class="auto-bid-toggle-line"><input type="checkbox" id="auto-bid-toggle" onchange="toggleAutoBidMax()"><span class="auto-bid-toggle-label"><strong>Auto-bump my bid</strong> — if outbid, automatically raise by $5 (zero extra charge unless you win)</span></label>
           <div id="auto-bid-max-row" class="auto-bid-max-row" style="display:none"><label>Stop at max: $</label><input type="number" id="auto-bid-max" placeholder="e.g. 200" min="1" step="1"><span style="font-size:.65rem;color:var(--muted)">optional ceiling</span></div>
@@ -2408,6 +2423,9 @@ function renderDrops(){
   const liveCount=drops.filter(d=>d.status==='published').length;
   document.getElementById('stat-drops').textContent=liveCount;
   document.getElementById('stat-bids').textContent=bids.length;
+  const _totalSavings=drops.filter(d=>d.status==='published'&&d.retailPrice&&d.compBid&&parseFloat(d.retailPrice)>parseFloat(d.compBid)).reduce((s,d)=>s+(parseFloat(d.retailPrice)-parseFloat(d.compBid)),0);
+  const _savEl=document.getElementById('stat-savings');
+  if(_savEl)_savEl.textContent=_totalSavings>=1000?`$${(_totalSavings/1000).toFixed(1)}k`:_totalSavings>0?`$${Math.round(_totalSavings)}`:'$0';
   document.getElementById('drops-badge').textContent=liveCount?liveCount+' Live':'Coming Soon';
   const g=document.getElementById('drops-grid');
   if(!drops.length){g.innerHTML=`<div class="empty-drops"><span class="ei">🏐</span><p>No active auctions — check back soon!</p></div>`;return}
@@ -2813,8 +2831,32 @@ function openBidModal(dropId){
   if(_savingsEl)_savingsEl.style.display='none';
   const _cheaperCalcEl=document.getElementById('bid-cheaper-calc');
   if(_cheaperCalcEl){_cheaperCalcEl.style.display='none';_cheaperCalcEl.innerHTML='';}
+  const _lsEl=document.getElementById('bid-live-savings');
+  if(_lsEl){_lsEl.style.display='none';_lsEl.innerHTML='';}
   const _bidAmtEl=document.getElementById('bid-amount');
   if(_bidAmtEl)_bidAmtEl.value='';
+  // Deal lock countdown
+  if(window._dealLockInterval){clearInterval(window._dealLockInterval);window._dealLockInterval=null;}
+  const _dlEl=document.getElementById('bid-deal-lock');
+  if(_dlEl){
+    const _dlRt=drop&&drop.retailPrice?parseFloat(drop.retailPrice):0;
+    const _dlCb=drop&&drop.compBid?parseFloat(drop.compBid):0;
+    const _dlSv=_dlRt>0&&_dlCb>0&&_dlRt>_dlCb?Math.round(_dlRt-_dlCb):0;
+    if(drop&&drop.endTime){
+      const _updateDL=()=>{
+        const ms=new Date(drop.endTime)-Date.now();
+        if(ms<=0){_dlEl.style.display='none';clearInterval(window._dealLockInterval);return;}
+        const h=Math.floor(ms/3600000),m=Math.floor((ms%3600000)/60000),s=Math.floor((ms%60000)/1000);
+        const t=h>0?`${h}h ${m}m ${s}s`:m>0?`${m}m ${s}s`:`${s}s`;
+        _dlEl.innerHTML=`<span style="font-size:1.1rem;flex-shrink:0">⏰</span><div><div class="bdl-timer">${t} left${_dlSv>0?` — $${_dlSv} below retail`:''}</div><div class="bdl-sub">This deal closes when the auction ends. Once it's gone, you won't find this jersey below retail anywhere else.</div></div>`;
+      };
+      _updateDL();_dlEl.style.display='';
+      window._dealLockInterval=setInterval(()=>{if(!document.getElementById('bid-overlay').classList.contains('active')){clearInterval(window._dealLockInterval);return;}_updateDL();},1000);
+    }else if(_dlSv>0){
+      _dlEl.innerHTML=`<span style="font-size:1.1rem;flex-shrink:0">⏰</span><div><div class="bdl-timer">$${_dlSv} below retail — only here</div><div class="bdl-sub">This deal only exists at Volleyball Collective. Once the auction closes, this price is gone — you only pay if you win.</div></div>`;
+      _dlEl.style.display='';
+    }else{_dlEl.style.display='none';}
+  }
   const _shareBoxEl=document.getElementById('bid-share-box');
   if(_shareBoxEl)_shareBoxEl.style.display='none';
   const compTableEl=document.getElementById('bid-comp-table');
@@ -2991,7 +3033,7 @@ function openSubscribeModal(){
   document.getElementById('subscribe-form-view').style.display='';
   document.getElementById('subscribe-overlay').classList.add('active');
 }
-function closeModal(id){document.getElementById(id).classList.remove('active')}
+function closeModal(id){document.getElementById(id).classList.remove('active');if(id==='bid-overlay'&&window._dealLockInterval){clearInterval(window._dealLockInterval);window._dealLockInterval=null;}}
 function overlayClick(e,id){if(e.target.id===id)closeModal(id)}
 let _bidExitShown=false;
 function closeBidModalMaybe(){
@@ -3031,20 +3073,39 @@ function onBidAmountInput(){
   if(!btn||!input)return;
   if(input.value!==btn.dataset.amount)btn.classList.remove('active');
   const calcEl=document.getElementById('bid-cheaper-calc');
-  if(!calcEl)return;
   const drop=_drops.find(d=>d.id===activeDrop);
   const bidAmt=parseFloat(input.value);
-  if(!drop||!drop.comparisons||!drop.comparisons.length||!bidAmt||isNaN(bidAmt)||bidAmt<=0){calcEl.style.display='none';return;}
-  const rows=drop.comparisons.filter(c=>c.price).map(c=>{
-    const compPrice=parseFloat(c.price.replace(/[^0-9.]/g,''));
-    if(!compPrice||isNaN(compPrice))return'';
-    const diff=compPrice-bidAmt;
-    const diffStr=diff>=0?`<span class="savings">$${diff.toFixed(0)} cheaper here</span>`:`<span class="over">$${Math.abs(diff).toFixed(0)} more than ${c.label}</span>`;
-    return`<div class="cheaper-calc-row"><span>${c.label} — <strong style="color:rgba(245,240,232,.7)">$${compPrice.toFixed(0)}</strong></span>${diffStr}</div>`;
-  }).filter(Boolean).join('');
-  if(!rows){calcEl.style.display='none';return;}
-  calcEl.innerHTML=`<div class="cheaper-calc-title">Still Cheaper Than</div>${rows}`;
-  calcEl.style.display='';
+  // Comparison table
+  if(calcEl){
+    if(!drop||!drop.comparisons||!drop.comparisons.length||!bidAmt||isNaN(bidAmt)||bidAmt<=0){calcEl.style.display='none';}
+    else{
+      const rows=drop.comparisons.filter(c=>c.price).map(c=>{
+        const compPrice=parseFloat(c.price.replace(/[^0-9.]/g,''));
+        if(!compPrice||isNaN(compPrice))return'';
+        const diff=compPrice-bidAmt;
+        const diffStr=diff>=0?`<span class="savings">$${diff.toFixed(0)} cheaper here</span>`:`<span class="over">$${Math.abs(diff).toFixed(0)} more than ${c.label}</span>`;
+        return`<div class="cheaper-calc-row"><span>${c.label} — <strong style="color:rgba(245,240,232,.7)">$${compPrice.toFixed(0)}</strong></span>${diffStr}</div>`;
+      }).filter(Boolean).join('');
+      if(!rows)calcEl.style.display='none';
+      else{calcEl.innerHTML=`<div class="cheaper-calc-title">Still Cheaper Than</div>${rows}`;calcEl.style.display='';}
+    }
+  }
+  // Live savings preview vs retail
+  const lsEl=document.getElementById('bid-live-savings');
+  if(lsEl){
+    const rtAmt=drop&&drop.retailPrice?parseFloat(drop.retailPrice):0;
+    if(rtAmt>0&&bidAmt>0&&rtAmt>bidAmt){
+      const saved=(rtAmt-bidAmt).toFixed(0);
+      const pct=Math.round((rtAmt-bidAmt)/rtAmt*100);
+      lsEl.innerHTML=`<div class="bls-inner"><span class="bls-icon">💰</span><div style="flex:1"><div class="bls-num">$${saved} below retail <span class="bls-pct">${pct}% off</span></div><div class="bls-sub">Retail is $${rtAmt.toFixed(0)} — you'd win this at <strong style="color:var(--fr-white)">${pct}% below market price</strong>, only at Volleyball Collective. You only pay if you win.</div></div></div>`;
+      lsEl.style.display='';
+    }else if(rtAmt>0&&bidAmt>=rtAmt){
+      lsEl.innerHTML=`<div class="bls-warn">⚠️ Your bid is at or above retail ($${rtAmt.toFixed(0)}) — you can beat that price here. Try bidding lower and you'll still be in the running.</div>`;
+      lsEl.style.display='';
+    }else{
+      lsEl.style.display='none';
+    }
+  }
 }
 
 // ── STICKY BID BAR ──
