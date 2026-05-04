@@ -192,6 +192,11 @@ nav{position:fixed;top:38px;left:0;right:0;z-index:500;display:flex;justify-cont
 .vt-1{color:#f97316}.vt-2{color:#ef4444}.vt-3{color:#ef4444;animation:vtPulse 1.8s ease-in-out infinite}.vt-4{color:#ef4444;animation:vtPulse .85s ease-in-out infinite}
 @keyframes vtPulse{0%,100%{opacity:1}50%{opacity:.42}}
 .last-bid-tag{font-size:.63rem;color:rgba(123,159,212,.65);letter-spacing:.3px}
+.live-activity-strip{display:flex;align-items:center;justify-content:center;gap:12px;background:rgba(0,8,35,.97);border-bottom:1px solid rgba(255,255,255,.07);padding:7px 14px;font-size:.68rem;letter-spacing:.6px;flex-wrap:wrap}
+.las-viewers{color:#fbbf24;font-weight:700;display:flex;align-items:center;gap:5px}
+.las-dot{width:6px;height:6px;border-radius:50%;background:#ef4444;animation:liveDot 1.2s ease-in-out infinite;flex-shrink:0}
+.las-sep{color:rgba(255,255,255,.18);font-size:.8rem}
+.las-bids{font-weight:700}
 @keyframes bidPop{0%{opacity:1;transform:translateY(0) scale(1)}80%{opacity:.7}100%{opacity:0;transform:translateY(-42px) scale(.8)}}
 .bid-pop{position:absolute;bottom:14px;right:12px;z-index:10;font-size:.7rem;font-weight:700;color:#ED2939;letter-spacing:.5px;pointer-events:none;animation:bidPop 1s ease-out forwards;white-space:nowrap;text-shadow:0 1px 4px rgba(0,0,0,.5)}
 .zero-risk-callout{background:rgba(62,207,142,.09);border:1px solid rgba(62,207,142,.28);border-radius:3px;padding:13px 16px;font-size:.78rem;color:#3ecf8e;text-align:center;margin-bottom:14px;line-height:1.6}
@@ -2417,20 +2422,20 @@ function renderDrops(){
     const endTimeStr=!isTeaser&&d.endTime?`<span class="end-countdown-tag" data-endtime="${d.endTime}">—</span>`:'';
     const now=Date.now();
     const recentBids=!isTeaser?db.filter(b=>now-new Date(b.createdAt).getTime()<3600000).length:0;
-    let velocityTag='';
-    if(recentBids>=10){velocityTag=`<div class="velocity-tag vt-4">🚨 ${recentBids} bids this hour — bidding war</div>`;}
-    else if(recentBids>=6){velocityTag=`<div class="velocity-tag vt-3">🚨 ${recentBids} bids this hour — moving fast</div>`;}
-    else if(recentBids>=3){velocityTag=`<div class="velocity-tag vt-2">🔥 ${recentBids} bids this hour — heating up</div>`;}
-    else if(recentBids>=1){velocityTag=`<div class="velocity-tag vt-1">⚡ ${recentBids} bid${recentBids>1?'s':''} this hour — active</div>`;}
     const _sortedRecent=!isTeaser&&db.length>0?db.slice().sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt)):[];
     const _lastBidMins=_sortedRecent.length>0?Math.floor((now-new Date(_sortedRecent[0].createdAt).getTime())/60000):null;
-    const lastBidTag=_lastBidMins!==null&&_lastBidMins<120?`<div class="last-bid-tag">${_lastBidMins<1?'Last bid just now':`Last bid ${_lastBidMins}m ago`}</div>`:'';
+    const _vtClass=recentBids>=10?'vt-4':recentBids>=6?'vt-3':recentBids>=3?'vt-2':'vt-1';
+    const _vtIcon=recentBids>=6?'🚨':recentBids>=3?'🔥':'⚡';
+    const _lasViewers=watchCount>=1?`<span class="las-viewers"><span class="las-dot"></span>${watchCount} watching</span>`:'';
+    const _lasSep=watchCount>=1&&recentBids>=1?`<span class="las-sep">·</span>`:'';
+    const _lasBids=recentBids>=1?`<span class="las-bids ${_vtClass}">${_vtIcon} ${recentBids} bid${recentBids>1?'s':''} this hour</span>`:'';
+    const liveActivityStrip=!isTeaser&&(watchCount>=1||recentBids>=1)?`<div class="live-activity-strip">${_lasViewers}${_lasSep}${_lasBids}</div>`:'';
     const closingSoon=!isTeaser&&d.endTime&&(new Date(d.endTime)-now)<7200000&&(new Date(d.endTime)-now)>0;
     const badgeChipFinal=isTeaser?`<span class="teaser-badge-chip">Coming Soon</span>`:closingSoon?`<span class="closing-soon-chip">⏰ Closing Soon</span>`:`<span class="drop-badge-chip">Active Drop</span>`;
     const auctionFreeShip=!isTeaser&&!d.sold?`<span class="free-ship-chip">🇺🇸 Free US Ship</span>`:'';
     const footerLeft=isTeaser
       ?(d.dropTime?`<span class="countdown-tag" data-countdown="${d.dropTime}">—</span>`:`<span class="drop-bid-count" style="color:var(--muted)">Bidding opens soon</span>`)
-      :`<div style="display:flex;flex-direction:column;gap:3px">${d.retailPrice&&parseFloat(d.retailPrice)>0?`<span class="only-here-card-row"><span style="font-size:.62rem;color:var(--muted)">Retail <span style="text-decoration:line-through">$${parseFloat(d.retailPrice).toFixed(2)}</span></span><span class="only-here-chip">Only Here</span></span>`:''}<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap"><span class="drop-bid-count">${fmtBids(db.length)}</span>${auctionFreeShip}</div>${endTimeStr}${velocityTag}${lastBidTag}</div>`;
+      :`<div style="display:flex;flex-direction:column;gap:3px">${d.retailPrice&&parseFloat(d.retailPrice)>0?`<span class="only-here-card-row"><span style="font-size:.62rem;color:var(--muted)">Retail <span style="text-decoration:line-through">$${parseFloat(d.retailPrice).toFixed(2)}</span></span><span class="only-here-chip">Only Here</span></span>`:''}<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap"><span class="drop-bid-count">${fmtBids(db.length)}</span>${auctionFreeShip}</div>${endTimeStr}</div>`;
     const hotLevel=!isTeaser&&db.length>=25?3:db.length>=10?2:db.length>=5?1:0;
     const hotClass=hotLevel?` card-hot-${hotLevel}`:'';
     const closingSoonClass=closingSoon?' card-closing-soon':'';
@@ -2509,6 +2514,7 @@ function renderDrops(){
     const _lastChanceStrip=closingSoon&&!d.sold?`<div class="last-chance-strip">🚨 <strong>Last Chance</strong> — This deal closes in under 2 hours. Price won't get better than this.</div>`:'';
     return`<div class="drop-card${isTeaser?' teaser-card':''}${hotClass}${closingSoonClass}" data-drop-id="${d.id}" style="animation-delay:${i*.09}s${isTeaser?';cursor:default':''}"${cardClick?` onclick="${cardClick}"`:''}}>
       <div class="drop-img-wrap">${img}${teaserOverlay}${lockOverlay}${badgeChipFinal}${memberBadge}${hotBadge}${customBadges}${oneOfOneBadge}${viewerBadge}${teaserMemberChip}</div>
+      ${liveActivityStrip}
       <div class="card-stripe"></div>
       <div class="drop-body">
         <div class="drop-name">${d.name}</div>
