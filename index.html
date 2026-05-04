@@ -2432,8 +2432,22 @@ function renderDrops(){
     const _earlyChip=!isTeaser&&!d.sold&&_earlyActive?`<span class="early-bid-chip">⚡ Early Bid — 5% off if you win</span>`:'';
     const _cbAmt=d.compBid&&parseFloat(d.compBid)>0?parseFloat(d.compBid):0;
     const _rtAmt=d.retailPrice&&parseFloat(d.retailPrice)>0?parseFloat(d.retailPrice):0;
-    const savingsHeadline=!isTeaser&&!d.sold&&_rtAmt>0&&_cbAmt>0&&_rtAmt>_cbAmt
-      ?`<div class="savings-headline"><span class="sh-amount">Save $${(_rtAmt-_cbAmt).toFixed(0)}</span><span class="sh-pct">${Math.round((_rtAmt-_cbAmt)/_rtAmt*100)}% below retail</span><span class="sh-label">Retail: $${_rtAmt.toFixed(0)} — current bid is $${_cbAmt.toFixed(0)} below that</span></div>`:''
+    let savingsStrip='';
+    if(!isTeaser&&!d.sold&&_rtAmt>0&&d.savingsStrip&&d.savingsStrip!=='off'){
+      const _sv=_cbAmt>0&&_rtAmt>_cbAmt?(_rtAmt-_cbAmt).toFixed(0):null;
+      const _pct=_sv?Math.round((_rtAmt-parseFloat(_sv))/_rtAmt*100):null;
+      const _rt=_rtAmt.toFixed(0);
+      const _cb=_cbAmt>0?_cbAmt.toFixed(0):null;
+      if(d.savingsStrip==='gap'&&_sv){
+        savingsStrip=`<div class="savings-headline"><span class="sh-amount">📉 $${_sv} gap vs retail</span><span class="sh-pct">${Math.round((_rtAmt-_cbAmt)/_rtAmt*100)}% off</span><span class="sh-label">Current bid is $${_sv} below retail ($${_rt}) — bid now and keep that money.</span></div>`;
+      }else if(d.savingsStrip==='beat'&&_sv){
+        savingsStrip=`<div class="savings-headline"><span class="sh-amount">💰 Win this $${_sv} cheaper than retail</span><span class="sh-pct">${Math.round((_rtAmt-_cbAmt)/_rtAmt*100)}% off</span><span class="sh-label">Retail is $${_rt}. Current bid is $${_cb}. You could take it home for less.</span></div>`;
+      }else if(d.savingsStrip==='elsewhere'){
+        savingsStrip=`<div class="savings-headline"><span class="sh-amount">🏷️ $${_rt} everywhere else. Not here.</span><span class="sh-label">${_sv?`Current bid is already $${_sv} below what you'd pay anywhere else.`:`Bid here and you're already below market rate.`}</span></div>`;
+      }else if(d.savingsStrip==='locked'&&_sv){
+        savingsStrip=`<div class="savings-headline"><span class="sh-pct">${Math.round((_rtAmt-_cbAmt)/_rtAmt*100)}% below retail</span><span class="sh-amount">✅ $${_sv} in savings — locked in</span><span class="sh-label">Retail: $${_rt}. You're $${_sv} ahead before you even go higher. You only pay if you win.</span></div>`;
+      }
+    }
     let valueStrip='';
     if(!isTeaser&&!d.sold&&_cbAmt>0&&_rtAmt>0&&_rtAmt>_cbAmt){
       const _sv=(_rtAmt-_cbAmt).toFixed(0);
@@ -2461,7 +2475,7 @@ function renderDrops(){
         ${_statusChip}
         ${d.desc?`<p class="drop-desc">${d.desc}</p>`:''}
         ${oneOfOneStrip}
-        ${teaserEarlyStrip}${savingsHeadline}${valueStrip}${_stealMeter}${_bidTimeline}${_oppBanner}${_regretStrip}${_lastChanceStrip}
+        ${teaserEarlyStrip}${savingsStrip}${valueStrip}${_stealMeter}${_bidTimeline}${_oppBanner}${_regretStrip}${_lastChanceStrip}
         <div class="drop-footer">${footerLeft}${actionBtn}</div>
         ${offerRow}${notifyWaitingRow}
       </div>
@@ -2731,25 +2745,33 @@ function openBidModal(dropId){
   const proactiveSavingsEl=document.getElementById('bid-proactive-savings');
   if(proactiveSavingsEl){
     const _psRt=drop&&drop.retailPrice&&parseFloat(drop.retailPrice)>0?parseFloat(drop.retailPrice):0;
+    const _psBids=_bids.filter(b=>b.dropId===dropId);
+    const _psTop=_psBids.reduce((mx,b)=>Math.max(mx,parseFloat(b.amount||0)),0);
+    const _psSv=_psRt>0&&_psTop>0&&_psRt>_psTop?(_psRt-_psTop).toFixed(0):null;
+    const _psPct=_psSv?Math.round((_psRt-_psTop)/_psRt*100):null;
+    const _psRtFmt=_psRt>0?_psRt.toFixed(0):null;
+    const _psTopFmt=_psTop>0?_psTop.toFixed(0):null;
+    const _sKey=drop&&drop.savingsStrip&&drop.savingsStrip!=='off'?drop.savingsStrip:null;
+    let _psHtml='';
     if(_psRt>0){
-      const _psBids=_bids.filter(b=>b.dropId===dropId);
-      const _psTop=_psBids.reduce((mx,b)=>Math.max(mx,parseFloat(b.amount||0)),0);
-      if(_psTop>0&&_psRt>_psTop){
-        const _psSave=(_psRt-_psTop).toFixed(0);
-        const _psPct=Math.round((_psRt-_psTop)/_psRt*100);
-        proactiveSavingsEl.innerHTML=`<div class="bps-amount">💰 You're already saving $${_psSave} vs retail</div><div class="bps-sub">Retail: $${_psRt.toFixed(0)} — current top bid saves you ${_psPct}% off what you'd pay anywhere else. Only the winner gets charged.</div>`;
+      if(_sKey==='gap'&&_psSv){
+        _psHtml=`<div class="bps-amount">📉 $${_psSv} gap between retail and current bid</div><div class="bps-sub">Retail is $${_psRtFmt}. The current bid is at $${_psTopFmt}. That $${_psSv} gap is yours if you win — and you only pay if you do.</div>`;
+      }else if(_sKey==='beat'&&_psSv){
+        _psHtml=`<div class="bps-amount">💰 Win this for $${_psSv} less than retail</div><div class="bps-sub">Everyone else pays $${_psRtFmt} for this. You could take it home for less — and nothing gets charged unless you win.</div>`;
+      }else if(_sKey==='elsewhere'){
+        _psHtml=`<div class="bps-amount">🏷️ This is $${_psRtFmt} everywhere else. Not here.</div><div class="bps-sub">${_psSv?`You're entering $${_psSv} below what you'd pay anywhere else.`:`Bid here and you're automatically below market rate.`} You only pay if you win.</div>`;
+      }else if(_sKey==='locked'&&_psSv){
+        _psHtml=`<div class="bps-amount">✅ $${_psSv} in savings — before you go higher</div><div class="bps-sub">Retail is $${_psRtFmt}. You're already $${_psSv} (${_psPct}%) ahead of retail from the first bid. You only pay if you win.</div>`;
+      }else if(_psTop>0&&_psRt>_psTop){
+        _psHtml=`<div class="bps-amount">💰 Already $${_psSv} below retail</div><div class="bps-sub">Retail: $${_psRtFmt} — current top bid is ${_psPct}% off what you'd pay anywhere else. Only the winner gets charged.</div>`;
       }else if(_psTop===0){
-        proactiveSavingsEl.innerHTML=`<div class="bps-amount">💰 Retail is $${_psRt.toFixed(0)} — your first bid saves instantly</div><div class="bps-sub">No bids yet. Any bid you place is already beating retail. Only the winner gets charged.</div>`;
-      }else{
-        proactiveSavingsEl.innerHTML='';
-        proactiveSavingsEl.style.display='none';
+        _psHtml=`<div class="bps-amount">💰 Retail is $${_psRtFmt} — your first bid saves instantly</div><div class="bps-sub">No bids yet. Any bid you place is already below what this costs everywhere else. Only the winner gets charged.</div>`;
       }
-      if(proactiveSavingsEl.innerHTML)proactiveSavingsEl.style.display='';
-    }else{
-      proactiveSavingsEl.style.display='none';
     }
+    proactiveSavingsEl.innerHTML=_psHtml;
+    proactiveSavingsEl.style.display=_psHtml?'':'none';
     if(drop&&drop.status==='teaser'&&isMemberVerified()){
-      proactiveSavingsEl.innerHTML=`<div class="bps-amount">⚡ You're in — Early Access Bid</div><div class="bps-sub">You're bidding 24 hours before this drop goes public. Founding members lock in first.</div>`+(proactiveSavingsEl.innerHTML||'');
+      proactiveSavingsEl.innerHTML=`<div class="bps-amount">⚡ You're in — Early Access Bid</div><div class="bps-sub">You're bidding 24 hours before this drop goes public. Founding members lock in first.</div>`+_psHtml;
       proactiveSavingsEl.style.display='';
     }
   }
@@ -3300,10 +3322,13 @@ function renderAdminDrops(){
     const timelineStartRow=`<div style="padding:8px 18px;border-top:1px solid rgba(0,35,149,.18);display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span style="font-size:.6rem;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-right:2px">Timeline Start:</span><span style="color:var(--muted);font-size:.8rem">$</span><input id="timeline-start-${drop.id}" type="number" min="0" step="0.01" value="${_curTS}" placeholder="e.g. 50" style="width:80px;background:rgba(255,255,255,.06);border:1px solid rgba(123,159,212,.3);border-radius:2px;padding:4px 8px;color:var(--fr-white);font-size:.75rem;font-family:'DM Sans',sans-serif"><button onclick="setTimelineStart('${drop.id}')" style="${btnS};border:1px solid rgba(62,207,142,.4);background:rgba(62,207,142,.1);color:var(--success)">Save</button><span style="font-size:.65rem;color:var(--muted)">${_curTS?`Timeline: $${parseFloat(_curTS).toFixed(0)} → $${drop.compBid?parseFloat(drop.compBid).toFixed(0):'?'} → $${drop.retailPrice?parseFloat(drop.retailPrice).toFixed(0):'?'}`:'Requires Retail Price + Pinned Bid to display'}</span></div>`;
     const _curRegret=drop.regretText||'';
     const regretTextRow=`<div style="padding:8px 18px;border-top:1px solid rgba(0,35,149,.18);display:flex;align-items:flex-start;gap:8px;flex-wrap:wrap"><span style="font-size:.6rem;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-right:2px;margin-top:5px;flex-shrink:0">Regret Strip:</span><div style="flex:1;min-width:200px"><textarea id="regret-text-${drop.id}" rows="2" placeholder="The last jersey like this sold for $165 — people who didn't bid at $120 watched it close." style="width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(123,159,212,.3);border-radius:2px;padding:6px 8px;color:var(--fr-white);font-size:.73rem;font-family:'DM Sans',sans-serif;resize:vertical">${_curRegret}</textarea><div style="display:flex;gap:8px;margin-top:5px"><button onclick="setRegretText('${drop.id}')" style="${btnS};border:1px solid rgba(62,207,142,.4);background:rgba(62,207,142,.1);color:var(--success)">Save</button>${_curRegret?`<button onclick="document.getElementById('regret-text-${drop.id}').value='';setRegretText('${drop.id}')" style="${btnS};border:1px solid rgba(255,107,107,.35);background:transparent;color:#ff6b6b">Clear</button>`:''}</div></div></div>`;
+    const _curSS=drop.savingsStrip||'off';
+    const _ssBtns=[['off','⬜ Off'],['gap','📉 Price Gap'],['beat','💰 Win Cheaper'],['elsewhere','🏷️ Costs Elsewhere'],['locked','✅ Locked In']].map(([k,lbl])=>`<button onclick="setSavingsStrip('${drop.id}','${k}')" style="${btnS};border:1px solid ${_curSS===k?'rgba(62,207,142,.5)':'rgba(123,159,212,.22)'};background:${_curSS===k?'rgba(62,207,142,.12)':'transparent'};color:${_curSS===k?'var(--success)':'var(--muted)'}">${lbl}</button>`).join('');
+    const savingsStripRow=`<div style="padding:8px 18px;border-top:1px solid rgba(0,35,149,.18);display:flex;align-items:center;gap:6px;flex-wrap:wrap"><span style="font-size:.6rem;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-right:2px">Savings Strip:</span>${_ssBtns}<span style="font-size:.63rem;color:var(--muted);font-style:italic">${_curSS==='off'?'Hidden':_curSS==='gap'?'"$X gap vs retail — bid now and keep that money"':_curSS==='beat'?'"Win this $X cheaper than retail"':_curSS==='elsewhere'?'"$X everywhere else. Not here."':'"$X in savings — locked in"'}</span></div>`;
     const _curOhbKey=drop.ohbCopy||'';
     const _ohbFA=!_curOhbKey||_curOhbKey==='fomo',_ohbCA=_curOhbKey==='challenge',_ohbSA=_curOhbKey==='scarcity';
     const ohbCopyRow=`<div style="padding:8px 18px;border-top:1px solid rgba(0,35,149,.18);display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span style="font-size:.6rem;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-right:2px">Only Here Copy:</span><button onclick="setOhbCopy('${drop.id}','fomo')" style="${btnS};border:1px solid ${_ohbFA?'rgba(237,41,57,.5)':'rgba(123,159,212,.22)'};background:${_ohbFA?'rgba(237,41,57,.12)':'transparent'};color:${_ohbFA?'var(--fr-red)':'var(--muted)'}">🔥 FOMO</button><button onclick="setOhbCopy('${drop.id}','challenge')" style="${btnS};border:1px solid ${_ohbCA?'rgba(62,207,142,.5)':'rgba(123,159,212,.22)'};background:${_ohbCA?'rgba(62,207,142,.12)':'transparent'};color:${_ohbCA?'var(--success)':'var(--muted)'}">💰 Challenge</button><button onclick="setOhbCopy('${drop.id}','scarcity')" style="${btnS};border:1px solid ${_ohbSA?'rgba(167,139,250,.5)':'rgba(123,159,212,.22)'};background:${_ohbSA?'rgba(167,139,250,.12)':'transparent'};color:${_ohbSA?'#a78bfa':'var(--muted)'}">💎 Scarcity</button><span style="font-size:.63rem;color:var(--muted);font-style:italic">${_ohbFA?'"Someone already moved on this. Won\'t find it priced like this anywhere else."':_ohbCA?'"Beat the bid and you\'re still saving vs retail. Exclusive to VC."':'"There\'s only one. Once it\'s gone, it\'s gone."'}</span></div>`;
-    return`<div class="drop-group"><div class="drop-group-hd"><div><div class="drop-group-name">${drop.name}</div><div style="font-size:.7rem;color:var(--muted);margin-top:2px">${drop.status} · ${db.length} bid(s)</div></div><div style="display:flex;gap:8px"><button class="btn-tog" onclick="toggleStatus('${drop.id}')">${drop.status==='published'?'Archive':'Publish'}</button><button class="btn-del" onclick="deleteDrop('${drop.id}')">Delete</button></div></div>${timerRow}${badgesRow}${oneOfOneRow}${photosRow}${retailPriceRow}${comparisonsRow}${earlyBidRow}${timelineStartRow}${regretTextRow}${ohbCopyRow}${templateRow}${lastChanceRow}<div style="overflow-x:auto"><table class="bids-table"><thead><tr><th>Name/Email</th><th>Phone</th><th>Bid</th><th>Address</th><th>Action</th><th>Date</th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
+    return`<div class="drop-group"><div class="drop-group-hd"><div><div class="drop-group-name">${drop.name}</div><div style="font-size:.7rem;color:var(--muted);margin-top:2px">${drop.status} · ${db.length} bid(s)</div></div><div style="display:flex;gap:8px"><button class="btn-tog" onclick="toggleStatus('${drop.id}')">${drop.status==='published'?'Archive':'Publish'}</button><button class="btn-del" onclick="deleteDrop('${drop.id}')">Delete</button></div></div>${timerRow}${badgesRow}${oneOfOneRow}${photosRow}${retailPriceRow}${comparisonsRow}${earlyBidRow}${timelineStartRow}${regretTextRow}${savingsStripRow}${ohbCopyRow}${templateRow}${lastChanceRow}<div style="overflow-x:auto"><table class="bids-table"><thead><tr><th>Name/Email</th><th>Phone</th><th>Bid</th><th>Address</th><th>Action</th><th>Date</th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
   }).join('');
 }
 
@@ -3409,6 +3434,16 @@ async function setCompTemplate(dropId,tpl){
     if(!res.ok){showToast('❌ '+(data.error||'Could not update'),true);return}
     await fetchDrops(true);renderAdminDrops();
     showToast(tpl==='fomo'?'🔥 FOMO strip active':'💰 Challenge strip active');
+  }catch(e){showToast('❌ Network error',true)}
+}
+async function setSavingsStrip(dropId,key){
+  if(!_adminPw){showToast('Admin session expired',true);return}
+  try{
+    const res=await fetch('/api/drops',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:dropId,adminPw:_adminPw,action:'setSavingsStrip',savingsStrip:key})});
+    const data=await res.json().catch(()=>({}));
+    if(!res.ok){showToast('❌ '+(data.error||'Could not update'),true);return}
+    await fetchDrops(true);renderAdminDrops();
+    showToast(key==='off'?'Savings strip hidden':'✅ Savings strip updated');
   }catch(e){showToast('❌ Network error',true)}
 }
 async function setOneOfOne(dropId,val){

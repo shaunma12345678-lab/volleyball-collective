@@ -355,6 +355,12 @@ module.exports = async (req, res) => {
       } else if (body.action === 'setOhbCopy') {
         if (body.ohbCopy && body.ohbCopy.trim()) drop.ohbCopy = body.ohbCopy.trim();
         else delete drop.ohbCopy;
+      } else if (body.action === 'setSavingsStrip') {
+        const validKeys = ['off', 'gap', 'beat', 'elsewhere', 'locked'];
+        if (body.savingsStrip && validKeys.includes(body.savingsStrip)) {
+          if (body.savingsStrip === 'off') delete drop.savingsStrip;
+          else drop.savingsStrip = body.savingsStrip;
+        }
       } else {
         drop.status = drop.status === 'published' ? 'archived' : 'published';
       }
