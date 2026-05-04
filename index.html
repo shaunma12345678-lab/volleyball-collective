@@ -2468,12 +2468,14 @@ function renderDrops(){
         const _myAutoBidEntry=_myDropEntries.find(mb=>mb.autoBid&&mb.autoBid.step&&!mb.isAutoBid);
         const _abOffBtn=_myAutoBidEntry?`<button class="auto-bid-cancel-btn" onclick="event.stopPropagation();cancelAutoBid('${_myAutoBidEntry.bidId}')">Turn off</button>`:'';
         if(!_isOutbid&&!_isBehindComp){
-          const _abActive=_myAutoBidEntry?`<div class="auto-bid-status-chip">⚡ Auto-bid ON — bumps $5 if outbid${_myAutoBidEntry.autoBid.maxBid?` · max $${parseFloat(_myAutoBidEntry.autoBid.maxBid).toFixed(0)}`:''} ${_abOffBtn}</div>`:'';
+          const _abActive=_myAutoBidEntry?`<div class="auto-bid-status-chip">⚡ Auto-bid ON — will raise your bid by $5 automatically${_myAutoBidEntry.autoBid.maxBid?` · max $${parseFloat(_myAutoBidEntry.autoBid.maxBid).toFixed(0)}`:''} ${_abOffBtn}</div>`:'';
           _statusChip=`<div class="winning-chip">✅ You're leading — currently winning</div>${_abActive}`;
+        }else if(_myAutoBidEntry){
+          // Outbid but auto-bid is ON — don't alarm, it's handling it automatically
+          _statusChip=`<div class="auto-bid-status-chip" style="margin-bottom:6px">⚡ Auto-bid is ON — your +$5 counter-bid is being placed automatically. ${_abOffBtn}</div>`;
         }else{
           const _behindNote=_isOutbid?`someone bid $${_otherTopAmt.toFixed(0)}`:`below pinned bid of $${_cbAmtCheck.toFixed(0)}`;
-          const _abFiring=_myAutoBidEntry?`<div class="auto-bid-status-chip">⚡ Auto-bid will fire — placing $5 above whoever beats you ${_abOffBtn}</div>`:'';
-          _statusChip=`<div class="losing-chip" onclick="event.stopPropagation();openBidModal('${d.id}')">⚠️ You're behind (${_behindNote}) — tap to rebid</div>${_abFiring}`;
+          _statusChip=`<div class="losing-chip" onclick="event.stopPropagation();openBidModal('${d.id}')">⚠️ You're behind (${_behindNote}) — tap to rebid</div>`;
         }
       }
     }
@@ -2824,17 +2826,17 @@ function openBidModal(dropId){
     let _psHtml='';
     if(_psRt>0){
       if(_sKey==='gap'&&_psSv){
-        _psHtml=`<div class="bps-amount">📉 $${_psSv} gap between retail and current bid</div><div class="bps-sub">Retail is $${_psRtFmt}. The current bid is at $${_psRefFmt}. That $${_psSv} gap is yours if you win — and you only pay if you do.</div>`;
+        _psHtml=`<div class="bps-amount">📉 $${_psSv} below retail — only at Volleyball Collective</div><div class="bps-sub">Retail is $${_psRtFmt}. The current bid sits at $${_psRefFmt}. You won't find this deal anywhere else — and you only pay if you win.</div>`;
       }else if(_sKey==='beat'&&_psSv){
-        _psHtml=`<div class="bps-amount">💰 Win this for $${_psSv} less than retail</div><div class="bps-sub">Everyone else pays $${_psRtFmt} for this. You could take it home for less — and nothing gets charged unless you win.</div>`;
+        _psHtml=`<div class="bps-amount">💰 $${_psSv} cheaper than anywhere else — right here</div><div class="bps-sub">Volleyball Collective is the only place this jersey goes below retail. Everyone else pays $${_psRtFmt}. Beat the current bid and take it home for less — you only pay if you win.</div>`;
       }else if(_sKey==='elsewhere'){
-        _psHtml=`<div class="bps-amount">🏷️ This is $${_psRtFmt} everywhere else. Not here.</div><div class="bps-sub">${_psSv?`You're entering $${_psSv} below what you'd pay anywhere else.`:`Bid here and you're automatically below market rate.`} You only pay if you win.</div>`;
+        _psHtml=`<div class="bps-amount">🏆 The best deal on this jersey exists right here</div><div class="bps-sub">It's $${_psRtFmt} everywhere else. Volleyball Collective is the only place you'll find it below retail.${_psSv?` You're already $${_psSv} ahead before you even place a bid.`:''} You only pay if you win.</div>`;
       }else if(_sKey==='locked'&&_psSv){
-        _psHtml=`<div class="bps-amount">✅ $${_psSv} in savings — before you go higher</div><div class="bps-sub">Retail is $${_psRtFmt}. You're already $${_psSv} (${_psPct}%) ahead of retail from the first bid. You only pay if you win.</div>`;
+        _psHtml=`<div class="bps-amount">✅ $${_psSv} in savings — exclusively here</div><div class="bps-sub">Retail is $${_psRtFmt}. You're bidding $${_psSv} (${_psPct}%) below what you'd pay on any other platform. No one else offers this. You only pay if you win.</div>`;
       }else if(_psRef>0&&_psRt>_psRef){
-        _psHtml=`<div class="bps-amount">💰 Already $${_psSv} below retail</div><div class="bps-sub">Retail: $${_psRtFmt} — current bid is ${_psPct}% off what you'd pay anywhere else. Only the winner gets charged.</div>`;
+        _psHtml=`<div class="bps-amount">💰 $${_psSv} below retail — this deal only exists here</div><div class="bps-sub">Retail price is $${_psRtFmt}. Volleyball Collective is the only place you can get this below market. You only pay if you win.</div>`;
       }else if(_psTopBid===0){
-        _psHtml=`<div class="bps-amount">💰 Retail is $${_psRtFmt} — your first bid saves instantly</div><div class="bps-sub">No bids yet. Any bid you place is already below what this costs everywhere else. Only the winner gets charged.</div>`;
+        _psHtml=`<div class="bps-amount">🏆 Retail is $${_psRtFmt} — your bid instantly beats the market</div><div class="bps-sub">No bids yet. Volleyball Collective is the only place this jersey goes below retail. Be first — you only pay if you win.</div>`;
       }
     }
     proactiveSavingsEl.innerHTML=_psHtml;
@@ -3052,13 +3054,12 @@ function checkOutbidStatus(){
       if(!drop||drop.status==='archived')continue;
       const higherExists=_bids.some(b=>b.dropId===mb.dropId&&b.id!==mb.bidId&&parseFloat(b.amount||0)>mb.myAmount);
       if(higherExists){
-        // Auto-bid: fire if enabled on this bid and not already fired
-        if(mb.autoBid&&mb.autoBid.step&&!autoBidFired.includes(mb.bidId)){
-          try{
-            const fired=[...autoBidFired,mb.bidId];
-            localStorage.setItem('vc_autobid_fired',JSON.stringify(fired.slice(-50)));
-          }catch(e){}
-          triggerAutoBid(mb.bidId,mb.dropId,drop.name);
+        if(mb.autoBid&&mb.autoBid.step){
+          // Auto-bid ON: fire once, then stay silent — never show outbid banner while auto-bid is active
+          if(!autoBidFired.includes(mb.bidId)){
+            try{const fired=[...autoBidFired,mb.bidId];localStorage.setItem('vc_autobid_fired',JSON.stringify(fired.slice(-50)));}catch(e){}
+            triggerAutoBid(mb.bidId,mb.dropId,drop.name);
+          }
         }else{
           outbid.push({drop,myBid:mb});
         }
