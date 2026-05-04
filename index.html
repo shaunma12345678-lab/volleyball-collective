@@ -142,7 +142,7 @@ nav{position:fixed;top:38px;left:0;right:0;z-index:500;display:flex;justify-cont
 .drop-meta{display:flex;gap:8px;font-size:.7rem;color:var(--muted);margin-bottom:10px;flex-wrap:wrap;align-items:center}
 .drop-meta span{background:rgba(0,35,149,.2);border:1px solid rgba(0,35,149,.3);padding:3px 8px;border-radius:2px}
 .drop-desc{font-size:.82rem;color:var(--muted);line-height:1.6;margin-bottom:10px}
-.drop-footer{display:flex;align-items:flex-start;justify-content:space-between;padding-top:14px;border-top:1px solid rgba(255,255,255,.07);gap:10px}
+.drop-footer{display:flex;align-items:flex-start;justify-content:space-between;padding-top:14px;border-top:1px solid rgba(255,255,255,.07);gap:10px;position:relative}
 .drop-bid-count{font-size:.72rem;color:var(--muted);letter-spacing:1px}
 .price-tag{font-family:'Bebas Neue',sans-serif;font-size:1.6rem;color:var(--success)}
 .btn-bid-card{background:var(--fr-red);color:#fff;border:none;padding:11px 26px;font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:3px;cursor:pointer;border-radius:2px;transition:all .2s}
@@ -186,6 +186,14 @@ nav{position:fixed;top:38px;left:0;right:0;z-index:500;display:flex;justify-cont
 @keyframes livePulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.65)}}
 @keyframes bidFlash{0%{color:inherit;transform:scale(1)}30%{color:#ED2939;transform:scale(1.2)}70%{color:#ED2939;transform:scale(1.1)}100%{color:inherit;transform:scale(1)}}
 .bid-flash{animation:bidFlash .9s ease-out forwards}
+.bid-welcome-back{background:rgba(62,207,142,.1);border:1px solid rgba(62,207,142,.3);border-radius:3px;padding:10px 14px;margin-bottom:12px;font-size:.8rem;color:#3ecf8e;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.bid-wb-clear{background:none;border:none;color:rgba(123,159,212,.7);font-size:.73rem;cursor:pointer;font-family:'DM Sans',sans-serif;text-decoration:underline;padding:0;white-space:nowrap}
+.bid-wb-clear:hover{color:var(--muted)}
+.vt-1{color:#f97316}.vt-2{color:#ef4444}.vt-3{color:#ef4444;animation:vtPulse 1.8s ease-in-out infinite}.vt-4{color:#ef4444;animation:vtPulse .85s ease-in-out infinite}
+@keyframes vtPulse{0%,100%{opacity:1}50%{opacity:.42}}
+.last-bid-tag{font-size:.63rem;color:rgba(123,159,212,.65);letter-spacing:.3px}
+@keyframes bidPop{0%{opacity:1;transform:translateY(0) scale(1)}80%{opacity:.7}100%{opacity:0;transform:translateY(-42px) scale(.8)}}
+.bid-pop{position:absolute;bottom:14px;right:12px;z-index:10;font-size:.7rem;font-weight:700;color:#ED2939;letter-spacing:.5px;pointer-events:none;animation:bidPop 1s ease-out forwards;white-space:nowrap;text-shadow:0 1px 4px rgba(0,0,0,.5)}
 .zero-risk-callout{background:rgba(62,207,142,.09);border:1px solid rgba(62,207,142,.28);border-radius:3px;padding:13px 16px;font-size:.78rem;color:#3ecf8e;text-align:center;margin-bottom:14px;line-height:1.6}
 .zero-risk-callout strong{color:#5de3a8}
 /* Bid confidence callout — full width, above auction grid */
@@ -1185,6 +1193,7 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
           <div class="promo-feedback ok" id="bid-promo-ok"></div>
           <div class="promo-feedback err" id="bid-promo-err"></div>
         </div>
+        <div id="bid-welcome-back" class="bid-welcome-back" style="display:none"><span id="bid-wb-text"></span><button class="bid-wb-clear" onclick="clearBidInfo()">Not you? Clear</button></div>
         <span class="section-label">Your Information</span>
         <div class="form-row-2">
           <div class="form-row" style="margin:0"><label>Full Name</label><input type="text" id="bid-name" placeholder="Jane Smith"></div>
@@ -2408,13 +2417,20 @@ function renderDrops(){
     const endTimeStr=!isTeaser&&d.endTime?`<span class="end-countdown-tag" data-endtime="${d.endTime}">—</span>`:'';
     const now=Date.now();
     const recentBids=!isTeaser?db.filter(b=>now-new Date(b.createdAt).getTime()<3600000).length:0;
-    const velocityTag=recentBids>0?`<div class="velocity-tag">⚡ ${recentBids} bid${recentBids>1?'s':''} in the last hour</div>`:'';
+    let velocityTag='';
+    if(recentBids>=10){velocityTag=`<div class="velocity-tag vt-4">🚨 ${recentBids} bids this hour — bidding war</div>`;}
+    else if(recentBids>=6){velocityTag=`<div class="velocity-tag vt-3">🚨 ${recentBids} bids this hour — moving fast</div>`;}
+    else if(recentBids>=3){velocityTag=`<div class="velocity-tag vt-2">🔥 ${recentBids} bids this hour — heating up</div>`;}
+    else if(recentBids>=1){velocityTag=`<div class="velocity-tag vt-1">⚡ ${recentBids} bid${recentBids>1?'s':''} this hour — active</div>`;}
+    const _sortedRecent=!isTeaser&&db.length>0?db.slice().sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt)):[];
+    const _lastBidMins=_sortedRecent.length>0?Math.floor((now-new Date(_sortedRecent[0].createdAt).getTime())/60000):null;
+    const lastBidTag=_lastBidMins!==null&&_lastBidMins<120?`<div class="last-bid-tag">${_lastBidMins<1?'Last bid just now':`Last bid ${_lastBidMins}m ago`}</div>`:'';
     const closingSoon=!isTeaser&&d.endTime&&(new Date(d.endTime)-now)<7200000&&(new Date(d.endTime)-now)>0;
     const badgeChipFinal=isTeaser?`<span class="teaser-badge-chip">Coming Soon</span>`:closingSoon?`<span class="closing-soon-chip">⏰ Closing Soon</span>`:`<span class="drop-badge-chip">Active Drop</span>`;
     const auctionFreeShip=!isTeaser&&!d.sold?`<span class="free-ship-chip">🇺🇸 Free US Ship</span>`:'';
     const footerLeft=isTeaser
       ?(d.dropTime?`<span class="countdown-tag" data-countdown="${d.dropTime}">—</span>`:`<span class="drop-bid-count" style="color:var(--muted)">Bidding opens soon</span>`)
-      :`<div style="display:flex;flex-direction:column;gap:3px">${d.retailPrice&&parseFloat(d.retailPrice)>0?`<span class="only-here-card-row"><span style="font-size:.62rem;color:var(--muted)">Retail <span style="text-decoration:line-through">$${parseFloat(d.retailPrice).toFixed(2)}</span></span><span class="only-here-chip">Only Here</span></span>`:''}<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap"><span class="drop-bid-count">${fmtBids(db.length)}</span>${auctionFreeShip}</div>${endTimeStr}${velocityTag}</div>`;
+      :`<div style="display:flex;flex-direction:column;gap:3px">${d.retailPrice&&parseFloat(d.retailPrice)>0?`<span class="only-here-card-row"><span style="font-size:.62rem;color:var(--muted)">Retail <span style="text-decoration:line-through">$${parseFloat(d.retailPrice).toFixed(2)}</span></span><span class="only-here-chip">Only Here</span></span>`:''}<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap"><span class="drop-bid-count">${fmtBids(db.length)}</span>${auctionFreeShip}</div>${endTimeStr}${velocityTag}${lastBidTag}</div>`;
     const hotLevel=!isTeaser&&db.length>=25?3:db.length>=10?2:db.length>=5?1:0;
     const hotClass=hotLevel?` card-hot-${hotLevel}`:'';
     const closingSoonClass=closingSoon?' card-closing-soon':'';
@@ -2508,7 +2524,18 @@ function renderDrops(){
   if(_flashDropIds.size>0){
     _flashDropIds.forEach(dropId=>{
       const card=g.querySelector(`[data-drop-id="${dropId}"]`);
-      if(card){const bc=card.querySelector('.drop-bid-count');if(bc){bc.classList.add('bid-flash');setTimeout(()=>bc.classList.remove('bid-flash'),1000);}}
+      if(card){
+        const bc=card.querySelector('.drop-bid-count');
+        if(bc){bc.classList.add('bid-flash');setTimeout(()=>bc.classList.remove('bid-flash'),1000);}
+        const footer=card.querySelector('.drop-footer');
+        if(footer){
+          const pop=document.createElement('span');
+          pop.className='bid-pop';
+          pop.textContent='+1 bid';
+          footer.appendChild(pop);
+          setTimeout(()=>{try{pop.remove();}catch{}},1050);
+        }
+      }
     });
     _flashDropIds.clear();
   }
@@ -2816,7 +2843,23 @@ function openBidModal(dropId){
   }
   const stickyBar=document.getElementById('sticky-bid-bar');
   if(stickyBar)stickyBar.classList.remove('show');
+  try{
+    const _si=JSON.parse(localStorage.getItem('vc_saved_info')||'null');
+    const _wbEl=document.getElementById('bid-welcome-back');
+    const _wbTxt=document.getElementById('bid-wb-text');
+    if(_si&&_si.name&&_si.email){
+      ['name','email','phone','street','city','state','zip','country'].forEach(f=>{const el=document.getElementById('bid-'+f);if(el&&_si[f])el.value=_si[f];});
+      if(_wbEl){_wbEl.style.display='';if(_wbTxt)_wbTxt.textContent=`Welcome back, ${_si.name.split(' ')[0]}! Your info is filled in.`;}
+    }else{if(_wbEl)_wbEl.style.display='none';}
+  }catch(e){}
   document.getElementById('bid-overlay').classList.add('active');
+}
+function clearBidInfo(){
+  try{localStorage.removeItem('vc_saved_info');}catch(e){}
+  const _wbEl=document.getElementById('bid-welcome-back');
+  if(_wbEl)_wbEl.style.display='none';
+  ['bid-name','bid-email','bid-phone','bid-street','bid-city','bid-state','bid-zip'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  const cEl=document.getElementById('bid-country');if(cEl)cEl.value='USA';
 }
 function updateBnButtonPrice(){
   const drop=_drops.find(d=>d.id===activeBuyNow);
@@ -3049,6 +3092,7 @@ async function submitBid(){
   const otherBidCount=_bids.filter(b=>b.dropId===activeDrop).length;
   _bids=[..._bids,{id:bid.id,dropId:bid.dropId,createdAt:bid.createdAt,amount:bid.amount}];
   try{const _mb=JSON.parse(localStorage.getItem('vc_mybids')||'[]');_mb.push({dropId:activeDrop,bidId:bid.id,myAmount:parseFloat(amount),placedAt:bid.createdAt,...(_autoBidEnabled?{autoBid:{step:5,maxBid:_autoBidMax}}:{})});localStorage.setItem('vc_mybids',JSON.stringify(_mb.slice(-20)));}catch(e){}
+  try{localStorage.setItem('vc_saved_info',JSON.stringify({name,email,phone,street,city,state,zip,country}));}catch(e){}
   const competeMsg=otherBidCount===0
     ?`You're in first — nobody else has bid yet. <strong style="color:#5de3a8">You're currently winning.</strong> Watch the auction and raise your bid if someone catches up.`
     :otherBidCount===1
