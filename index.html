@@ -2433,10 +2433,13 @@ function renderDrops(){
     const _lastBidMins=_sortedRecent.length>0?Math.floor((now-new Date(_sortedRecent[0].createdAt).getTime())/60000):null;
     const _vtClass=recentBids>=10?'vt-4':recentBids>=6?'vt-3':recentBids>=3?'vt-2':'vt-1';
     const _vtIcon=recentBids>=6?'🚨':recentBids>=3?'🔥':'⚡';
-    const _lasViewers=watchCount>=1?`<span class="las-viewers"><span class="las-dot"></span>${watchCount} watching</span>`:'';
-    const _lasSep=watchCount>=1&&recentBids>=1?`<span class="las-sep">·</span>`:'';
+    // Strip: prefer hourly viewers (more relevant), fall back to all-time total after hour resets
+    const _stripViewCount=hourlyViews>=1?hourlyViews:watchCount;
+    const _stripViewLabel=hourlyViews>=1?`${hourlyViews} viewing this hour`:`${watchCount} watching`;
+    const _lasViewers=_stripViewCount>=1?`<span class="las-viewers"><span class="las-dot"></span>${_stripViewLabel}</span>`:'';
+    const _lasSep=_stripViewCount>=1&&recentBids>=1?`<span class="las-sep">·</span>`:'';
     const _lasBids=recentBids>=1?`<span class="las-bids ${_vtClass}">${_vtIcon} ${recentBids} bid${recentBids>1?'s':''} this hour</span>`:'';
-    const liveActivityStrip=!isTeaser&&(watchCount>=1||recentBids>=1)?`<div class="live-activity-strip">${_lasViewers}${_lasSep}${_lasBids}</div>`:'';
+    const liveActivityStrip=!isTeaser&&(_stripViewCount>=1||recentBids>=1)?`<div class="live-activity-strip">${_lasViewers}${_lasSep}${_lasBids}</div>`:'';
     const closingSoon=!isTeaser&&d.endTime&&(new Date(d.endTime)-now)<7200000&&(new Date(d.endTime)-now)>0;
     const badgeChipFinal=isTeaser?`<span class="teaser-badge-chip">Coming Soon</span>`:closingSoon?`<span class="closing-soon-chip">⏰ Closing Soon</span>`:`<span class="drop-badge-chip">Active Drop</span>`;
     const auctionFreeShip=!isTeaser&&!d.sold?`<span class="free-ship-chip">🇺🇸 Free US Ship</span>`:'';
@@ -2810,25 +2813,27 @@ function openBidModal(dropId){
   if(proactiveSavingsEl){
     const _psRt=drop&&drop.retailPrice&&parseFloat(drop.retailPrice)>0?parseFloat(drop.retailPrice):0;
     const _psBids=_bids.filter(b=>b.dropId===dropId);
-    const _psTop=_psBids.reduce((mx,b)=>Math.max(mx,parseFloat(b.amount||0)),0);
-    const _psSv=_psRt>0&&_psTop>0&&_psRt>_psTop?(_psRt-_psTop).toFixed(0):null;
-    const _psPct=_psSv?Math.round((_psRt-_psTop)/_psRt*100):null;
+    const _psTopBid=_psBids.reduce((mx,b)=>Math.max(mx,parseFloat(b.amount||0)),0);
+    // Use admin-pinned compBid as savings reference — not the live top bid which shrinks savings as bids go up
+    const _psRef=drop&&drop.compBid&&parseFloat(drop.compBid)>0?parseFloat(drop.compBid):_psTopBid;
+    const _psSv=_psRt>0&&_psRef>0&&_psRt>_psRef?(_psRt-_psRef).toFixed(0):null;
+    const _psPct=_psSv?Math.round((_psRt-_psRef)/_psRt*100):null;
     const _psRtFmt=_psRt>0?_psRt.toFixed(0):null;
-    const _psTopFmt=_psTop>0?_psTop.toFixed(0):null;
+    const _psRefFmt=_psRef>0?_psRef.toFixed(0):null;
     const _sKey=drop&&drop.savingsStrip&&drop.savingsStrip!=='off'?drop.savingsStrip:null;
     let _psHtml='';
     if(_psRt>0){
       if(_sKey==='gap'&&_psSv){
-        _psHtml=`<div class="bps-amount">📉 $${_psSv} gap between retail and current bid</div><div class="bps-sub">Retail is $${_psRtFmt}. The current bid is at $${_psTopFmt}. That $${_psSv} gap is yours if you win — and you only pay if you do.</div>`;
+        _psHtml=`<div class="bps-amount">📉 $${_psSv} gap between retail and current bid</div><div class="bps-sub">Retail is $${_psRtFmt}. The current bid is at $${_psRefFmt}. That $${_psSv} gap is yours if you win — and you only pay if you do.</div>`;
       }else if(_sKey==='beat'&&_psSv){
         _psHtml=`<div class="bps-amount">💰 Win this for $${_psSv} less than retail</div><div class="bps-sub">Everyone else pays $${_psRtFmt} for this. You could take it home for less — and nothing gets charged unless you win.</div>`;
       }else if(_sKey==='elsewhere'){
         _psHtml=`<div class="bps-amount">🏷️ This is $${_psRtFmt} everywhere else. Not here.</div><div class="bps-sub">${_psSv?`You're entering $${_psSv} below what you'd pay anywhere else.`:`Bid here and you're automatically below market rate.`} You only pay if you win.</div>`;
       }else if(_sKey==='locked'&&_psSv){
         _psHtml=`<div class="bps-amount">✅ $${_psSv} in savings — before you go higher</div><div class="bps-sub">Retail is $${_psRtFmt}. You're already $${_psSv} (${_psPct}%) ahead of retail from the first bid. You only pay if you win.</div>`;
-      }else if(_psTop>0&&_psRt>_psTop){
-        _psHtml=`<div class="bps-amount">💰 Already $${_psSv} below retail</div><div class="bps-sub">Retail: $${_psRtFmt} — current top bid is ${_psPct}% off what you'd pay anywhere else. Only the winner gets charged.</div>`;
-      }else if(_psTop===0){
+      }else if(_psRef>0&&_psRt>_psRef){
+        _psHtml=`<div class="bps-amount">💰 Already $${_psSv} below retail</div><div class="bps-sub">Retail: $${_psRtFmt} — current bid is ${_psPct}% off what you'd pay anywhere else. Only the winner gets charged.</div>`;
+      }else if(_psTopBid===0){
         _psHtml=`<div class="bps-amount">💰 Retail is $${_psRtFmt} — your first bid saves instantly</div><div class="bps-sub">No bids yet. Any bid you place is already below what this costs everywhere else. Only the winner gets charged.</div>`;
       }
     }
