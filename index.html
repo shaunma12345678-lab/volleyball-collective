@@ -2393,7 +2393,7 @@ function renderDrops(){
     const watchCount=_watchCounts[d.id]||0;
     const hourlyViews=_hourlyWatchCounts[d.id]||0;
     const notifyCount=isTeaser?((_notifyCounts&&_notifyCounts[d.id])||0):0;
-    const viewerBadge=watchCount>2?`<span class="viewer-badge">👁 ${watchCount} watching</span>`:'';
+    const viewerBadge=watchCount>=1?`<span class="viewer-badge">👁 ${watchCount} watching</span>`:'';
     const hourlyViewsStr=!isTeaser&&hourlyViews>1?`<span class="hourly-views">👁 ${hourlyViews} viewed in the last hour</span>`:'';
     const offerRow=isTeaser?'':`<div class="drop-offer-row">${hourlyViewsStr}<button class="drop-offer-link" onclick="event.stopPropagation();openDropOfferModal('${d.id}','${d.name.replace(/'/g,"\\'").replace(/"/g,'&quot;')}')">🔔 5% Off</button><span style="color:rgba(123,159,212,.3);font-size:.8rem">·</span><button class="drop-offer-link" style="color:var(--muted);border-color:rgba(123,159,212,.2)" onclick="event.stopPropagation();openNotifyModal('${d.id}','${d.name.replace(/'/g,"\\'").replace(/"/g,'&quot;')}','similar')">🔔 Notify Me</button></div>`;
     const notifyWaitingRow=isTeaser&&notifyCount>0?`<div class="notify-waiting-row">🔔 ${notifyCount} ${notifyCount===1?'person':'people'} waiting for this drop</div>`:'';
@@ -2489,7 +2489,6 @@ function renderDrops(){
         <div class="drop-meta">${d.size?`<span>Size: ${d.size}</span>`:''}${d.condition?`<span>${d.condition}</span>`:''}${_earlyChip}</div>
         ${_statusChip}
         ${d.desc?`<p class="drop-desc">${d.desc}</p>`:''}
-        ${oneOfOneStrip}
         ${teaserEarlyStrip}${savingsStrip}${valueStrip}${_stealMeter}${_bidTimeline}${_oppBanner}${_regretStrip}${_lastChanceStrip}
         <div class="drop-footer">${footerLeft}${actionBtn}</div>
         ${offerRow}${notifyWaitingRow}
@@ -2684,7 +2683,7 @@ async function incrementWatch(dropId){
     const imgWrap=card.querySelector('.drop-img-wrap');
     if(!imgWrap)return;
     let badge=card.querySelector('.viewer-badge');
-    if(wc>2){
+    if(wc>=1){
       if(!badge){badge=document.createElement('span');badge.className='viewer-badge';imgWrap.appendChild(badge);}
       badge.textContent=`👁 ${wc} watching`;
     }
