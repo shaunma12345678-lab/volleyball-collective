@@ -1016,27 +1016,8 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
       </div>`;
     }).join('');
   }
-  // generate next 6 upcoming drop dates
-  const datesEl=document.getElementById('schedule-dates');
-  if(datesEl){
-    const upcoming=[];
-    const d=new Date(today);
-    d.setHours(0,0,0,0);
-    while(upcoming.length<6){
-      if(DROP_DAYS.includes(d.getDay())){
-        upcoming.push(new Date(d));
-      }
-      d.setDate(d.getDate()+1);
-    }
-    const fmt=dt=>dt.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
-    datesEl.innerHTML=upcoming.map((dt,i)=>{
-      const isNext=i===0;
-      return`<div class="sched-date-row${isNext?' next-up':''}">
-        <span class="sched-date-label">${fmt(dt)}</span>
-        ${isNext?`<span class="sched-next-badge">Next Drop</span>`:`<span class="sched-muted-badge">Drop Day</span>`}
-      </div>`;
-    }).join('');
-  }
+  // dates rendered by renderScheduleDates() after API fetch
+  if(typeof renderScheduleDates==='function')renderScheduleDates();
 })();
 </script>
 
@@ -1414,6 +1395,7 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
         <button class="tab" onclick="switchTab('tab-promos')">Ambassador Codes</button>
         <button class="tab" onclick="switchTab('tab-emaillist')">Email List</button>
         <button class="tab" id="tab-btn-refunds" onclick="switchTab('tab-refunds')">Refund Requests</button>
+        <button class="tab" onclick="switchTab('tab-schedule')">📅 Schedule</button>
       </div>
       <div class="tab-content active" id="tab-drops">
         <button class="btn-secondary" style="margin-bottom:18px;font-size:.7rem;letter-spacing:2px;padding:9px 18px" onclick="refreshAll().then(()=>{renderAdminDrops();renderAllBids();})">↻ Refresh</button>
@@ -1424,6 +1406,7 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
       <div class="tab-content" id="tab-promos"><div id="admin-promos-list">Loading…</div></div>
       <div class="tab-content" id="tab-emaillist"><div id="admin-emaillist">Loading…</div></div>
       <div class="tab-content" id="tab-refunds"><div id="admin-refund-list">Loading…</div></div>
+      <div class="tab-content" id="tab-schedule"><div id="admin-schedule-content" style="padding:8px 0">Loading…</div></div>
       <div class="tab-content" id="tab-add">
         <div class="form-row">
           <label>Listing Type</label>
@@ -1958,7 +1941,7 @@ document.querySelectorAll('button,a,.drop-card').forEach(el=>{
 })();
 
 // ── DATA ──
-let _drops=[],_bids=[],_adminPw=null,_subData={total:0,spotsLeft:200,isEarlyBird:true,currentPrice:'9.99'},_watchCounts={},_hourlyWatchCounts={},_notifyCounts={},_prevBidsByDrop=null,_flashDropIds=new Set(),_bgProcessing=new Set(),_cart=[];
+let _drops=[],_bids=[],_adminPw=null,_subData={total:0,spotsLeft:200,isEarlyBird:true,currentPrice:'9.99'},_watchCounts={},_hourlyWatchCounts={},_notifyCounts={},_prevBidsByDrop=null,_flashDropIds=new Set(),_bgProcessing=new Set(),_cart=[],_scheduleDates=[];
 let _pendingAdminRefresh=false;
 let _dropsHash='',_bidsHash='';
 function isAdminInputFocused(){const el=document.activeElement;return!!(el&&(el.tagName==='INPUT'||el.tagName==='TEXTAREA'||el.tagName==='SELECT')&&el.closest&&el.closest('#admin-overlay'));}
@@ -2317,6 +2300,31 @@ function renderBeatMarket(){
   if(noteEl)noteEl.textContent='All figures are real bids placed on this platform. Retail prices are manufacturer\'s suggested retail. Only the winning bidder is ever charged.';
 }
 
+// ── DROP SCHEDULE ──
+const _FALLBACK_DROP_DAYS=[2,4,0];
+function renderScheduleDates(){
+  const datesEl=document.getElementById('schedule-dates');
+  if(!datesEl)return;
+  if(_scheduleDates&&_scheduleDates.length){
+    const fmt=ds=>{const d=new Date(ds);const base=d.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});const h=d.getHours(),m=d.getMinutes();return h||m?base+' at '+d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}):base;};
+    datesEl.innerHTML=_scheduleDates.map((item,i)=>`<div class="sched-date-row${i===0?' next-up':''}"><div><span class="sched-date-label">${fmt(item.date)}</span>${item.label?`<div style="font-size:.65rem;color:var(--muted);margin-top:2px;letter-spacing:.3px">${item.label}</div>`:''}</div>${i===0?`<span class="sched-next-badge">Next Drop</span>`:`<span class="sched-muted-badge">Drop Day</span>`}</div>`).join('');
+  }else{
+    const today=new Date();today.setHours(0,0,0,0);
+    const upcoming=[];const d=new Date(today);
+    while(upcoming.length<6){if(_FALLBACK_DROP_DAYS.includes(d.getDay()))upcoming.push(new Date(d));d.setDate(d.getDate()+1);}
+    const fmt=dt=>dt.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
+    datesEl.innerHTML=upcoming.map((dt,i)=>`<div class="sched-date-row${i===0?' next-up':''}"><span class="sched-date-label">${fmt(dt)}</span>${i===0?`<span class="sched-next-badge">Next Drop</span>`:`<span class="sched-muted-badge">Drop Day</span>`}</div>`).join('');
+  }
+}
+async function fetchSchedule(){
+  try{
+    const r=await fetch('/api/schedule');if(!r.ok)return;
+    const data=await r.json();
+    if(Array.isArray(data.dates))_scheduleDates=data.dates;
+    renderScheduleDates();
+  }catch(e){console.warn('fetchSchedule failed',e);}
+}
+
 // ── RENDER DROPS ──
 let activeDrop=null;
 const _photoIdx={};
@@ -2456,6 +2464,13 @@ function renderDrops(){
         valueStrip=`<div class="value-strip vs-challenge"><div class="vs-top"><span class="vs-num">💰 Someone already bid <span class="vs-big">$${_cbAmt.toFixed(0)}</span></span><span class="vs-dot">·</span><span class="vs-save-amt">still $${_sv} under retail</span><span class="vs-retail-line">(retail <span class="vs-retail-cross">$${_rtAmt.toFixed(0)}</span>)</span></div><div class="vs-copy">Top it and you're still walking away with an awesome deal — you only pay if you win.</div></div>`;
       } else {
         valueStrip=`<div class="value-strip vs-fomo"><div class="vs-top"><span class="vs-num">🔥 <span class="vs-big">$${_cbAmt.toFixed(0)}</span> bid placed</span><span class="vs-dot">·</span><span class="vs-save-amt">$${_sv} below retail</span><span class="vs-retail-line">(retail <span class="vs-retail-cross">$${_rtAmt.toFixed(0)}</span>)</span></div><div class="vs-copy">Someone moved first. This is still a deal — and it could still be yours.</div></div>`;
+      }
+    }
+    if(!valueStrip&&d.oneOfOne&&!isTeaser&&!d.sold){
+      if(d.compTemplate==='challenge'){
+        valueStrip=`<div class="value-strip vs-challenge"><div class="vs-top"><span class="vs-num">💰 One exists. You could be the one who has it.</span></div><div class="vs-copy">No one else can ever win this exact item. Place a bid and it could be yours — you only pay if you win.</div></div>`;
+      }else{
+        valueStrip=`<div class="value-strip vs-fomo"><div class="vs-top"><span class="vs-num">🔥 This is a 1-of-1. Once it's gone, it's gone.</span></div><div class="vs-copy">Someone already moved on this. There's exactly one in existence — and it could be yours.</div></div>`;
       }
     }
     const _dealSavings=_rtAmt>0&&_cbAmt>0?_rtAmt-_cbAmt:0;
@@ -3268,8 +3283,40 @@ async function adminLogin(){
   await Promise.all([fetchBids(true),fetchSubscriptionCount(true)]);
   renderAdminDrops();renderAllBids();
 }
+function renderAdminSchedule(){
+  const el=document.getElementById('admin-schedule-content');
+  if(!el)return;
+  const btnS='font-size:.61rem;padding:4px 12px;border-radius:2px;cursor:pointer;font-family:\'DM Sans\',sans-serif;letter-spacing:1px;transition:all .15s';
+  const fmtDt=ds=>{const d=new Date(ds);return d.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'})+(d.getHours()||d.getMinutes()?(' at '+d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})):'');};
+  const rows=_scheduleDates.length
+    ?_scheduleDates.map((item,i)=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid rgba(0,35,149,.2);gap:12px"><div><div style="font-size:.85rem;color:var(--fr-white)">${fmtDt(item.date)}</div>${item.label?`<div style="font-size:.7rem;color:var(--muted);margin-top:2px">${item.label}</div>`:''}</div><button onclick="deleteScheduleDate(${i})" style="${btnS};border:1px solid rgba(255,107,107,.35);background:transparent;color:#ff6b6b">Remove</button></div>`).join('')
+    :`<p style="color:var(--muted);font-size:.82rem;margin:0 0 16px">No custom dates set — showing auto Tue/Thu/Sun schedule on site.</p>`;
+  el.innerHTML=`<div style="max-width:560px"><p style="font-size:.74rem;color:var(--muted);margin:0 0 16px;line-height:1.6">Set specific upcoming drop dates that appear in the schedule section. Leave empty to use the automatic Tue/Thu/Sun calendar.</p><div style="margin-bottom:18px">${rows}</div><div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;padding:16px;background:rgba(0,35,149,.08);border:1px solid rgba(0,35,149,.3);border-radius:4px"><div><label style="display:block;font-size:.58rem;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:5px">Date &amp; Time</label><input type="datetime-local" id="sched-date-input" style="background:rgba(255,255,255,.06);border:1px solid rgba(123,159,212,.3);border-radius:2px;padding:7px 10px;color:var(--fr-white);font-size:.78rem;font-family:'DM Sans',sans-serif"></div><div><label style="display:block;font-size:.58rem;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:5px">Label (optional)</label><input type="text" id="sched-label-input" placeholder="e.g. France Jersey Drop" style="width:200px;background:rgba(255,255,255,.06);border:1px solid rgba(123,159,212,.3);border-radius:2px;padding:7px 10px;color:var(--fr-white);font-size:.78rem;font-family:'DM Sans',sans-serif"></div><button onclick="addScheduleDate()" style="${btnS};border:1px solid rgba(62,207,142,.4);background:rgba(62,207,142,.1);color:var(--success);padding:8px 18px">+ Add Date</button></div></div>`;
+}
+async function addScheduleDate(){
+  const di=document.getElementById('sched-date-input');
+  const li=document.getElementById('sched-label-input');
+  if(!di||!di.value){showToast('Pick a date first',true);return}
+  const updated=[..._scheduleDates,{date:new Date(di.value).toISOString(),label:(li&&li.value.trim())||''}].sort((a,b)=>new Date(a.date)-new Date(b.date));
+  await saveScheduleDates(updated);
+  if(di)di.value='';if(li)li.value='';
+}
+async function deleteScheduleDate(idx){
+  await saveScheduleDates(_scheduleDates.filter((_,i)=>i!==idx));
+}
+async function saveScheduleDates(dates){
+  if(!_adminPw){showToast('Admin session expired',true);return}
+  try{
+    const res=await fetch('/api/schedule',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({adminPw:_adminPw,dates})});
+    const data=await res.json().catch(()=>({}));
+    if(!res.ok){showToast('❌ '+(data.error||'Could not save'),true);return}
+    _scheduleDates=data.dates||dates;
+    renderScheduleDates();renderAdminSchedule();
+    showToast('✅ Schedule updated');
+  }catch(e){showToast('❌ Network error',true)}
+}
 function switchTab(id){
-  const ids=['tab-drops','tab-all-bids','tab-members','tab-add','tab-promos','tab-emaillist','tab-refunds'];
+  const ids=['tab-drops','tab-all-bids','tab-members','tab-add','tab-promos','tab-emaillist','tab-refunds','tab-schedule'];
   document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',ids[i]===id));
   document.querySelectorAll('.tab-content').forEach(tc=>tc.classList.toggle('active',tc.id===id));
   if(id==='tab-drops')renderAdminDrops();
@@ -3278,6 +3325,7 @@ function switchTab(id){
   if(id==='tab-promos')renderAdminCodes();
   if(id==='tab-emaillist')renderAdminEmailList();
   if(id==='tab-refunds')fetchRefundRequests();
+  if(id==='tab-schedule')renderAdminSchedule();
 }
 
 function renderAdminDrops(){
@@ -4173,7 +4221,7 @@ function showToast(msg,err=false,ok=false){
 })();
 
 // ── INIT ──
-renderDrops();renderShop();renderFlash();refreshAll();
+renderDrops();renderShop();renderFlash();refreshAll();fetchSchedule();
 (function(){const p=new URLSearchParams(window.location.search);const rb=p.get('refund');if(rb)setTimeout(()=>openRefundModal(rb),600);})();
 // Deep link: ?bid=DROP_ID — auto-open bid modal (used in outbid emails for one-tap rebid)
 (function(){
