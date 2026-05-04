@@ -2466,6 +2466,8 @@ function renderDrops(){
     const _vtClass=recentBids>=10?'vt-4':recentBids>=6?'vt-3':recentBids>=3?'vt-2':'vt-1';
     const _vtIcon=recentBids>=6?'🚨':recentBids>=3?'🔥':'⚡';
     // Strip: prefer hourly viewers (more relevant), fall back to all-time total after hour resets
+    const _cbAmt=d.compBid&&parseFloat(d.compBid)>0?parseFloat(d.compBid):0;
+    const _rtAmt=d.retailPrice&&parseFloat(d.retailPrice)>0?parseFloat(d.retailPrice):0;
     const _stripViewCount=hourlyViews>=1?hourlyViews:watchCount;
     const _svGap=_cbAmt>0&&_rtAmt>_cbAmt?`$${(_rtAmt-_cbAmt).toFixed(0)} below retail`:null;
     const _stripViewLabel=hourlyViews>=1
@@ -2518,8 +2520,6 @@ function renderDrops(){
     }
     const _earlyActive=isEarlyBidActive(d);
     const _earlyChip=!isTeaser&&!d.sold&&_earlyActive?`<span class="early-bid-chip">⚡ Early Bid — 5% off if you win</span>`:'';
-    const _cbAmt=d.compBid&&parseFloat(d.compBid)>0?parseFloat(d.compBid):0;
-    const _rtAmt=d.retailPrice&&parseFloat(d.retailPrice)>0?parseFloat(d.retailPrice):0;
     let savingsStrip='';
     if(!isTeaser&&!d.sold&&_rtAmt>0&&d.savingsStrip&&d.savingsStrip!=='off'){
       const _sv=_cbAmt>0&&_rtAmt>_cbAmt?(_rtAmt-_cbAmt).toFixed(0):null;
