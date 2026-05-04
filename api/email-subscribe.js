@@ -114,6 +114,7 @@ module.exports = async (req, res) => {
         bidRevenue: 0,
         type: 'welcome',
         createdAt: new Date().toISOString(),
+        expiresAt: Date.now() + 7 * 24 * 60 * 60 * 1000,
       }));
       await redis('SADD', 'promos:all', code);
 

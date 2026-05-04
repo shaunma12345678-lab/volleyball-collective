@@ -30,6 +30,8 @@ module.exports = async (req, res) => {
 
     const promo = JSON.parse(raw);
     if (!promo.active) return res.status(200).json({ valid: false, error: 'This code is no longer active' });
+    if (promo.expiresAt && Date.now() > promo.expiresAt)
+      return res.status(200).json({ valid: false, error: 'This code has expired' });
 
     const totalUses = (promo.buyNowUses || 0) + (promo.bidUses || 0);
     if (promo.maxUses && totalUses >= promo.maxUses)

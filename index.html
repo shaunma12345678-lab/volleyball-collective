@@ -678,6 +678,47 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
 .sched-next-badge{font-size:.56rem;letter-spacing:2px;text-transform:uppercase;color:#ED2939;background:rgba(237,41,57,.12);border:1px solid rgba(237,41,57,.3);padding:2px 8px;border-radius:2px;font-weight:700}
 .sched-muted-badge{font-size:.56rem;letter-spacing:2px;text-transform:uppercase;color:var(--muted);opacity:.6}
 @media(max-width:640px){#schedule{padding:60px 20px}.schedule-week{gap:5px}.schedule-day{padding:11px 4px}.sd-icon{font-size:1rem}}
+/* ── VIEWER BADGE ── */
+.viewer-badge{position:absolute;top:10px;right:10px;z-index:4;background:rgba(0,21,79,.88);border:1px solid rgba(62,207,142,.45);color:#3ecf8e;font-size:.6rem;letter-spacing:1px;padding:4px 10px;border-radius:2px;backdrop-filter:blur(6px);font-weight:700;white-space:nowrap}
+/* ── SAVINGS HEADLINE ── */
+.savings-headline{background:rgba(62,207,142,.07);border:1px solid rgba(62,207,142,.25);border-radius:3px;padding:9px 12px;margin-bottom:8px;display:flex;align-items:center;flex-wrap:wrap;gap:6px}
+.sh-amount{font-family:'Bebas Neue',sans-serif;font-size:1.15rem;color:#3ecf8e;letter-spacing:1px}
+.sh-pct{font-size:.6rem;color:#3ecf8e;background:rgba(62,207,142,.15);border:1px solid rgba(62,207,142,.3);padding:2px 8px;border-radius:10px;font-weight:700;letter-spacing:.5px}
+.sh-label{font-size:.67rem;color:var(--muted);flex-basis:100%;margin-top:1px;line-height:1.35}
+/* ── MEMBER PROGRESS BAR ── */
+.member-progress-wrap{width:100%;max-width:280px;background:rgba(0,35,149,.2);border:1px solid rgba(0,35,149,.4);border-radius:3px;height:8px;overflow:hidden;margin:10px auto 5px}
+.member-progress-fill{height:100%;background:linear-gradient(90deg,var(--fr-red),#ff6b6b);border-radius:3px;transition:width .8s ease}
+.member-progress-label{font-size:.68rem;color:var(--muted);text-align:center;letter-spacing:.5px;margin-bottom:6px}
+.member-progress-label strong{color:var(--fr-white)}
+/* ── TEASER MEMBER EARLY ACCESS ── */
+.teaser-early-strip{background:linear-gradient(135deg,rgba(62,207,142,.1),rgba(62,207,142,.04));border:1px solid rgba(62,207,142,.35);border-radius:3px;padding:10px 14px;margin-bottom:8px;text-align:center}
+.tes-badge{font-size:.58rem;letter-spacing:3px;text-transform:uppercase;color:#3ecf8e;font-weight:700}
+.tes-sub{font-size:.68rem;color:var(--muted);margin-top:4px;line-height:1.4}
+.btn-early-access{background:rgba(62,207,142,.15);border:1px solid rgba(62,207,142,.5);color:#3ecf8e;padding:11px 26px;font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:3px;cursor:pointer;border-radius:2px;transition:all .2s;width:100%}
+.btn-early-access:hover{background:rgba(62,207,142,.28);transform:translateY(-1px)}
+.btn-join-early{background:rgba(237,41,57,.1);border:1px solid rgba(237,41,57,.4);color:var(--fr-red);padding:11px 26px;font-family:'Bebas Neue',sans-serif;font-size:.88rem;letter-spacing:2px;cursor:pointer;border-radius:2px;transition:all .2s;width:100%;margin-top:6px}
+.btn-join-early:hover{background:rgba(237,41,57,.2)}
+.member-early-chip{position:absolute;top:14px;left:14px;z-index:5;background:rgba(62,207,142,.9);color:#001540;font-size:.58rem;letter-spacing:2px;text-transform:uppercase;padding:5px 12px;border-radius:2px;font-weight:800;backdrop-filter:blur(4px)}
+/* ── BID PROACTIVE SAVINGS ── */
+.bid-proactive-savings{background:rgba(62,207,142,.07);border:1px solid rgba(62,207,142,.25);border-radius:3px;padding:12px 14px;margin-bottom:14px}
+.bps-amount{font-family:'Bebas Neue',sans-serif;font-size:1.4rem;color:#3ecf8e;letter-spacing:1px}
+.bps-sub{font-size:.72rem;color:var(--muted);margin-top:3px;line-height:1.45}
+/* ── BEAT THE MARKET SECTION ── */
+#beat-market{position:relative;z-index:2;padding:90px 48px;border-top:1px solid rgba(0,35,149,.25)}
+.bm-inner{max-width:900px;margin:0 auto}
+.bm-stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin:36px 0 32px}
+.bm-stat{text-align:center;padding:22px 14px;background:rgba(0,35,149,.12);border:1px solid rgba(0,35,149,.3);border-radius:4px}
+.bm-stat-num{font-family:'Bebas Neue',sans-serif;font-size:2.6rem;color:#3ecf8e;letter-spacing:2px;line-height:1}
+.bm-stat-label{font-size:.65rem;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-top:6px}
+.bm-drops-list{display:flex;flex-direction:column;gap:9px;margin-bottom:24px}
+.bm-drop-row{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;padding:13px 17px;background:rgba(0,35,149,.1);border:1px solid rgba(0,35,149,.25);border-radius:3px}
+.bm-drop-name{font-size:.84rem;color:var(--fr-white);flex:1;min-width:120px}
+.bm-drop-prices{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.bm-retail{font-size:.74rem;color:var(--muted);text-decoration:line-through}
+.bm-bid{font-family:'Bebas Neue',sans-serif;font-size:1.05rem;color:#3ecf8e;letter-spacing:1px}
+.bm-save-badge{background:rgba(62,207,142,.12);border:1px solid rgba(62,207,142,.35);color:#3ecf8e;font-size:.6rem;letter-spacing:1px;padding:2px 8px;border-radius:2px;font-weight:700;white-space:nowrap}
+.bm-note{text-align:center;font-size:.72rem;color:var(--muted);line-height:1.6;max-width:520px;margin:0 auto}
+@media(max-width:640px){#beat-market{padding:60px 20px}.bm-stats-grid{grid-template-columns:1fr;gap:12px}.bm-drop-row{flex-direction:column;align-items:flex-start}}
 </style>
 </head>
 <body>
@@ -864,6 +905,8 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
         <span class="membership-price span.period" style="font-size:.7rem;color:var(--muted);letter-spacing:3px;text-transform:uppercase;margin-top:4px;display:block">per month</span>
       </div>
       <span class="early-bird-badge" id="early-bird-badge">Founding Member Rate</span>
+      <p class="member-progress-label" id="member-progress-label" style="display:none"></p>
+      <div class="member-progress-wrap" id="member-progress-wrap" style="display:none"><div class="member-progress-fill" id="member-progress-fill" style="width:0%"></div></div>
       <p class="spots-counter" id="spots-counter">Loading availability…</p>
       <button class="btn-join" onclick="openSubscribeModal()">Become a Founding Member →</button>
       <p class="membership-fine">Cancel anytime · No contracts · Secure checkout via Stripe</p>
@@ -917,6 +960,20 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
         <p class="guarantee-text">Questions after winning? We respond directly — no bots. Reach us via <strong style="color:var(--fr-white)">Instagram @volleyballcollective</strong> or email.</p>
       </div>
     </div>
+  </div>
+</section>
+
+<!-- BEAT THE MARKET SECTION -->
+<section id="beat-market">
+  <div class="bm-inner">
+    <div style="text-align:center">
+      <span class="section-eyebrow">Price Proof</span>
+      <h2 class="section-title">We Beat The Market</h2>
+      <p style="font-family:'Playfair Display',serif;font-style:italic;color:var(--muted);font-size:.95rem;max-width:540px;margin:14px auto 0;line-height:1.7">Every number below is a <strong style="color:var(--fr-white);font-style:normal">real drop on this platform</strong> — the pinned bid versus what the same item costs at retail. You bid below retail. You only pay if you win.</p>
+    </div>
+    <div class="bm-stats-grid" id="bm-stats"></div>
+    <div class="bm-drops-list" id="bm-drops"></div>
+    <p class="bm-note" id="bm-note"></p>
   </div>
 </section>
 
@@ -1125,6 +1182,7 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
             <span style="font-size:.72rem;color:#3ecf8e;font-weight:600;white-space:nowrap">Tap to use →</span>
           </button>
         </div>
+        <div id="bid-proactive-savings" class="bid-proactive-savings" style="display:none"></div>
         <div class="form-row"><label>Your Bid Amount (USD)</label><div class="amount-wrap"><span>$</span><input type="number" id="bid-amount" placeholder="0.00" min="1" step="0.01" oninput="onBidAmountInput()"></div></div>
         <div id="bid-cheaper-calc" style="display:none" class="cheaper-calc"></div>
         <div class="auto-bid-row">
@@ -1486,6 +1544,7 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
       <div style="font-size:2.5rem;margin-bottom:14px">🎉</div>
       <h3 style="font-family:'Bebas Neue',sans-serif;font-size:2rem;letter-spacing:2px;color:var(--success);margin-bottom:10px">You're On The List!</h3>
       <p style="font-size:.88rem;color:var(--muted);line-height:1.6">Check your email — your 10% off code is on its way. We'll hit you every time a new drop goes live.</p>
+      <p style="font-size:.72rem;color:rgba(237,41,57,.7);margin-top:10px;letter-spacing:.3px">⏳ Code expires in 7 days — use it on your first bid or purchase.</p>
     </div>
   </div>
 </section>
@@ -2112,7 +2171,7 @@ async function fetchDrops(bust=false){
       if(data.watchCounts)_watchCounts=data.watchCounts;
       if(data.hourlyWatchCounts)_hourlyWatchCounts=data.hourlyWatchCounts;
       if(data.notifyCounts)_notifyCounts=data.notifyCounts;
-      if(changed){renderDrops();renderShop();renderFlash();}
+      if(changed){renderDrops();renderShop();renderFlash();renderBeatMarket();}
       const dash=document.getElementById('admin-dashboard');
       if(dash&&dash.style.display==='block'){
         if(isAdminInputFocused()){_pendingAdminRefresh=true;}
@@ -2210,9 +2269,52 @@ function renderMembershipSection(data){
       counter.innerHTML=`Founding spots available`;
     }
   }
+  if(data.isEarlyBird){
+    const filled=Math.max(0,200-(data.spotsLeft||0));
+    const pct=Math.min(100,Math.round((filled/200)*100));
+    const progressLabel=document.getElementById('member-progress-label');
+    const progressWrap=document.getElementById('member-progress-wrap');
+    const progressFill=document.getElementById('member-progress-fill');
+    if(progressLabel){progressLabel.innerHTML=`<strong>${filled}</strong> of 200 founding spots filled`;progressLabel.style.display='';}
+    if(progressWrap)progressWrap.style.display='';
+    if(progressFill)progressFill.style.width=pct+'%';
+  }
   if(subModalPrice)subModalPrice.innerHTML=`$${data.currentPrice}<span style="font-size:1.2rem;color:var(--muted)">/mo</span>`;
   if(subModalSpots&&data.isEarlyBird&&data.spotsLeft>0)subModalSpots.textContent=`Only ${data.spotsLeft} founding spots remaining`;
   else if(subModalSpots)subModalSpots.textContent='';
+}
+
+// ── BEAT THE MARKET ──
+function renderBeatMarket(){
+  const statsEl=document.getElementById('bm-stats');
+  const dropsEl=document.getElementById('bm-drops');
+  const noteEl=document.getElementById('bm-note');
+  const section=document.getElementById('beat-market');
+  if(!statsEl||!dropsEl)return;
+  const qualifying=_drops.filter(d=>{
+    const rt=d.retailPrice&&parseFloat(d.retailPrice)>0?parseFloat(d.retailPrice):0;
+    const cb=d.compBid&&parseFloat(d.compBid)>0?parseFloat(d.compBid):0;
+    return rt>0&&cb>0&&rt>cb;
+  });
+  if(!qualifying.length){
+    if(section)section.style.display='none';
+    return;
+  }
+  if(section)section.style.display='';
+  const totalSavings=qualifying.reduce((s,d)=>s+(parseFloat(d.retailPrice)-parseFloat(d.compBid)),0);
+  const avgSavings=totalSavings/qualifying.length;
+  const avgPct=Math.round(qualifying.reduce((s,d)=>{const rt=parseFloat(d.retailPrice),cb=parseFloat(d.compBid);return s+(rt-cb)/rt*100;},0)/qualifying.length);
+  statsEl.innerHTML=`
+    <div class="bm-stat"><div class="bm-stat-num">${avgPct}%</div><div class="bm-stat-label">Avg Savings vs Retail</div></div>
+    <div class="bm-stat"><div class="bm-stat-num">$${avgSavings.toFixed(0)}</div><div class="bm-stat-label">Avg $ Saved Per Drop</div></div>
+    <div class="bm-stat"><div class="bm-stat-num">${qualifying.length}</div><div class="bm-stat-label">Drops With Proven Savings</div></div>`;
+  dropsEl.innerHTML=qualifying.slice(0,5).map(d=>{
+    const rt=parseFloat(d.retailPrice),cb=parseFloat(d.compBid);
+    const save=(rt-cb).toFixed(0);
+    const pct=Math.round((rt-cb)/rt*100);
+    return`<div class="bm-drop-row"><span class="bm-drop-name">${d.name}</span><div style="display:flex;align-items:center;gap:10px;flex-shrink:0"><span style="font-size:.72rem;color:var(--muted);text-decoration:line-through">$${rt.toFixed(0)}</span><span style="font-size:.85rem;color:var(--fr-white);font-weight:600">$${cb.toFixed(0)}</span><span class="bm-save-badge">$${save} off (${pct}%)</span></div></div>`;
+  }).join('');
+  if(noteEl)noteEl.textContent='All figures are real bids placed on this platform. Retail prices are manufacturer\'s suggested retail. Only the winning bidder is ever charged.';
 }
 
 // ── RENDER DROPS ──
@@ -2265,23 +2367,30 @@ function renderDrops(){
     const isTeaser=d.status==='teaser';
     const db=bids.filter(b=>b.dropId===d.id);
     const img=cardPhotos(d);
+    const isMemberEarly=isTeaser&&isMemberVerified();
     const isLocked=!isTeaser&&d.memberOnly&&!isMemberVerified();
-    const memberBadge=d.memberOnly?`<span class="member-badge-chip">🔒 Members</span>`:'';
+    const memberBadge=d.memberOnly&&!isTeaser?`<span class="member-badge-chip">🔒 Members</span>`:'';
     const lockOverlay=isLocked?`<div class="member-drop-overlay"><span class="member-lock-icon">🔒</span></div>`:'';
-    const teaserOverlay=isTeaser?`<div class="teaser-img-overlay"></div>`:'';
+    const teaserOverlay=isTeaser&&!isMemberEarly?`<div class="teaser-img-overlay"></div>`:'';
     const badgeChip=isTeaser?`<span class="teaser-badge-chip">Coming Soon</span>`:`<span class="drop-badge-chip">Active Drop</span>`;
-    const cardClick=isTeaser?'':(isLocked?`openMemberVerify(()=>openBidModal('${d.id}'))`:`openBidModal('${d.id}')`);
+    const cardClick=isTeaser?(isMemberEarly?`openBidModal('${d.id}')`:''):(isLocked?`openMemberVerify(()=>openBidModal('${d.id}'))`:`openBidModal('${d.id}')`);
+    const teaserPublicCountdown=isTeaser&&d.dropTime?`<div class="teaser-public-countdown">Goes public: <span data-countdown="${d.dropTime}">—</span></div>`:'';
     const actionBtn=isTeaser
-      ?`<button class="btn-bid-card" style="background:rgba(123,159,212,.15);border:1px solid rgba(123,159,212,.4);color:var(--muted)" onclick="event.stopPropagation();openNotifyModal('${d.id}','${d.name.replace(/'/g,"\\'").replace(/"/g,'&quot;')}','teaser')">Notify Me →</button>`
+      ?isMemberEarly
+        ?`<div onclick="event.stopPropagation()"><button class="btn-early-access" onclick="openBidModal('${d.id}')">⚡ Bid Now — Early Access</button><div style="font-size:.63rem;color:#3ecf8e;text-align:center;margin-top:6px;letter-spacing:.3px;font-weight:500">✓ You're bidding before the public drop</div>${teaserPublicCountdown}</div>`
+        :`<div onclick="event.stopPropagation()"><button class="btn-bid-card" style="background:rgba(123,159,212,.1);border:1px solid rgba(123,159,212,.35);color:var(--muted)" onclick="openNotifyModal('${d.id}','${d.name.replace(/'/g,"\\'").replace(/"/g,'&quot;')}','teaser')">🔔 Notify Me</button><button class="btn-join-early" onclick="openSubscribeModal()">🔒 Join Members — Bid 24h Early</button></div>`
       :isLocked
         ?`<button class="btn-bid-card btn-member-lock" onclick="event.stopPropagation();openMemberVerify(()=>openBidModal('${d.id}'))">🔒 Members Only</button>`
         :`<div onclick="event.stopPropagation()"><button class="btn-bid-card" onclick="openBidModal('${d.id}')">Reserve It — Free →</button><div style="font-size:.64rem;color:#3ecf8e;text-align:center;margin-top:6px;letter-spacing:.3px;font-weight:500">✓ Only the winner gets charged</div></div>`;
     const watchCount=_watchCounts[d.id]||0;
     const hourlyViews=_hourlyWatchCounts[d.id]||0;
     const notifyCount=isTeaser?((_notifyCounts&&_notifyCounts[d.id])||0):0;
+    const viewerBadge=watchCount>2?`<span class="viewer-badge">👁 ${watchCount} watching</span>`:'';
     const hourlyViewsStr=!isTeaser&&hourlyViews>1?`<span class="hourly-views">👁 ${hourlyViews} viewed in the last hour</span>`:'';
-    const offerRow=isTeaser?'':`<div class="drop-offer-row">${hourlyViewsStr}<button class="drop-offer-link" onclick="event.stopPropagation();openDropOfferModal('${d.id}','${d.name.replace(/'/g,"\\'").replace(/"/g,'&quot;')}')">🔔 5% Off</button><span style="color:rgba(123,159,212,.3);font-size:.8rem">·</span><button class="drop-offer-link" style="color:var(--muted);border-color:rgba(123,159,212,.2)" onclick="event.stopPropagation();openNotifyModal('${d.id}','${d.name.replace(/'/g,"\\'").replace(/"/g,'&quot;')}','similar')">🔔 Notify Me</button>${watchCount>0?`<span style="display:inline-flex;align-items:center;gap:4px;font-size:.65rem;color:rgba(62,207,142,.6);margin-left:auto;font-size:.62rem"><span class="live-dot"></span>${watchCount} total views</span>`:''}</div>`;
-    const notifyWaitingRow=isTeaser&&notifyCount>0?`<div class="notify-waiting-row">🔔 ${notifyCount} ${notifyCount===1?'person':'people'} already waiting</div>`:'';
+    const offerRow=isTeaser?'':`<div class="drop-offer-row">${hourlyViewsStr}<button class="drop-offer-link" onclick="event.stopPropagation();openDropOfferModal('${d.id}','${d.name.replace(/'/g,"\\'").replace(/"/g,'&quot;')}')">🔔 5% Off</button><span style="color:rgba(123,159,212,.3);font-size:.8rem">·</span><button class="drop-offer-link" style="color:var(--muted);border-color:rgba(123,159,212,.2)" onclick="event.stopPropagation();openNotifyModal('${d.id}','${d.name.replace(/'/g,"\\'").replace(/"/g,'&quot;')}','similar')">🔔 Notify Me</button></div>`;
+    const notifyWaitingRow=isTeaser&&notifyCount>0?`<div class="notify-waiting-row">🔔 ${notifyCount} ${notifyCount===1?'person':'people'} waiting for this drop</div>`:'';
+    const teaserEarlyStrip=isTeaser&&!isMemberEarly?`<div class="teaser-early-strip"><div class="tes-badge">⚡ Members Get Access 24 Hours Early</div><div class="tes-sub">Members bid before this goes public. Join to lock in your bid before anyone else can see it.</div></div>`:'';
+    const teaserMemberChip=isMemberEarly?`<span class="member-early-chip">⚡ Early Access</span>`:'';
     const endTimeStr=!isTeaser&&d.endTime?`<span class="end-countdown-tag" data-endtime="${d.endTime}">—</span>`:'';
     const now=Date.now();
     const recentBids=!isTeaser?db.filter(b=>now-new Date(b.createdAt).getTime()<3600000).length:0;
@@ -2323,6 +2432,8 @@ function renderDrops(){
     const _earlyChip=!isTeaser&&!d.sold&&_earlyActive?`<span class="early-bid-chip">⚡ Early Bid — 5% off if you win</span>`:'';
     const _cbAmt=d.compBid&&parseFloat(d.compBid)>0?parseFloat(d.compBid):0;
     const _rtAmt=d.retailPrice&&parseFloat(d.retailPrice)>0?parseFloat(d.retailPrice):0;
+    const savingsHeadline=!isTeaser&&!d.sold&&_rtAmt>0&&_cbAmt>0&&_rtAmt>_cbAmt
+      ?`<div class="savings-headline"><span class="sh-amount">Save $${(_rtAmt-_cbAmt).toFixed(0)}</span><span class="sh-pct">${Math.round((_rtAmt-_cbAmt)/_rtAmt*100)}% below retail</span><span class="sh-label">Retail: $${_rtAmt.toFixed(0)} — current bid is $${_cbAmt.toFixed(0)} below that</span></div>`:''
     let valueStrip='';
     if(!isTeaser&&!d.sold&&_cbAmt>0&&_rtAmt>0&&_rtAmt>_cbAmt){
       const _sv=(_rtAmt-_cbAmt).toFixed(0);
@@ -2342,7 +2453,7 @@ function renderDrops(){
     const _regretStrip=!isTeaser&&!d.sold&&d.regretText?`<div class="regret-strip">${d.regretText}</div>`:'';
     const _lastChanceStrip=closingSoon&&!d.sold?`<div class="last-chance-strip">🚨 <strong>Last Chance</strong> — This deal closes in under 2 hours. Price won't get better than this.</div>`:'';
     return`<div class="drop-card${isTeaser?' teaser-card':''}${hotClass}${closingSoonClass}" data-drop-id="${d.id}" style="animation-delay:${i*.09}s${isTeaser?';cursor:default':''}"${cardClick?` onclick="${cardClick}"`:''}}>
-      <div class="drop-img-wrap">${img}${teaserOverlay}${lockOverlay}${badgeChipFinal}${memberBadge}${hotBadge}${customBadges}${oneOfOneBadge}</div>
+      <div class="drop-img-wrap">${img}${teaserOverlay}${lockOverlay}${badgeChipFinal}${memberBadge}${hotBadge}${customBadges}${oneOfOneBadge}${viewerBadge}${teaserMemberChip}</div>
       <div class="card-stripe"></div>
       <div class="drop-body">
         <div class="drop-name">${d.name}</div>
@@ -2350,7 +2461,7 @@ function renderDrops(){
         ${_statusChip}
         ${d.desc?`<p class="drop-desc">${d.desc}</p>`:''}
         ${oneOfOneStrip}
-        ${valueStrip}${_stealMeter}${_bidTimeline}${_oppBanner}${_regretStrip}${_lastChanceStrip}
+        ${teaserEarlyStrip}${savingsHeadline}${valueStrip}${_stealMeter}${_bidTimeline}${_oppBanner}${_regretStrip}${_lastChanceStrip}
         <div class="drop-footer">${footerLeft}${actionBtn}</div>
         ${offerRow}${notifyWaitingRow}
       </div>
@@ -2605,6 +2716,31 @@ function openBidModal(dropId){
       compTableEl.innerHTML=`<div class="only-here-banner"><div class="ohb-top"><span class="ohb-exclusive">Exclusive Pricing</span><span class="ohb-badge">Only Available Here</span></div><div class="ohb-sub">${ohbCopy}</div></div><div class="comp-table-wrap"><div class="comp-table-title">What You'd Pay Elsewhere</div><table class="comp-table"><tbody>${compRows}${vcRow}</tbody></table></div>`;
     }else{
       compTableEl.innerHTML='';
+    }
+  }
+  const proactiveSavingsEl=document.getElementById('bid-proactive-savings');
+  if(proactiveSavingsEl){
+    const _psRt=drop&&drop.retailPrice&&parseFloat(drop.retailPrice)>0?parseFloat(drop.retailPrice):0;
+    if(_psRt>0){
+      const _psBids=_bids.filter(b=>b.dropId===dropId);
+      const _psTop=_psBids.reduce((mx,b)=>Math.max(mx,parseFloat(b.amount||0)),0);
+      if(_psTop>0&&_psRt>_psTop){
+        const _psSave=(_psRt-_psTop).toFixed(0);
+        const _psPct=Math.round((_psRt-_psTop)/_psRt*100);
+        proactiveSavingsEl.innerHTML=`<div class="bps-amount">💰 You're already saving $${_psSave} vs retail</div><div class="bps-sub">Retail: $${_psRt.toFixed(0)} — current top bid saves you ${_psPct}% off what you'd pay anywhere else. Only the winner gets charged.</div>`;
+      }else if(_psTop===0){
+        proactiveSavingsEl.innerHTML=`<div class="bps-amount">💰 Retail is $${_psRt.toFixed(0)} — your first bid saves instantly</div><div class="bps-sub">No bids yet. Any bid you place is already beating retail. Only the winner gets charged.</div>`;
+      }else{
+        proactiveSavingsEl.innerHTML='';
+        proactiveSavingsEl.style.display='none';
+      }
+      if(proactiveSavingsEl.innerHTML)proactiveSavingsEl.style.display='';
+    }else{
+      proactiveSavingsEl.style.display='none';
+    }
+    if(drop&&drop.status==='teaser'&&isMemberVerified()){
+      proactiveSavingsEl.innerHTML=`<div class="bps-amount">⚡ You're in — Early Access Bid</div><div class="bps-sub">You're bidding 24 hours before this drop goes public. Founding members lock in first.</div>`+(proactiveSavingsEl.innerHTML||'');
+      proactiveSavingsEl.style.display='';
     }
   }
   const suggWrap=document.getElementById('bid-sugg-wrap');
