@@ -2488,7 +2488,7 @@ function renderDrops(){
     const auctionFreeShip=!isTeaser&&!d.sold?`<span class="free-ship-chip">🇺🇸 Free US Ship</span>`:'';
     const footerLeft=isTeaser
       ?(d.dropTime?`<span class="countdown-tag" data-countdown="${d.dropTime}">—</span>`:`<span class="drop-bid-count" style="color:var(--muted)">Bidding opens soon</span>`)
-      :`<div style="display:flex;flex-direction:column;gap:3px">${d.retailPrice&&parseFloat(d.retailPrice)>0?`<span class="only-here-card-row"><span style="font-size:.62rem;color:var(--muted)">Retail <span style="text-decoration:line-through">$${parseFloat(d.retailPrice).toFixed(2)}</span></span><span class="only-here-chip">Only Here</span></span>`:''}<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap"><span class="drop-bid-count">${fmtBids(db.length)}</span>${auctionFreeShip}</div>${endTimeStr}</div>`;
+      :`<div style="display:flex;flex-direction:column;gap:3px"><div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap"><span class="drop-bid-count">${fmtBids(db.length)}</span>${auctionFreeShip}</div>${endTimeStr}</div>`;
     const hotLevel=!isTeaser&&db.length>=25?3:db.length>=10?2:db.length>=5?1:0;
     const hotClass=hotLevel?` card-hot-${hotLevel}`:'';
     const closingSoonClass=closingSoon?' card-closing-soon':'';
