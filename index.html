@@ -204,6 +204,8 @@ nav{position:fixed;top:38px;left:0;right:0;z-index:500;display:flex;justify-cont
 .bid-wb-use:hover{background:#5de3a8}
 .bid-wb-clear{background:none;border:none;color:rgba(123,159,212,.6);font-size:.7rem;cursor:pointer;font-family:'DM Sans',sans-serif;text-decoration:underline;padding:0;white-space:nowrap}
 .bid-wb-clear:hover{color:var(--muted)}
+.bid-wb-edit{background:none;border:1px solid rgba(62,207,142,.4);color:#3ecf8e;font-size:.7rem;cursor:pointer;font-family:'DM Sans',sans-serif;padding:4px 10px;border-radius:2px;white-space:nowrap;transition:background .15s}
+.bid-wb-edit:hover{background:rgba(62,207,142,.12)}
 .btn-save-info{background:none;border:1px solid rgba(123,159,212,.28);border-radius:3px;color:rgba(123,159,212,.75);font-size:.71rem;font-family:'DM Sans',sans-serif;padding:7px 14px;cursor:pointer;letter-spacing:.4px;transition:all .2s;display:flex;align-items:center;gap:6px;margin-left:auto;margin-top:10px}
 .btn-save-info:hover{border-color:rgba(123,159,212,.6);color:var(--fr-white);background:rgba(123,159,212,.08)}
 .btn-save-info.saved{border-color:rgba(62,207,142,.5);color:#3ecf8e;background:rgba(62,207,142,.07);pointer-events:none}
@@ -1254,7 +1256,7 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
           <div class="promo-feedback ok" id="bid-promo-ok"></div>
           <div class="promo-feedback err" id="bid-promo-err"></div>
         </div>
-        <div id="bid-welcome-back" class="bid-welcome-back" style="display:none"><span id="bid-wb-text">👋 Welcome back!</span><div class="bid-wb-actions"><button class="bid-wb-use" onclick="useSavedInfo()">Use saved info →</button><button class="bid-wb-clear" onclick="clearBidInfo()">Not you? Clear</button></div></div>
+        <div id="bid-welcome-back" class="bid-welcome-back" style="display:none"><span id="bid-wb-text">👋 Welcome back!</span><div class="bid-wb-actions"><button class="bid-wb-use" id="bid-wb-use-btn" onclick="useSavedInfo()">Use saved info →</button><button class="bid-wb-edit" id="bid-wb-edit-btn" onclick="editSavedInfo()" style="display:none">✏️ Edit info</button><button class="bid-wb-clear" onclick="clearBidInfo()">Not you? Clear</button></div></div>
         <span class="section-label">Your Information</span>
         <div class="form-row-2">
           <div class="form-row" style="margin:0"><label>Full Name</label><input type="text" id="bid-name" placeholder="Jane Smith"></div>
@@ -2968,10 +2970,15 @@ function openBidModal(dropId){
     const _wbEl=document.getElementById('bid-welcome-back');
     const _wbTxt=document.getElementById('bid-wb-text');
     if(_si&&_si.name&&_si.email){
+      const _wbUse=document.getElementById('bid-wb-use-btn');
+      const _wbEdit=document.getElementById('bid-wb-edit-btn');
       if(_wbEl){_wbEl.style.display='';if(_wbTxt)_wbTxt.textContent=`👋 Welcome back, ${_si.name.split(' ')[0]}!`;}
+      if(_wbUse)_wbUse.style.display='';
+      if(_wbEdit)_wbEdit.style.display='none';
     }else{if(_wbEl)_wbEl.style.display='none';}
   }catch(e){}
-  const _sbtn=document.getElementById('bid-save-btn');if(_sbtn){_sbtn.textContent='💾 Save my info for next time';_sbtn.classList.remove('saved');}
+  const _hasSaved=!!JSON.parse(localStorage.getItem('vc_saved_info')||'null');
+  const _sbtn=document.getElementById('bid-save-btn');if(_sbtn){_sbtn.innerHTML=_hasSaved?'✏️ Update saved info':'💾 Save my info for next time';_sbtn.classList.remove('saved');}
   try{
     const _sc=JSON.parse(localStorage.getItem('vc_saved_card')||'null');
     const _scWrap=document.getElementById('bid-saved-card-wrap');
@@ -3006,8 +3013,35 @@ function useSavedInfo(){
     const _si=JSON.parse(localStorage.getItem('vc_saved_info')||'null');
     if(!_si)return;
     ['name','email','phone','street','city','state','zip','country'].forEach(f=>{const el=document.getElementById('bid-'+f);if(el&&_si[f])el.value=_si[f];});
-    const _wbEl=document.getElementById('bid-welcome-back');if(_wbEl)_wbEl.style.display='none';
+    const _wbEl=document.getElementById('bid-welcome-back');
+    const _wbTxt=document.getElementById('bid-wb-text');
+    const _wbUse=document.getElementById('bid-wb-use-btn');
+    const _wbEdit=document.getElementById('bid-wb-edit-btn');
+    if(_wbTxt)_wbTxt.textContent=`✅ Info loaded — ${_si.name.split(' ')[0]}, ${_si.email}`;
+    if(_wbUse)_wbUse.style.display='none';
+    if(_wbEdit)_wbEdit.style.display='';
+    if(_wbEl)_wbEl.style.display='';
+    const btn=document.getElementById('bid-save-btn');
+    if(btn){btn.innerHTML='✏️ Update saved info';btn.classList.remove('saved');}
     if(typeof checkIntlShipping==='function')checkIntlShipping();
+  }catch(e){}
+}
+function editSavedInfo(){
+  try{
+    const _si=JSON.parse(localStorage.getItem('vc_saved_info')||'null');
+    if(_si)['name','email','phone','street','city','state','zip','country'].forEach(f=>{const el=document.getElementById('bid-'+f);if(el&&_si[f])el.value=_si[f];});
+    const _wbEl=document.getElementById('bid-welcome-back');
+    const _wbTxt=document.getElementById('bid-wb-text');
+    const _wbUse=document.getElementById('bid-wb-use-btn');
+    const _wbEdit=document.getElementById('bid-wb-edit-btn');
+    if(_wbTxt)_wbTxt.textContent='✏️ Edit your info below and save when done';
+    if(_wbUse)_wbUse.style.display='none';
+    if(_wbEdit)_wbEdit.style.display='none';
+    if(_wbEl)_wbEl.style.display='';
+    const btn=document.getElementById('bid-save-btn');
+    if(btn){btn.innerHTML='💾 Save updated info';btn.classList.remove('saved');}
+    const nameEl=document.getElementById('bid-name');
+    if(nameEl){nameEl.focus();nameEl.select();}
   }catch(e){}
 }
 function saveBidInfo(){
@@ -3016,12 +3050,22 @@ function saveBidInfo(){
   if(!name||!email){showToast('Enter your name and email first');return;}
   const info={name,email,phone:document.getElementById('bid-phone').value.trim(),street:document.getElementById('bid-street').value.trim(),city:document.getElementById('bid-city').value.trim(),state:document.getElementById('bid-state').value.trim(),zip:document.getElementById('bid-zip').value.trim(),country:document.getElementById('bid-country').value.trim()||'USA'};
   try{localStorage.setItem('vc_saved_info',JSON.stringify(info));}catch(e){}
+  const _wbEl=document.getElementById('bid-welcome-back');
+  const _wbTxt=document.getElementById('bid-wb-text');
+  const _wbUse=document.getElementById('bid-wb-use-btn');
+  const _wbEdit=document.getElementById('bid-wb-edit-btn');
+  if(_wbEl)_wbEl.style.display='';
+  if(_wbTxt)_wbTxt.textContent=`✅ Info saved — ${name.split(' ')[0]}, ${email}`;
+  if(_wbUse)_wbUse.style.display='none';
+  if(_wbEdit)_wbEdit.style.display='';
   const btn=document.getElementById('bid-save-btn');
-  if(btn){btn.innerHTML='✓ Saved for next time';btn.classList.add('saved');setTimeout(()=>{btn.innerHTML='💾 Save my info for next time';btn.classList.remove('saved');},2500);}
+  if(btn){btn.innerHTML='✓ Saved!';btn.classList.add('saved');setTimeout(()=>{btn.innerHTML='✏️ Update saved info';btn.classList.remove('saved');},2000);}
 }
 function clearBidInfo(){
   try{localStorage.removeItem('vc_saved_info');}catch(e){}
   const _wbEl=document.getElementById('bid-welcome-back');if(_wbEl)_wbEl.style.display='none';
+  const btn=document.getElementById('bid-save-btn');
+  if(btn){btn.innerHTML='💾 Save my info for next time';btn.classList.remove('saved');}
 }
 function updateBnButtonPrice(){
   const drop=_drops.find(d=>d.id===activeBuyNow);
