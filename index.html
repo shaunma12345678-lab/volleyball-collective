@@ -728,6 +728,8 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
 .sh-amount{font-family:'Bebas Neue',sans-serif;font-size:1.15rem;color:#3ecf8e;letter-spacing:1px}
 .sh-pct{font-size:.6rem;color:#3ecf8e;background:rgba(62,207,142,.15);border:1px solid rgba(62,207,142,.3);padding:2px 8px;border-radius:10px;font-weight:700;letter-spacing:.5px}
 .sh-label{font-size:.67rem;color:var(--muted);flex-basis:100%;margin-top:1px;line-height:1.35}
+.price-climb-strip{background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.28);border-radius:3px;padding:8px 12px;font-size:.68rem;color:#fbbf24;font-weight:600;margin-top:4px;line-height:1.4}
+.one-winner-strip{background:rgba(0,35,149,.18);border:1px solid rgba(123,159,212,.22);border-radius:3px;padding:9px 12px;font-size:.69rem;color:rgba(123,159,212,.9);margin-bottom:8px;display:flex;align-items:flex-start;gap:8px;line-height:1.45}
 /* ── MEMBER PROGRESS BAR ── */
 .member-progress-wrap{width:100%;max-width:280px;background:rgba(0,35,149,.2);border:1px solid rgba(0,35,149,.4);border-radius:3px;height:8px;overflow:hidden;margin:10px auto 5px}
 .member-progress-fill{height:100%;background:linear-gradient(90deg,var(--fr-red),#ff6b6b);border-radius:3px;transition:width .8s ease}
@@ -2524,20 +2526,27 @@ function renderDrops(){
     const _earlyChip=!isTeaser&&!d.sold&&_earlyActive?`<span class="early-bid-chip">⚡ Early Bid — 5% off if you win</span>`:'';
     let savingsStrip='';
     if(!isTeaser&&!d.sold&&_rtAmt>0&&d.savingsStrip&&d.savingsStrip!=='off'){
-      const _sv=_cbAmt>0&&_rtAmt>_cbAmt?(_rtAmt-_cbAmt).toFixed(0):null;
-      const _pct=_sv?Math.round((_rtAmt-parseFloat(_sv))/_rtAmt*100):null;
+      const _topBidAmt=db.length>0?db.reduce((mx,b)=>Math.max(mx,parseFloat(b.amount||0)),0):0;
+      const _svRef=_cbAmt>0?_cbAmt:_topBidAmt;
+      const _sv=_svRef>0&&_rtAmt>_svRef?(_rtAmt-_svRef).toFixed(0):null;
       const _rt=_rtAmt.toFixed(0);
-      const _cb=_cbAmt>0?_cbAmt.toFixed(0):null;
+      const _cb=_svRef>0?_svRef.toFixed(0):null;
+      const _svPct=_sv?Math.round(parseFloat(_sv)/_rtAmt*100):null;
       if(d.savingsStrip==='gap'&&_sv){
-        savingsStrip=`<div class="savings-headline"><span class="sh-amount">📉 $${_sv} gap vs retail</span><span class="sh-pct">${Math.round((_rtAmt-_cbAmt)/_rtAmt*100)}% off</span><span class="sh-label">Current bid is $${_sv} below retail ($${_rt}) — bid now and keep that money.</span></div>`;
+        savingsStrip=`<div class="savings-headline"><span class="sh-amount">📉 $${_sv} gap vs retail</span><span class="sh-pct">${_svPct}% off</span><span class="sh-label">Current bid is $${_sv} below retail ($${_rt}) — bid now and keep that money.</span></div>`;
       }else if(d.savingsStrip==='beat'&&_sv){
-        savingsStrip=`<div class="savings-headline"><span class="sh-amount">💰 Win this $${_sv} cheaper than retail</span><span class="sh-pct">${Math.round((_rtAmt-_cbAmt)/_rtAmt*100)}% off</span><span class="sh-label">Retail is $${_rt}. Current bid is $${_cb}. You could take it home for less.</span></div>`;
+        savingsStrip=`<div class="savings-headline"><span class="sh-amount">💰 Win this $${_sv} cheaper than retail</span><span class="sh-pct">${_svPct}% off</span><span class="sh-label">Retail is $${_rt}. Current bid is $${_cb}. You could take it home for less.</span></div>`;
       }else if(d.savingsStrip==='elsewhere'){
         savingsStrip=`<div class="savings-headline"><span class="sh-amount">🏷️ $${_rt} everywhere else. Not here.</span><span class="sh-label">${_sv?`Current bid is already $${_sv} below what you'd pay anywhere else.`:`Bid here and you're already below market rate.`}</span></div>`;
       }else if(d.savingsStrip==='locked'&&_sv){
-        savingsStrip=`<div class="savings-headline"><span class="sh-pct">${Math.round((_rtAmt-_cbAmt)/_rtAmt*100)}% below retail</span><span class="sh-amount">✅ $${_sv} in savings — locked in</span><span class="sh-label">Retail: $${_rt}. You're $${_sv} ahead before you even go higher. You only pay if you win.</span></div>`;
+        savingsStrip=`<div class="savings-headline"><span class="sh-pct">${_svPct}% below retail</span><span class="sh-amount">✅ $${_sv} in savings — locked in</span><span class="sh-label">Retail: $${_rt}. You're $${_sv} ahead before you even go higher. You only pay if you win.</span></div>`;
       }
     }
+    const _hourBids=_sortedRecent.filter(b=>now-new Date(b.createdAt).getTime()<3600000);
+    const _priceClimb=recentBids>=3&&_hourBids.length>=2?(()=>{const _e=parseFloat(_hourBids[_hourBids.length-1].amount||0);const _l=parseFloat(_hourBids[0].amount||0);return _l>_e?(_l-_e):null;})():null;
+    const priceClimbStrip=!isTeaser&&!d.sold&&_priceClimb?`<div class="price-climb-strip">⚡ Price climbed $${_priceClimb.toFixed(0)} in the last hour — bids are accelerating fast. Don't wait.</div>`:'';
+    const oneWinnerStrip=!isTeaser&&!d.sold?`<div class="one-winner-strip">🏆 <span>Only <strong style="color:#f5f0e8">1 person</strong> wins this. Everyone else pays nothing — but also walks away with nothing.</span></div>`:'';
+
     let valueStrip='';
     if(!isTeaser&&!d.sold&&_cbAmt>0&&_rtAmt>0&&_rtAmt>_cbAmt){
       const _sv=(_rtAmt-_cbAmt).toFixed(0);
@@ -2577,7 +2586,7 @@ function renderDrops(){
         <div class="drop-meta">${d.size?`<span>Size: ${d.size}</span>`:''}${d.condition?`<span>${d.condition}</span>`:''}${_earlyChip}</div>
         ${_statusChip}
         ${d.desc?`<p class="drop-desc">${d.desc}</p>`:''}
-        ${teaserEarlyStrip}${savingsStrip}${valueStrip}${_stealMeter}${_bidTimeline}${_oppBanner}${_regretStrip}${_lastChanceStrip}
+        ${teaserEarlyStrip}${savingsStrip}${valueStrip}${_stealMeter}${_bidTimeline}${_oppBanner}${_regretStrip}${priceClimbStrip}${_lastChanceStrip}${oneWinnerStrip}
         <div class="drop-footer">${footerLeft}${actionBtn}</div>
         ${offerRow}${notifyWaitingRow}
       </div>
