@@ -659,6 +659,17 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
 .outbid-dismiss{background:none;border:none;color:var(--muted);font-size:.85rem;cursor:pointer;padding:4px 8px;transition:color .2s;flex-shrink:0}
 .outbid-dismiss:hover{color:var(--fr-white)}
 .early-bid-chip{display:inline-flex;align-items:center;gap:4px;background:rgba(62,207,142,.1);border:1px solid rgba(62,207,142,.3);color:#3ecf8e;font-size:.58rem;padding:2px 8px;border-radius:10px;letter-spacing:.3px;white-space:nowrap}
+.deal-strip{border-radius:3px;padding:10px 14px;margin-top:4px;display:flex;align-items:center;gap:12px}
+.deal-strip-first{background:linear-gradient(90deg,rgba(251,191,36,.14),rgba(251,191,36,.05));border:1px solid rgba(251,191,36,.4)}
+.deal-strip-early{background:linear-gradient(90deg,rgba(62,207,142,.12),rgba(62,207,142,.04));border:1px solid rgba(62,207,142,.35)}
+.ds-pct{font-family:'Bebas Neue',sans-serif;font-size:1.8rem;letter-spacing:1px;line-height:1;flex-shrink:0}
+.ds-pct-first{color:#fbbf24}
+.ds-pct-early{color:#3ecf8e}
+.ds-body{min-width:0;flex:1}
+.ds-title{font-size:.75rem;font-weight:700;margin-bottom:3px}
+.ds-title-first{color:#fbbf24}
+.ds-title-early{color:#3ecf8e}
+.ds-sub{font-size:.66rem;color:rgba(245,240,232,.65);line-height:1.45}
 .early-bid-banner{background:rgba(62,207,142,.08);border-bottom:1px solid rgba(62,207,142,.22);padding:12px 24px;text-align:center;font-size:.83rem;color:var(--muted);line-height:1.5}
 .bid-timeline{display:flex;align-items:flex-start;gap:0;margin-top:9px;margin-bottom:2px;font-size:.62rem}
 .bt-step{display:flex;flex-direction:column;align-items:center;gap:2px;flex-shrink:0}
@@ -2572,6 +2583,12 @@ function renderDrops(){
     }
     const _earlyActive=isEarlyBidActive(d);
     const _earlyChip=!isTeaser&&!d.sold&&_earlyActive?`<span class="early-bid-chip">⚡ Early Bid — 5% off if you win</span>`:'';
+    const firstBidDealStrip=!isTeaser&&!d.sold&&db.length===0
+      ?`<div class="deal-strip deal-strip-first"><span class="ds-pct ds-pct-first">15%</span><div class="ds-body"><div class="ds-title ds-title-first">🥇 Bid first — 15% off if you win</div><div class="ds-sub">Be the very first bid on this drop. Win and we automatically knock 15% off your total. You only pay if you win — worst case you owe nothing.</div></div></div>`
+      :'';
+    const earlyBidDealStrip=!isTeaser&&!d.sold&&db.length>=1&&_earlyActive
+      ?`<div class="deal-strip deal-strip-early"><span class="ds-pct ds-pct-early">5%</span><div class="ds-body"><div class="ds-title ds-title-early">⚡ Early bid bonus — 5% off if you win</div><div class="ds-sub">Bid now during the early window and get 5% knocked off your winning bid. Only the winner pays — everyone else owes zero.</div></div></div>`
+      :'';
     let savingsStrip='';
     if(!isTeaser&&!d.sold&&_rtAmt>0&&d.savingsStrip&&d.savingsStrip!=='off'){
       const _topBidAmt=db.length>0?db.reduce((mx,b)=>Math.max(mx,parseFloat(b.amount||0)),0):0;
@@ -2655,7 +2672,7 @@ function renderDrops(){
         <div class="drop-meta">${d.size?`<span>Size: ${d.size}</span>`:''}${d.condition?`<span>${d.condition}</span>`:''}${_earlyChip}</div>
         ${_statusChip}
         ${d.desc?`<p class="drop-desc">${d.desc}</p>`:''}
-        ${teaserEarlyStrip}${hourDealStrip}${savingsStrip}${valueStrip}${_stealMeter}${_bidTimeline}${_oppBanner}${_regretStrip}${priceClimbStrip}${_lastChanceStrip}${oneWinnerStrip}
+        ${teaserEarlyStrip}${firstBidDealStrip}${earlyBidDealStrip}${hourDealStrip}${savingsStrip}${valueStrip}${_stealMeter}${_bidTimeline}${_oppBanner}${_regretStrip}${priceClimbStrip}${_lastChanceStrip}${oneWinnerStrip}
         <div class="drop-footer">${footerLeft}${actionBtn}</div>
         ${offerRow}${notifyWaitingRow}
       </div>

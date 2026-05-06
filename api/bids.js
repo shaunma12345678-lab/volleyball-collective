@@ -166,7 +166,7 @@ async function sendFirstBidEmail(bid, dropName, code) {
   await transporter.sendMail({
     from: `"Volleyball Collective" <${process.env.GMAIL_USER}>`,
     to: bid.email,
-    subject: `🥇 You were first — here's your exclusive 5% bid bonus`,
+    subject: `🥇 You were first — here's your exclusive 15% bid bonus`,
     html: `
       <div style="font-family:'DM Sans',Helvetica,Arial,sans-serif;max-width:500px;margin:0 auto;background:#00154F;color:#F5F0E8;padding:36px 32px;border-radius:6px">
         <div style="font-size:11px;letter-spacing:4px;text-transform:uppercase;color:#ED2939;margin-bottom:8px">Volleyball Collective</div>
@@ -176,7 +176,7 @@ async function sendFirstBidEmail(bid, dropName, code) {
         <div style="background:rgba(62,207,142,.08);border:1px solid rgba(62,207,142,.2);border-radius:4px;padding:18px;margin:20px 0;text-align:center">
           <div style="font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#7b9fd4;margin-bottom:8px">Your Exclusive Code</div>
           <div style="font-family:monospace;font-size:26px;font-weight:700;letter-spacing:4px;color:#3ecf8e">${code}</div>
-          <div style="font-size:12px;color:#7b9fd4;margin-top:10px;line-height:1.5">Use this code when you rebid on <strong>${dropName}</strong> to lock in <strong style="color:#3ecf8e">5% off</strong> your winning bid. One use only.</div>
+          <div style="font-size:12px;color:#7b9fd4;margin-top:10px;line-height:1.5">Use this code when you rebid on <strong>${dropName}</strong> to lock in <strong style="color:#3ecf8e">15% off</strong> your winning bid. One use only.</div>
         </div>
         <a href="https://volleyball-collective.vercel.app" style="display:inline-block;background:#ED2939;color:#fff;padding:14px 32px;font-family:'DM Sans',sans-serif;font-size:.8rem;letter-spacing:3px;text-transform:uppercase;text-decoration:none;border-radius:2px">Go Rebid With Code →</a>
         <p style="margin:24px 0 0;font-size:11px;color:#7b9fd4">Only the winner gets charged. — Volleyball Collective</p>
@@ -294,7 +294,7 @@ module.exports = async (req, res) => {
             code,
             label: `First Bid Bonus — ${dropName}`,
             ownerEmail: bid.email.toLowerCase().trim(),
-            discount: 5,
+            discount: 15,
             active: true,
             maxUses: 1,
             buyNowUses: 0,
