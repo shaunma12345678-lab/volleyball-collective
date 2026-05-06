@@ -2501,8 +2501,8 @@ function renderDrops(){
     const _stripViewCount=hourlyViews>=1?hourlyViews:watchCount;
     const _svGap=_cbAmt>0&&_rtAmt>_cbAmt?`$${(_rtAmt-_cbAmt).toFixed(0)} below retail`:null;
     const _stripViewLabel=hourlyViews>=1
-      ?`${hourlyViews} watching this deal${_svGap?` — ${_svGap}`:''}`
-      :`${watchCount} watching${_svGap?` — ${_svGap}`:''}`;
+      ?`${hourlyViews} watching this hour${_svGap?` — ${_svGap}`:''}`
+      :watchCount>=1?`${watchCount} watching total${_svGap?` — ${_svGap}`:''}`:'';
     const _lasViewers=_stripViewCount>=1?`<span class="las-viewers"><span class="las-dot"></span>${_stripViewLabel}</span>`:'';
     const _lasBids=recentBids>=1
       ?`<span class="las-bids ${_vtClass}">${_vtIcon} ${recentBids} bid${recentBids>1?'s':''} this hour</span>`
