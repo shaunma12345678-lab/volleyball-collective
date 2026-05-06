@@ -2501,12 +2501,12 @@ function renderDrops(){
     const _stripViewCount=hourlyViews>=1?hourlyViews:watchCount;
     const _svGap=_cbAmt>0&&_rtAmt>_cbAmt?`$${(_rtAmt-_cbAmt).toFixed(0)} below retail`:null;
     const _stripViewLabel=hourlyViews>=1
-      ?`${hourlyViews} watching this hour${_svGap?` — ${_svGap}`:''}`
-      :watchCount>=1?`${watchCount} watching total${_svGap?` — ${_svGap}`:''}`:'';
+      ?`${hourlyViews} people eyeing this right now${_svGap?` — ${_svGap}`:''}`
+      :watchCount>=1?`${watchCount} people watching this drop${_svGap?` — ${_svGap}`:''}`:'';
     const _lasViewers=_stripViewCount>=1?`<span class="las-viewers"><span class="las-dot"></span>${_stripViewLabel}</span>`:'';
     const _lasBids=recentBids>=1
-      ?`<span class="las-bids ${_vtClass}">${_vtIcon} ${recentBids} bid${recentBids>1?'s':''} this hour</span>`
-      :db.length>=5?`<span class="las-bids vt-1">⚡ ${fmtBids(db.length)}</span>`:'';
+      ?`<span class="las-bids ${_vtClass}">${_vtIcon} ${recentBids} bid${recentBids>1?'s':''} placed this hour</span>`
+      :db.length>=5?`<span class="las-bids vt-1">⚡ ${db.length} bid${db.length!==1?'s':''} placed</span>`:'';
     const _lasSep=_stripViewCount>=1&&_lasBids?`<span class="las-sep">·</span>`:'';
     const liveActivityStrip=!isTeaser&&(_stripViewCount>=1||_lasBids)?`<div class="live-activity-strip">${_lasViewers}${_lasSep}${_lasBids}</div>`:'';
     const closingSoon=!isTeaser&&d.endTime&&(new Date(d.endTime)-now)<7200000&&(new Date(d.endTime)-now)>0;
