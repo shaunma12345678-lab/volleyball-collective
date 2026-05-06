@@ -867,6 +867,7 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
     <div class="stat"><span class="stat-num" id="stat-shop">0</span><span class="stat-label">In Shop</span></div>
     <div class="stat"><span class="stat-num" id="stat-bids">0</span><span class="stat-label">Bids Placed</span></div>
     <div class="stat"><span class="stat-num stat-num-green" id="stat-savings">$0</span><span class="stat-label">Below Retail Right Now</span></div>
+    <div class="stat"><span class="stat-num" id="stat-winners">0</span><span class="stat-label">Past Winners</span></div>
     <span id="stat-members" style="display:none"></span>
   </div>
   <div class="scroll-hint"><span>Scroll</span><div class="scroll-arrow"></div></div>
@@ -2489,6 +2490,8 @@ function renderDrops(){
   const _wbEl=document.getElementById('winner-bar');
   const _wbNum=document.getElementById('wb-count');
   if(_wbEl){_wbEl.style.display=_winnerCount>=1?'':'none';if(_wbNum)_wbNum.textContent=_winnerCount;}
+  const _statWinners=document.getElementById('stat-winners');
+  if(_statWinners)_statWinners.textContent=_winnerCount;
   const _totalSavings=drops.filter(d=>d.status==='published'&&d.retailPrice&&d.compBid&&parseFloat(d.retailPrice)>parseFloat(d.compBid)).reduce((s,d)=>s+(parseFloat(d.retailPrice)-parseFloat(d.compBid)),0);
   const _savEl=document.getElementById('stat-savings');
   if(_savEl)_savEl.textContent=_totalSavings>=1000?`$${(_totalSavings/1000).toFixed(1)}k`:_totalSavings>0?`$${Math.round(_totalSavings)}`:'$0';
