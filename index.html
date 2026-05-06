@@ -2573,7 +2573,7 @@ function renderDrops(){
     const _regretNum=d.regretText&&/^\s*\d+(\.\d+)?\s*$/.test(d.regretText)?parseFloat(d.regretText):null;
     const _regretStrip=!isTeaser&&!d.sold&&d.regretText
       ?_regretNum!=null
-        ?`<div class="regret-strip"><span class="rs-num">$${_regretNum.toFixed(0)}</span><div class="rs-copy">The last drop like this closed at <strong style="color:#f5f0e8">$${_regretNum.toFixed(0)}</strong>. Bidders who passed on it are still thinking about it — this is your shot.</div></div>`
+        ?`<div class="regret-strip"><span class="rs-num">$${_regretNum.toFixed(0)}</span><div class="rs-copy">Last one sold for <strong style="color:#f5f0e8">$${_regretNum.toFixed(0)}</strong>${_rtAmt>0?' — that\'s $'+(_rtAmt-_regretNum).toFixed(0)+' under the $'+_rtAmt.toFixed(0)+' retail price':' — below what you\'d pay anywhere else'}. We don't mark up. We sell below retail, every time. This is the only place you get prices like this.</div></div>`
         :`<div class="regret-strip"><div class="rs-copy">${d.regretText}</div></div>`
       :'';
     const _lastChanceStrip=closingSoon&&!d.sold?`<div class="last-chance-strip">🚨 <strong>Last Chance</strong> — This deal closes in under 2 hours. Price won't get better than this.</div>`:'';
