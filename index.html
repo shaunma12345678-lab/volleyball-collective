@@ -749,8 +749,14 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
 .bps-amount{font-family:'Bebas Neue',sans-serif;font-size:1.4rem;color:#3ecf8e;letter-spacing:1px}
 .bps-sub{font-size:.72rem;color:var(--muted);margin-top:3px;line-height:1.45}
 /* ── BEAT THE MARKET SECTION ── */
-#beat-market{position:relative;z-index:2;padding:90px 48px;border-top:1px solid rgba(0,35,149,.25)}
-.bm-inner{max-width:900px;margin:0 auto}
+#beat-market{position:relative;z-index:2;padding:90px 48px;border-top:1px solid rgba(0,35,149,.25);border-bottom:1px solid rgba(0,35,149,.25)}
+.bm-inner{max-width:960px;margin:0 auto}
+.bm-props{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin:36px 0 0}
+.bm-prop{background:rgba(0,35,149,.12);border:1px solid rgba(0,35,149,.3);border-radius:5px;padding:22px 20px}
+.bm-prop-icon{font-size:1.4rem;margin-bottom:10px}
+.bm-prop-title{font-size:.78rem;font-weight:700;color:var(--fr-white);letter-spacing:.5px;margin-bottom:7px}
+.bm-prop-copy{font-size:.7rem;color:var(--muted);line-height:1.6}
+@media(max-width:640px){#beat-market{padding:60px 20px}.bm-stats-grid{grid-template-columns:1fr;gap:12px}.bm-drop-row{flex-direction:column;align-items:flex-start}.bm-props{grid-template-columns:1fr;gap:12px}}
 .bm-stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin:36px 0 32px}
 .bm-stat{text-align:center;padding:22px 14px;background:rgba(0,35,149,.12);border:1px solid rgba(0,35,149,.3);border-radius:4px}
 .bm-stat-num{font-family:'Bebas Neue',sans-serif;font-size:2.6rem;color:#3ecf8e;letter-spacing:2px;line-height:1}
@@ -763,7 +769,6 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
 .bm-bid{font-family:'Bebas Neue',sans-serif;font-size:1.05rem;color:#3ecf8e;letter-spacing:1px}
 .bm-save-badge{background:rgba(62,207,142,.12);border:1px solid rgba(62,207,142,.35);color:#3ecf8e;font-size:.6rem;letter-spacing:1px;padding:2px 8px;border-radius:2px;font-weight:700;white-space:nowrap}
 .bm-note{text-align:center;font-size:.72rem;color:var(--muted);line-height:1.6;max-width:520px;margin:0 auto}
-@media(max-width:640px){#beat-market{padding:60px 20px}.bm-stats-grid{grid-template-columns:1fr;gap:12px}.bm-drop-row{flex-direction:column;align-items:flex-start}}
 </style>
 </head>
 <body>
@@ -777,6 +782,7 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
 <nav>
   <a href="#" class="nav-logo"><div class="logo-dot"></div>🏐 Volleyball Collective</a>
   <div class="nav-links">
+    <a href="#beat-market" style="color:#3ecf8e!important;font-weight:600">💰 Beat Market</a>
     <a href="#drops">Auctions</a>
     <a href="#shop">Shop</a>
     <a href="#flash" style="color:#fbbf24!important;font-weight:600">⚡ Flash Sale</a>
@@ -798,6 +804,7 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
 
 <div class="mobile-menu" id="mobile-menu">
   <div class="mobile-menu-tricolor"></div>
+  <a href="#beat-market" onclick="closeMobileMenu()" style="color:#3ecf8e!important;font-weight:600">💰 Beat Market</a>
   <a href="#drops" onclick="closeMobileMenu()">Auctions</a>
   <a href="#shop" onclick="closeMobileMenu()">Shop</a>
   <a href="#flash" onclick="closeMobileMenu()" style="color:#fbbf24!important;font-weight:600">⚡ Flash Sale</a>
@@ -876,6 +883,37 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
   <div class="trust-divider"></div>
   <div class="trust-item"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3ecf8e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span><strong>100% Authentic</strong> · Every jersey verified</span></div>
 </div>
+
+<!-- BEAT THE MARKET -->
+<section id="beat-market">
+  <div class="bm-inner">
+    <div style="text-align:center">
+      <span class="section-eyebrow">Price Proof</span>
+      <h2 class="section-title">We Beat The Market. Every Time.</h2>
+      <p style="font-family:'Playfair Display',serif;font-style:italic;color:var(--muted);font-size:.95rem;max-width:580px;margin:14px auto 0;line-height:1.7">We source rare volleyball jerseys and sell them <strong style="color:var(--fr-white);font-style:normal">below what you'd pay anywhere else</strong> — eBay, StockX, or retail. Bid any amount. Only the winner pays. Everyone else owes zero.</p>
+    </div>
+    <div class="bm-props">
+      <div class="bm-prop">
+        <div class="bm-prop-icon">💰</div>
+        <div class="bm-prop-title">Always Below Retail</div>
+        <div class="bm-prop-copy">Every drop is priced below the manufacturer's suggested retail. Not close to it — below it. You won't find these prices on eBay, StockX, or anywhere else.</div>
+      </div>
+      <div class="bm-prop">
+        <div class="bm-prop-icon">🎯</div>
+        <div class="bm-prop-title">You Name Your Price</div>
+        <div class="bm-prop-copy">Open with any bid — $1 less, $50 less, whatever you want. There's no penalty for bidding low. The market decides the price, and it's always lower here.</div>
+      </div>
+      <div class="bm-prop">
+        <div class="bm-prop-icon">🛡️</div>
+        <div class="bm-prop-title">Zero Risk, Always</div>
+        <div class="bm-prop-copy">Your card is saved via Stripe but never charged unless you win. Lose the auction? You walk away owing absolutely nothing. No risk, no commitment, no tricks.</div>
+      </div>
+    </div>
+    <div class="bm-stats-grid" id="bm-stats" style="margin-top:40px"></div>
+    <div class="bm-drops-list" id="bm-drops"></div>
+    <p class="bm-note" id="bm-note"></p>
+  </div>
+</section>
 
 <!-- AUCTIONS -->
 <section id="drops">
@@ -1011,18 +1049,6 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
 </section>
 
 <!-- BEAT THE MARKET SECTION -->
-<section id="beat-market">
-  <div class="bm-inner">
-    <div style="text-align:center">
-      <span class="section-eyebrow">Price Proof</span>
-      <h2 class="section-title">We Beat The Market</h2>
-      <p style="font-family:'Playfair Display',serif;font-style:italic;color:var(--muted);font-size:.95rem;max-width:540px;margin:14px auto 0;line-height:1.7">Every number below is a <strong style="color:var(--fr-white);font-style:normal">real drop on this platform</strong> — the pinned bid versus what the same item costs at retail. You bid below retail. You only pay if you win.</p>
-    </div>
-    <div class="bm-stats-grid" id="bm-stats"></div>
-    <div class="bm-drops-list" id="bm-drops"></div>
-    <p class="bm-note" id="bm-note"></p>
-  </div>
-</section>
 
 <!-- DROP SCHEDULE SECTION -->
 <section id="schedule">
