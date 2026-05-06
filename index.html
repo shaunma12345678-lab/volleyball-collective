@@ -609,6 +609,18 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
 .steal-meter-fill{height:100%;border-radius:10px;background:linear-gradient(90deg,#3ecf8e 0%,#fbbf24 55%,#ef4444 100%);transition:width .6s ease}
 .savings-badge{display:inline-flex;align-items:center;gap:4px;background:rgba(62,207,142,.12);border:1px solid rgba(62,207,142,.3);color:#3ecf8e;font-size:.64rem;font-weight:700;padding:3px 9px;border-radius:10px;letter-spacing:.3px;white-space:nowrap}
 .opportunity-banner{background:rgba(251,191,36,.05);border:1px solid rgba(251,191,36,.18);border-radius:3px;padding:9px 13px;margin-top:6px;font-size:.73rem;color:#fbbf24;line-height:1.5}
+.first-bid-prompt{background:rgba(251,191,36,.07);border:1px solid rgba(251,191,36,.28);border-radius:3px;padding:11px 14px;margin-top:4px}
+.fbp-headline{color:#fbbf24;font-weight:700;font-size:.73rem;margin-bottom:5px}
+.fbp-deal{font-family:'Bebas Neue',sans-serif;font-size:1.35rem;color:#3ecf8e;letter-spacing:1.5px;margin:4px 0}
+.fbp-sub{font-size:.68rem;color:rgba(245,240,232,.7);line-height:1.55}
+.hour-deal-strip{background:linear-gradient(90deg,rgba(237,41,57,.14),rgba(237,41,57,.05));border:1px solid rgba(237,41,57,.38);border-radius:3px;padding:9px 14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:4px}
+.hds-badge{background:#ED2939;color:#fff;font-size:.56rem;letter-spacing:2px;text-transform:uppercase;padding:2px 8px;border-radius:2px;flex-shrink:0;font-weight:700}
+.hds-text{font-size:.72rem;color:var(--fr-white);font-weight:600;flex:1}
+.hds-timer{font-family:'Bebas Neue',sans-serif;font-size:1.1rem;color:#ED2939;letter-spacing:2px;flex-shrink:0}
+.winner-bar{background:rgba(62,207,142,.05);border-bottom:1px solid rgba(62,207,142,.15);padding:11px 48px;display:flex;align-items:center;justify-content:center;gap:20px;flex-wrap:wrap;font-size:.7rem;color:rgba(245,240,232,.7)}
+.wb-num{font-family:'Bebas Neue',sans-serif;font-size:1.3rem;color:#3ecf8e;letter-spacing:1px;vertical-align:middle}
+.wb-div{color:rgba(255,255,255,.15);margin:0 4px}
+@media(max-width:640px){.winner-bar{padding:10px 20px;gap:10px}.hour-deal-strip{flex-direction:column;align-items:flex-start;gap:6px}}
 .comp-table-wrap{margin-top:16px;background:rgba(0,18,96,.35);border:1px solid rgba(0,35,149,.3);border-radius:4px;overflow:hidden}
 .comp-table-title{font-size:.62rem;letter-spacing:3px;text-transform:uppercase;color:var(--muted);padding:9px 14px 6px;border-bottom:1px solid rgba(0,35,149,.2)}
 .comp-table{width:100%;border-collapse:collapse}
@@ -937,6 +949,13 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
       <div class="bcp"><span class="bcp-icon">🏆</span><span><strong>Only the winner</strong> gets charged — one person, one payment</span></div>
       <div class="bcp"><span class="bcp-icon">🚫</span><span>Lose the auction? You owe <strong>$0</strong> — no cancellation needed</span></div>
     </div>
+  </div>
+  <div class="winner-bar" id="winner-bar" style="display:none">
+    <span>🏆 <span class="wb-num" id="wb-count">0</span> past clients won jerseys on Volleyball Collective</span>
+    <span class="wb-div">·</span>
+    <span>All paid below retail</span>
+    <span class="wb-div">·</span>
+    <span>Only the winner ever pays</span>
   </div>
   <div class="drops-grid" id="drops-grid">
     <div class="empty-drops"><span class="ei">🏐</span><p>No active auctions right now — check back soon!</p></div>
@@ -2455,6 +2474,10 @@ function renderDrops(){
   const liveCount=drops.filter(d=>d.status==='published').length;
   document.getElementById('stat-drops').textContent=liveCount;
   document.getElementById('stat-bids').textContent=bids.length;
+  const _winnerCount=_drops.filter(d=>d.status==='archived').length;
+  const _wbEl=document.getElementById('winner-bar');
+  const _wbNum=document.getElementById('wb-count');
+  if(_wbEl){_wbEl.style.display=_winnerCount>=1?'':'none';if(_wbNum)_wbNum.textContent=_winnerCount;}
   const _totalSavings=drops.filter(d=>d.status==='published'&&d.retailPrice&&d.compBid&&parseFloat(d.retailPrice)>parseFloat(d.compBid)).reduce((s,d)=>s+(parseFloat(d.retailPrice)-parseFloat(d.compBid)),0);
   const _savEl=document.getElementById('stat-savings');
   if(_savEl)_savEl.textContent=_totalSavings>=1000?`$${(_totalSavings/1000).toFixed(1)}k`:_totalSavings>0?`$${Math.round(_totalSavings)}`:'$0';
@@ -2592,7 +2615,28 @@ function renderDrops(){
     const _dealSavings=_rtAmt>0&&_cbAmt>0?_rtAmt-_cbAmt:0;
     const _stealPct=_rtAmt>0&&_dealSavings>0?Math.min(100,Math.max(5,Math.round((_dealSavings/_rtAmt)*100))):0;
     const _stealMeter=!isTeaser&&!d.sold&&_stealPct>0?`<div class="steal-meter-wrap"><div class="steal-meter-labels"><span>💰 Saving $${_dealSavings.toFixed(0)} vs retail</span><span>Retail $${_rtAmt.toFixed(0)}</span></div><div class="steal-meter-bar"><div class="steal-meter-fill" style="width:${_stealPct}%"></div></div></div>`:'';
-    const _oppBanner=!isTeaser&&!d.sold&&db.length===0&&watchCount>0?`<div class="opportunity-banner">👀 ${watchCount} ${watchCount===1?'person':'people'} watching — <strong style="color:#fbbf24">no bids yet.</strong> Be first and secure the early bid bonus if you win.</div>`:'';
+    let _oppBanner='';
+    if(!isTeaser&&!d.sold&&db.length===0){
+      const _watchLine=watchCount>0?`👀 ${watchCount} ${watchCount===1?'person':'people'} watching — no bids yet`:`🎯 No bids placed yet — be first`;
+      if(_cbAmt>0){
+        const _rtLine=_rtAmt>0&&_rtAmt>_cbAmt?`<span style="color:#3ecf8e;font-weight:700"> — $${(_rtAmt-_cbAmt).toFixed(0)} below retail</span>`:'';
+        _oppBanner=`<div class="first-bid-prompt"><div class="fbp-headline">${_watchLine}</div><div class="fbp-deal">$${_cbAmt.toFixed(0)} pinned${_rtLine}</div><div class="fbp-sub">Bid below $${_cbAmt.toFixed(0)} and you're immediately winning. Free to enter — card only charged if you win. Worst case you owe zero.</div></div>`;
+      }else{
+        _oppBanner=watchCount>0?`<div class="first-bid-prompt"><div class="fbp-headline">${_watchLine}</div><div class="fbp-sub">Be the first to set the price. Start as low as you want — there's no minimum. Free to bid, only charged if you win.</div></div>`:'';
+      }
+    }
+    const _dealWindowMs=2*3600000;
+    const _dropAge=now-new Date(d.createdAt).getTime();
+    const _inDealWindow=!isTeaser&&!d.sold&&_cbAmt>0&&_dropAge>=0&&_dropAge<_dealWindowMs;
+    let hourDealStrip='';
+    if(_inDealWindow){
+      const _msLeft=_dealWindowMs-_dropAge;
+      const _hLeft=Math.floor(_msLeft/3600000);
+      const _mLeft=Math.floor((_msLeft%3600000)/60000);
+      const _timeStr=_hLeft>0?`${_hLeft}h ${_mLeft}m left`:_mLeft>1?`${_mLeft} min left`:`< 1 min left`;
+      const _rtSave=_rtAmt>0&&_rtAmt>_cbAmt?` · $${(_rtAmt-_cbAmt).toFixed(0)} below retail`:'';
+      hourDealStrip=`<div class="hour-deal-strip"><span class="hds-badge">⚡ First 2-Hour Deal</span><span class="hds-text">Pinned at $${_cbAmt.toFixed(0)}${_rtSave} — bid below this right now</span><span class="hds-timer">${_timeStr}</span></div>`;
+    }
     const _tsAmt=d.timelineStart&&parseFloat(d.timelineStart)>0?parseFloat(d.timelineStart):0;
     const _bidTimeline=!isTeaser&&!d.sold&&_tsAmt>0&&_cbAmt>0&&_rtAmt>0?`<div class="bid-timeline"><div class="bt-step"><div class="bt-dot"></div><div class="bt-amt">$${_tsAmt.toFixed(0)}</div><div class="bt-label">Started</div></div><div class="bt-line"></div><div class="bt-step"><div class="bt-dot now"></div><div class="bt-amt now">$${_cbAmt.toFixed(0)}</div><div class="bt-label">Now</div></div><div class="bt-line"></div><div class="bt-step"><div class="bt-dot"></div><div class="bt-amt">$${_rtAmt.toFixed(0)}</div><div class="bt-label">Retail</div></div></div>`:'';
     const _regretNum=d.regretText&&/^\s*\d+(\.\d+)?\s*$/.test(d.regretText)?parseFloat(d.regretText):null;
@@ -2611,7 +2655,7 @@ function renderDrops(){
         <div class="drop-meta">${d.size?`<span>Size: ${d.size}</span>`:''}${d.condition?`<span>${d.condition}</span>`:''}${_earlyChip}</div>
         ${_statusChip}
         ${d.desc?`<p class="drop-desc">${d.desc}</p>`:''}
-        ${teaserEarlyStrip}${savingsStrip}${valueStrip}${_stealMeter}${_bidTimeline}${_oppBanner}${_regretStrip}${priceClimbStrip}${_lastChanceStrip}${oneWinnerStrip}
+        ${teaserEarlyStrip}${hourDealStrip}${savingsStrip}${valueStrip}${_stealMeter}${_bidTimeline}${_oppBanner}${_regretStrip}${priceClimbStrip}${_lastChanceStrip}${oneWinnerStrip}
         <div class="drop-footer">${footerLeft}${actionBtn}</div>
         ${offerRow}${notifyWaitingRow}
       </div>
