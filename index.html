@@ -587,7 +587,8 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
 /* center block — hero */
 .zr-block-center{background:linear-gradient(180deg,rgba(245,166,35,.1),rgba(245,166,35,.04));border-left:1px solid rgba(245,166,35,.3)!important;border-right:1px solid rgba(245,166,35,.3)!important}
 .zr-block-center:hover{background:linear-gradient(180deg,rgba(245,166,35,.16),rgba(245,166,35,.08))}
-.zr-amount{font-family:'Bebas Neue',sans-serif;font-size:3rem;letter-spacing:3px;color:rgba(255,255,255,.3);line-height:1;margin-bottom:12px}
+.zr-amount{font-family:'Bebas Neue',sans-serif;font-size:3rem;letter-spacing:3px;color:#fff;text-shadow:0 0 40px rgba(255,255,255,.55),0 0 80px rgba(255,255,255,.2);line-height:1;margin-bottom:12px;animation:zrWhiteGlow 3.5s ease-in-out infinite}
+@keyframes zrWhiteGlow{0%,100%{text-shadow:0 0 30px rgba(255,255,255,.4),0 0 60px rgba(255,255,255,.15)}50%{text-shadow:0 0 60px rgba(255,255,255,.75),0 0 120px rgba(255,255,255,.3)}}
 .zr-amount-gold{font-size:4.5rem;color:var(--gold);text-shadow:0 0 60px rgba(245,166,35,.5);animation:zrGold 3s ease-in-out infinite}
 @keyframes zrGold{0%,100%{text-shadow:0 0 40px rgba(245,166,35,.4)}50%{text-shadow:0 0 80px rgba(245,166,35,.8),0 0 120px rgba(245,166,35,.3)}}
 .zr-block-title{font-family:'Bebas Neue',sans-serif;font-size:1.1rem;letter-spacing:2px;color:var(--fr-white);margin-bottom:10px}
