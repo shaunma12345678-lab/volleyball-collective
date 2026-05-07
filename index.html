@@ -70,7 +70,7 @@ nav{position:fixed;top:38px;left:0;right:0;z-index:500;display:flex;justify-cont
 #hero{position:relative;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:140px 40px 100px;z-index:2;overflow:hidden}
 /* aurora orbs */
 #hero::before{content:'';position:absolute;width:900px;height:900px;border-radius:50%;top:-250px;left:-250px;background:radial-gradient(circle,rgba(245,166,35,.32) 0%,rgba(245,166,35,.1) 40%,transparent 70%);filter:blur(70px);animation:orbA 18s ease-in-out infinite;z-index:1;pointer-events:none}
-#hero::after{content:'';position:absolute;width:800px;height:800px;border-radius:50%;bottom:-250px;right:-250px;background:radial-gradient(circle,rgba(245,166,35,.25) 0%,rgba(34,197,94,.07) 45%,transparent 70%);filter:blur(80px);animation:orbB 22s ease-in-out infinite;z-index:1;pointer-events:none}
+#hero::after{content:'';position:absolute;width:800px;height:800px;border-radius:50%;bottom:-250px;right:-250px;background:radial-gradient(circle,rgba(245,166,35,.28) 0%,rgba(245,166,35,.06) 45%,transparent 70%);filter:blur(80px);animation:orbB 22s ease-in-out infinite;z-index:1;pointer-events:none}
 @keyframes orbA{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(260px,140px) scale(1.2)}66%{transform:translate(100px,260px) scale(.88)}}
 @keyframes orbB{0%,100%{transform:translate(0,0) scale(1)}40%{transform:translate(-200px,-120px) scale(1.25)}80%{transform:translate(-60px,120px) scale(.82)}}
 /* net grid */
@@ -847,8 +847,11 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
 .bps-sub{font-size:.72rem;color:var(--muted);margin-top:3px;line-height:1.45}
 /* ── BEAT THE MARKET SECTION ── */
 #beat-market{position:relative;z-index:2;padding:90px 48px;overflow:hidden}
-#beat-market::before{content:'';position:absolute;width:900px;height:900px;border-radius:50%;top:50%;left:50%;transform:translate(-50%,-50%);background:radial-gradient(circle,rgba(245,166,35,.09) 0%,transparent 65%);filter:blur(100px);pointer-events:none;animation:bmOrb 10s ease-in-out infinite}
-@keyframes bmOrb{0%,100%{transform:translate(-50%,-50%) scale(1);opacity:.5}50%{transform:translate(-50%,-50%) scale(1.3);opacity:1}}
+#beat-market::before{content:'';position:absolute;width:1000px;height:1000px;border-radius:50%;top:50%;left:50%;transform:translate(-50%,-50%);background:radial-gradient(circle,rgba(245,166,35,.16) 0%,rgba(245,166,35,.05) 50%,transparent 70%);filter:blur(90px);pointer-events:none;animation:bmOrb 10s ease-in-out infinite}
+#beat-market::after{content:'';position:absolute;width:500px;height:500px;border-radius:50%;top:10%;right:-100px;background:radial-gradient(circle,rgba(245,166,35,.1) 0%,transparent 70%);filter:blur(70px);pointer-events:none;animation:bmOrb 14s ease-in-out infinite reverse}
+@keyframes bmOrb{0%,100%{transform:translate(-50%,-50%) scale(1);opacity:.6}50%{transform:translate(-50%,-50%) scale(1.35);opacity:1}}
+.bm-title-glow{animation:bmTitleGlow 4s ease-in-out infinite}
+@keyframes bmTitleGlow{0%,100%{text-shadow:0 0 40px rgba(245,166,35,.18),0 0 80px rgba(245,166,35,.08)}50%{text-shadow:0 0 80px rgba(245,166,35,.45),0 0 160px rgba(245,166,35,.22)}}
 .bm-inner{max-width:1040px;margin:0 auto;position:relative;z-index:1}
 /* golden standard cards */
 .gs-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin:44px 0 0}
@@ -856,7 +859,7 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
 .gs-card:hover{border-color:rgba(245,166,35,.45);transform:translateY(-4px);box-shadow:0 20px 44px rgba(0,0,0,.5),0 0 0 1px rgba(245,166,35,.15)}
 .gs-card::before{content:'';position:absolute;top:-40px;right:-40px;width:120px;height:120px;border-radius:50%;background:radial-gradient(circle,rgba(245,166,35,.12),transparent 70%);pointer-events:none}
 .gs-icon{font-size:1.8rem;margin-bottom:14px;display:block}
-.gs-title{font-family:'Bebas Neue',sans-serif;font-size:1.3rem;letter-spacing:2px;color:var(--gold);margin-bottom:8px}
+.gs-title{font-family:'Bebas Neue',sans-serif;font-size:1.3rem;letter-spacing:2px;color:var(--gold);margin-bottom:8px;text-shadow:0 0 20px rgba(245,166,35,.5)}
 .gs-copy{font-size:.78rem;color:var(--muted);line-height:1.7}
 .gs-copy strong{color:var(--fr-white);font-weight:600}
 /* gold accent bar on card left edge */
@@ -1044,9 +1047,9 @@ footer .f-stripe{margin-top:10px;font-size:.68rem;color:rgba(123,159,212,.45)}
 <section id="beat-market">
   <div class="bm-inner">
     <div style="text-align:center">
-      <span class="section-eyebrow" style="color:var(--gold);letter-spacing:6px">The Golden Standard</span>
-      <h2 class="section-title" style="margin-top:8px">Why We Give The Best Deals.</h2>
-      <p style="font-family:'Playfair Display',serif;font-style:italic;color:var(--muted);font-size:.95rem;max-width:600px;margin:16px auto 0;line-height:1.8">We don't just compete on price — <strong style="color:var(--fr-white);font-style:normal">we set the standard</strong>. Every jersey we drop is sourced, priced, and auctioned so that the winning bid beats anything you'd find on eBay, StockX, or retail. That's not a promise — it's our track record.</p>
+      <span class="section-eyebrow" style="color:var(--gold);letter-spacing:6px;text-shadow:0 0 28px rgba(245,166,35,.75)">The Golden Standard</span>
+      <h2 class="section-title bm-title-glow" style="margin-top:8px">Why We Give The <span style="color:var(--gold);text-shadow:0 0 50px rgba(245,166,35,.9),0 0 100px rgba(245,166,35,.4)">Best Deals.</span></h2>
+      <p style="font-family:'Playfair Display',serif;font-style:italic;color:var(--muted);font-size:.95rem;max-width:600px;margin:16px auto 0;line-height:1.8">We don't just compete on price — <strong style="color:var(--fr-white);font-style:normal;text-shadow:0 0 20px rgba(245,166,35,.3)">we set the standard</strong>. Every jersey we drop is sourced, priced, and auctioned so that the winning bid beats anything you'd find on eBay, StockX, or retail. That's not a promise — it's our track record.</p>
     </div>
 
     <div class="gs-grid">
