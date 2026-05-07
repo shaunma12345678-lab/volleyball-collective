@@ -272,6 +272,9 @@ nav{position:fixed;top:38px;left:0;right:0;z-index:500;display:flex;justify-cont
 .bid-modal-risk-bar{background:linear-gradient(90deg,rgba(245,166,35,.08),rgba(245,166,35,.04),rgba(245,166,35,.08));border-bottom:1px solid rgba(245,166,35,.18);padding:11px 22px;display:flex;justify-content:center;gap:24px;flex-wrap:wrap}
 .bmrb-item{display:flex;align-items:center;gap:6px;font-size:.67rem;letter-spacing:1px;color:var(--gold);white-space:nowrap}
 .bmrb-dot{width:5px;height:5px;border-radius:50%;background:var(--gold);flex-shrink:0}
+.bid-count-img{position:absolute;bottom:10px;left:10px;z-index:3;background:rgba(7,9,15,.82);border:1px solid rgba(245,166,35,.38);border-radius:3px;padding:6px 10px;backdrop-filter:blur(8px);display:flex;flex-direction:column;gap:1px;pointer-events:none}
+.bci-total{font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:2px;color:var(--gold);line-height:1;text-shadow:0 0 14px rgba(245,166,35,.5)}
+.bci-hour{font-size:.54rem;letter-spacing:1px;color:rgba(255,255,255,.55);white-space:nowrap;margin-top:2px}
 .drop-img-badges{position:absolute;bottom:10px;right:10px;z-index:3;display:flex;flex-direction:column;gap:4px;align-items:flex-end}
 .item-badge{padding:3px 9px;border-radius:2px;font-size:.58rem;letter-spacing:2px;text-transform:uppercase;backdrop-filter:blur(6px);font-weight:600;white-space:nowrap}
 .item-badge-red{background:rgba(40,0,0,.84);border:1px solid rgba(245,166,35,.6);color:#F5A623}
@@ -2624,6 +2627,13 @@ function fmtBids(n){
   if(n<31)return'25+ bids';
   return'30+ bids';
 }
+function fmtHourBids(n){
+  if(n<=0)return'';
+  if(n<3)return`${n} this hour`;
+  if(n<5)return'3+ this hour';
+  if(n<10)return'5+ this hour';
+  return'10+ this hour';
+}
 
 function renderDrops(){
   const drops=_drops.filter(d=>(d.status==='published'||d.status==='teaser')&&d.type!=='buynow');
@@ -2667,6 +2677,7 @@ function renderDrops(){
     const hourlyViews=_hourlyWatchCounts[d.id]||0;
     const notifyCount=isTeaser?((_notifyCounts&&_notifyCounts[d.id])||0):0;
     const viewerBadge=watchCount>=1?`<span class="viewer-badge">👁 ${watchCount} watching</span>`:'';
+    const bidCountImgBadge=!isTeaser&&!d.sold&&db.length>0?`<div class="bid-count-img"><span class="bci-total">${fmtBids(db.length)}</span>${recentBids>0?`<span class="bci-hour">${fmtHourBids(recentBids)}</span>`:''}</div>`:'';
     const hourlyViewsStr=!isTeaser&&hourlyViews>1?`<span class="hourly-views">👁 ${hourlyViews} viewed in the last hour</span>`:'';
     const offerRow=isTeaser?'':`<div class="drop-offer-row">${hourlyViewsStr}<button class="drop-offer-link" onclick="event.stopPropagation();openDropOfferModal('${d.id}','${d.name.replace(/'/g,"\\'").replace(/"/g,'&quot;')}')">🔔 5% Off</button><span style="color:rgba(123,159,212,.3);font-size:.8rem">·</span><button class="drop-offer-link" style="color:var(--muted);border-color:rgba(123,159,212,.2)" onclick="event.stopPropagation();openNotifyModal('${d.id}','${d.name.replace(/'/g,"\\'").replace(/"/g,'&quot;')}','similar')">🔔 Notify Me</button></div>`;
     const notifyWaitingRow=isTeaser&&notifyCount>0?`<div class="notify-waiting-row">🔔 ${notifyCount} ${notifyCount===1?'person':'people'} waiting for this drop</div>`:'';
@@ -2812,7 +2823,7 @@ function renderDrops(){
       :'';
     const _lastChanceStrip=closingSoon&&!d.sold?`<div class="last-chance-strip">🚨 <strong>Last Chance</strong> — This deal closes in under 2 hours. Price won't get better than this.</div>`:'';
     return`<div class="drop-card${isTeaser?' teaser-card':''}${hotClass}${closingSoonClass}" data-drop-id="${d.id}" style="animation-delay:${i*.09}s${isTeaser?';cursor:default':''}"${cardClick?` onclick="${cardClick}"`:''}}>
-      <div class="drop-img-wrap">${img}${teaserOverlay}${lockOverlay}${badgeChipFinal}${memberBadge}${hotBadge}${customBadges}${oneOfOneBadge}${viewerBadge}${teaserMemberChip}</div>
+      <div class="drop-img-wrap">${img}${teaserOverlay}${lockOverlay}${badgeChipFinal}${memberBadge}${hotBadge}${customBadges}${oneOfOneBadge}${viewerBadge}${teaserMemberChip}${bidCountImgBadge}</div>
       ${liveActivityStrip}
       <div class="card-stripe"></div>
       <div class="drop-body">
