@@ -194,7 +194,29 @@ module.exports = async (req, res) => {
 
   try {
     if (req.method === 'GET') {
-      const isAdmin = (req.query || {}).adminPw === ADMIN_PW;
+      const query = req.query || {};
+
+      // Public wins endpoint — minimal fields, no private bid data
+      if (query.wins === '1') {
+        const winIds = (await redis('SMEMBERS', 'wins:pinned')) || [];
+        if (!winIds.length) return res.status(200).json({ wins: [] });
+        const wins = (await Promise.all(
+          winIds.map(async id => {
+            const raw = await redis('GET', `bid:${id}`);
+            try {
+              const b = JSON.parse(raw);
+              if (!b || !b.pinnedWin) return null;
+              const saved = b.pinnedRetailPrice && b.amount
+                ? Math.max(0, parseFloat(b.pinnedRetailPrice) - parseFloat(b.amount))
+                : 0;
+              return { id: b.id, dropName: b.pinnedDropName || 'Jersey', amount: b.amount, retailPrice: b.pinnedRetailPrice || 0, saved: saved.toFixed(0) };
+            } catch { return null; }
+          })
+        )).filter(Boolean);
+        return res.status(200).json({ wins });
+      }
+
+      const isAdmin = query.adminPw === ADMIN_PW;
       const ids = (await redis('SMEMBERS', 'bids:keys')) || [];
       const bids = (
         await Promise.all(
@@ -360,7 +382,23 @@ module.exports = async (req, res) => {
       const raw = await redis('GET', `bid:${body.id}`);
       if (!raw) return res.status(404).json({ error: 'Bid not found' });
       const bid = JSON.parse(raw);
-      bid.charged = true;
+
+      if (body.action === 'pinWin') {
+        if (body.pinnedWin) {
+          bid.pinnedWin = true;
+          bid.pinnedDropName = body.dropName || '';
+          bid.pinnedRetailPrice = parseFloat(body.retailPrice) || 0;
+          await redis('SADD', 'wins:pinned', body.id);
+        } else {
+          bid.pinnedWin = false;
+          delete bid.pinnedDropName;
+          delete bid.pinnedRetailPrice;
+          await redis('SREM', 'wins:pinned', body.id);
+        }
+      } else {
+        bid.charged = true;
+      }
+
       await redis('SET', `bid:${body.id}`, JSON.stringify(bid));
       return res.status(200).json({ success: true });
     }
